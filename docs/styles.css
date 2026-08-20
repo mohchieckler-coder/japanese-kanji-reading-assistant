@@ -1380,6 +1380,23 @@ rt {
   font-size: 15px;
 }
 
+.privacy-policy-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  margin-top: 12px;
+  padding: 0 18px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  color: #fff;
+  font-weight: 800;
+}
+
+.privacy-policy-link:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.08);
+}
+
 .privacy-list {
   position: relative;
   z-index: 1;
@@ -1730,6 +1747,96 @@ rt {
   font-weight: 700;
 }
 
+.policy-page {
+  background: var(--paper);
+}
+
+.policy-header .button {
+  flex: 0 0 auto;
+}
+
+.policy-main {
+  padding: 86px 0 110px;
+}
+
+.policy-container {
+  max-width: 960px;
+}
+
+.policy-title {
+  max-width: 780px;
+  margin-bottom: 42px;
+}
+
+.policy-title h1 {
+  margin: 8px 0 18px;
+  color: var(--ink);
+  font-size: clamp(46px, 7vw, 76px);
+  letter-spacing: -0.055em;
+}
+
+.policy-title > p:not(.section-kicker) {
+  color: var(--ink-soft);
+  font-size: 17px;
+  line-height: 1.9;
+}
+
+.policy-title .policy-updated {
+  margin-top: 12px;
+  color: var(--ink-faint);
+  font-size: 13px;
+}
+
+.policy-card {
+  padding: clamp(30px, 6vw, 68px);
+  border: 1px solid var(--line);
+  border-radius: 34px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(15, 43, 37, 0.08);
+}
+
+.policy-card section + section {
+  margin-top: 42px;
+  padding-top: 42px;
+  border-top: 1px solid var(--line);
+}
+
+.policy-card h2 {
+  margin: 0 0 14px;
+  color: var(--ink);
+  font-size: clamp(22px, 3vw, 29px);
+  letter-spacing: -0.025em;
+}
+
+.policy-card p,
+.policy-card li {
+  color: var(--ink-soft);
+  font-size: 16px;
+  line-height: 1.9;
+}
+
+.policy-card p {
+  margin: 0;
+}
+
+.policy-card p + p {
+  margin-top: 12px;
+}
+
+.policy-card ul {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding-left: 1.25em;
+}
+
+.policy-card a {
+  color: var(--red);
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
 @media (max-width: 1120px) {
   .hero-grid {
     grid-template-columns: minmax(0, 0.84fr) minmax(480px, 1.16fr);
@@ -2004,6 +2111,36 @@ rt {
 @media (max-width: 640px) {
   .container {
     width: min(calc(100% - 32px), var(--container));
+  }
+
+  .policy-header .brand-copy small {
+    display: none;
+  }
+
+  .policy-header .button {
+    min-height: 40px;
+    padding-inline: 14px;
+  }
+
+  .policy-main {
+    padding: 56px 0 72px;
+  }
+
+  .policy-title {
+    margin-bottom: 28px;
+  }
+
+  .policy-title h1 {
+    font-size: 46px;
+  }
+
+  .policy-card {
+    border-radius: 24px;
+  }
+
+  .policy-card section + section {
+    margin-top: 30px;
+    padding-top: 30px;
   }
 
   .brand-copy small {

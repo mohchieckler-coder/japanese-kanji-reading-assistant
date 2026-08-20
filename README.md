@@ -58,12 +58,27 @@ API Key 只保存在 `chrome.storage.local` 的可信扩展上下文中，管理
 ## 开发命令
 
 - `npm run build`：生成可加载的 `dist` 扩展。
+- `npm run package:store`：重新构建并验证扩展，然后生成可直接上传 Chrome Web Store 的专用 ZIP；产物位于 `artifacts/chrome-web-store/`。
 - `npm run test:unit`：验证读音逻辑、外国人名词典与边界、翻译请求构造、密钥脱敏、权限边界、容量限制及后台消息流程。
 - `npm run test:e2e`：在无头 Chromium 中验证真实 DOM 标注、词/句/段翻译、管理面板、动态内容、关闭/重开和防重复注入。
 - `npm run test:extension`：加载真实 Manifest V3 扩展，验证 Service Worker、管理面板、划词消息、OpenAI 兼容请求、译文及 Token 返回。
 - `npm run audit:live`：在新闻、体育、论坛与学术网站上执行真实页面兼容性审计，并输出 `artifacts/live-site-audit.json`。
 - `npm run validate`：检查 Manifest、构建文件和本地词典完整性。
 - `npm test`：依次执行全部构建与验证。
+
+## Chrome Web Store 发布包
+
+执行：
+
+```powershell
+npm run package:store
+```
+
+然后在 Chrome Web Store 开发者控制台上传 `artifacts/chrome-web-store/` 中生成的 `*-chrome-web-store.zip`。这个 ZIP 只包含 `dist` 的已构建文件，且根目录只有一份 `manifest.json`；打包脚本会拒绝源码目录、历史 `releases`、CRX、PEM、密钥、Source Map 和嵌套 ZIP，并在完成后执行清单位置、Manifest V3、版本、重复路径和 CRC 校验。
+
+不要上传整个仓库生成的 `demo.zip`，也不要上传 `docs/downloads/` 中用于手动下载的 ZIP；它们不是商店提交包，可能包含多份清单或额外的顶层目录。
+
+提交审核前，将 `docs/` 通过 GitHub Pages 发布，并在开发者后台的隐私政策字段填写公开的 `privacy.html` 地址。该页面说明了本地注音、用户自选翻译服务、API Key、页面元数据、历史记录、Token 记录和删除方式。
 
 ## 设计边界
 

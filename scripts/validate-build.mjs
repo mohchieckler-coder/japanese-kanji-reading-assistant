@@ -125,6 +125,13 @@ for (const marker of ["TRANSLATE_TEXT", "GET_TRANSLATION_DASHBOARD", "translatio
   }
 }
 
+for (const file of ["content.js", "background.js", "popup.js", "options.js", "options-i18n.js"]) {
+  const source = readFileSync(join(output, file), "utf8");
+  if (/\beval\s*\(/u.test(source) || /\b(?:new\s+)?Function\s*\(/u.test(source)) {
+    throw new Error(`${file} contains dynamic code construction forbidden by the Chrome Web Store`);
+  }
+}
+
 const optionsI18nBundle = readFileSync(join(output, "options-i18n.js"), "utf8");
 for (const marker of ["zh-CN", "English", "日本語", "한국어", "JP_TRANSLATION_I18N"]) {
   if (!optionsI18nBundle.includes(marker)) {

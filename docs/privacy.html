@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <meta name="description" content="日语汉字 AI 读音助手隐私政策：说明本地注音、划词翻译、API Key、历史记录及数据删除方式。">
+    <title>隐私政策｜日语汉字 AI 读音助手</title>
+    <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body class="policy-page">
+    <a class="skip-link" href="#main-content">跳到正文</a>
+
+    <header class="site-header policy-header">
+      <div class="container header-inner">
+        <a class="brand" href="index.html" aria-label="返回日语汉字 AI 读音助手首页">
+          <img src="assets/icon.svg" width="54" height="54" alt="">
+          <span class="brand-copy">
+            <strong>日语汉字 AI 读音助手</strong>
+            <small>JAPANESE KANJI READING ASSISTANT</small>
+          </span>
+        </a>
+        <a class="button button-small" href="index.html">返回官网</a>
+      </div>
+    </header>
+
+    <main id="main-content" class="policy-main">
+      <div class="container policy-container">
+        <header class="policy-title">
+          <p class="section-kicker">PRIVACY POLICY</p>
+          <h1>隐私政策</h1>
+          <p>本政策说明日语汉字 AI 读音助手（以下简称“本扩展”）处理哪些数据、为何处理，以及你如何控制或删除这些数据。</p>
+          <p class="policy-updated">生效及最后更新日期：2026 年 8 月 21 日</p>
+        </header>
+
+        <article class="policy-card">
+          <section>
+            <h2>1. 单一用途</h2>
+            <p>本扩展用于在日语网页的汉字上方显示读音，并在用户主动选择文字后，通过用户自行配置的 OpenAI 兼容接口提供翻译。扩展不会将这些能力用于广告、画像、数据销售或与阅读辅助无关的目的。</p>
+          </section>
+
+          <section>
+            <h2>2. 本地处理的数据</h2>
+            <ul>
+              <li>网页正文会在浏览器内进行日语形态分析，以生成读音；正文不会因此发送给开发者服务器。</li>
+              <li>API Key、BaseURL、模型、目标语言和界面语言保存在本机的 Chrome 扩展存储中。</li>
+              <li>翻译历史可包含所选原文、译文、页面 URL、页面标题、时间、模型、目标语言及 Token 用量；Token 明细包含页面 URL、页面标题、时间及用量。上述记录保存在本机。</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>3. 发送给用户所选服务商的数据</h2>
+            <p>只有在你主动发起翻译时，所选文字、目标语言和必要的请求指令才会发送到你配置的 API BaseURL。API Key 会作为认证信息随 HTTPS 请求发送给该服务商。点击“测试连接”时会发送固定测试文本“こんにちは”。本扩展不会把页面 URL、页面标题或本地历史附加到翻译请求中。</p>
+            <p>远程服务商会按其自身条款和隐私政策处理收到的数据。请只配置你信任的服务，并自行确认其保存、训练和跨境传输规则。非本机接口必须使用 HTTPS；仅 localhost 和 127.0.0.1 允许 HTTP。</p>
+          </section>
+
+          <section>
+            <h2>4. 开发者不会收集或出售数据</h2>
+            <p>本扩展没有开发者运营的数据接收服务器、分析 SDK 或广告 SDK。开发者不会接收、出售或向数据经纪商提供你的 API Key、网页正文、所选文字、浏览历史、翻译历史或 Token 记录。</p>
+          </section>
+
+          <section>
+            <h2>5. 保存期限与删除</h2>
+            <ul>
+              <li>设置和记录没有固定云端保存期限，因为它们只保存在本机浏览器中。</li>
+              <li>翻译历史最多保留 500 条且受约 4 MiB 总量限制；Token 记录最多保留 1,000 条且受约 512 KiB 总量限制，超过限制时优先移除较旧记录。</li>
+              <li>你可以在管理面板分别删除单条历史、清空全部历史、清空 Token 记录或清除 API Key。</li>
+              <li>卸载扩展通常会移除 Chrome 为该扩展保存的本地数据；如需确保删除，请先在管理面板清空记录和密钥。</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>6. 权限用途</h2>
+            <ul>
+              <li><strong>activeTab：</strong>仅在用户操作扩展时访问当前标签页。</li>
+              <li><strong>scripting：</strong>向当前页面注入本地读音与划词翻译界面。</li>
+              <li><strong>storage：</strong>在本机保存设置、历史与 Token 记录。</li>
+              <li><strong>可选主机权限：</strong>仅在保存或测试 API 配置时，为用户指定的接口来源申请网络访问；扩展不会预先取得固定的全站访问权限。</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>7. 安全边界</h2>
+            <p>API Key 不会在管理面板或后台响应中完整回显，扩展存储被限制为可信扩展上下文访问。该机制用于减少意外暴露，但本机扩展存储并不是硬件保险库；请保护浏览器配置文件和设备账户，并在怀疑密钥泄露时立即到服务商处撤销或轮换密钥。</p>
+          </section>
+
+          <section>
+            <h2>8. 儿童、变更与联系</h2>
+            <p>本扩展不是面向儿童专门设计的服务，也不会主动建立用户账户。若功能或数据处理方式发生实质变化，本政策会同步更新日期和说明。隐私问题可通过公开项目的 GitHub Issues 提交。</p>
+            <p><a href="https://github.com/mohchieckler-coder/japanese-kanji-reading-assistant/issues">前往 GitHub Issues</a></p>
+          </section>
+        </article>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-grid">
+        <div class="footer-brand">
+          <img src="assets/icon.svg" width="38" height="38" alt="">
+          <div><strong>日语汉字 AI 读音助手</strong><small>本地优先的日语网页阅读工具</small></div>
+        </div>
+        <p>© 2026 Japanese Kanji Reading Assistant · 隐私政策</p>
+        <a href="index.html">返回官网 <span aria-hidden="true">→</span></a>
+      </div>
+    </footer>
+  </body>
+</html>

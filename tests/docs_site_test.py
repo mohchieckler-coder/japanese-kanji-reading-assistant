@@ -8,6 +8,7 @@ from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
 SITE = ROOT / "docs" / "index.html"
+PRIVACY_SITE = ROOT / "docs" / "privacy.html"
 ARTIFACTS = ROOT / "artifacts"
 DOWNLOAD = ROOT / "docs" / "downloads" / "japanese-furigana-ai-2.3.0.zip"
 DOWNLOAD_SHA256 = "A39AA56AA16019C2A00F36F8605DD1D18E9365F86A336AC0615E7A9B167EDDE0"
@@ -148,6 +149,47 @@ def main():
                     path=str(ARTIFACTS / f"docs-site-{name}.png"),
                     full_page=True,
                 )
+            page.close()
+
+        for name, viewport in {
+            "privacy-desktop": VIEWPORTS["desktop"],
+            "privacy-mobile": VIEWPORTS["mobile"],
+        }.items():
+            page = browser.new_page(viewport=viewport)
+            page.on(
+                "console",
+                lambda message, page_name=name: console_errors.append(
+                    f"{page_name}: {message.text}"
+                ) if message.type == "error" else None,
+            )
+            page.on(
+                "pageerror",
+                lambda error, page_name=name: page_errors.append(f"{page_name}: {error}"),
+            )
+            page.goto(PRIVACY_SITE.as_uri(), wait_until="load")
+            page.wait_for_function(
+                "() => [...document.images].every((image) => image.complete && image.naturalWidth > 0)"
+            )
+            assert page.title() == "隐私政策｜日语汉字 AI 读音助手"
+            assert page.locator("h1").inner_text() == "隐私政策"
+            assert page.locator(".policy-card section").count() == 8
+            assert "API Key" in page.locator(".policy-card").inner_text()
+            assert "页面 URL" in page.locator(".policy-card").inner_text()
+            widths = page.evaluate(
+                "() => [document.documentElement.clientWidth, document.documentElement.scrollWidth, document.body.scrollWidth]"
+            )
+            assert widths[1] <= widths[0] + 1, f"{name}: document overflows {widths}"
+            assert widths[2] <= widths[0] + 1, f"{name}: body overflows {widths}"
+            external_resources = page.evaluate(
+                """() => performance.getEntriesByType('resource')
+                  .map((entry) => entry.name)
+                  .filter((url) => /^https?:/i.test(url))"""
+            )
+            assert external_resources == [], f"{name}: unexpected resources {external_resources}"
+            page.screenshot(
+                path=str(ARTIFACTS / f"docs-site-{name}.png"),
+                full_page=True,
+            )
             page.close()
 
         no_script_context = browser.new_context(

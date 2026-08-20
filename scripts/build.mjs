@@ -23,6 +23,7 @@ await build({
   platform: "browser",
   target: "chrome120",
   alias: {
+    async: join(source, "async-shim.cjs"),
     path: join(source, "path-shim.cjs")
   },
   legalComments: "none"
