@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <title>日本語ニュースのテスト</title>
+  </head>
+  <body>
+    <main>
+      <h1>東京で新しい技術を発表</h1>
+      <p id="article">日本語の漢字に読み仮名を付けます。今日の天気は晴れです。</p>
+      <p id="weekdays">
+        <span id="weekday-sun">23日(日)</span>
+        <span id="weekday-mon">24日（月）</span>
+        <span id="weekday-tue">25日（ 火 ）</span>
+        <span id="weekday-wed">26日(水)</span>
+        <span id="weekday-thu">27日(木)</span>
+        <span id="weekday-fri">28日(金)</span>
+        <span id="weekday-sat">29日(土)</span>
+        <span id="ordinary-month">月を見る</span>
+      </p>
+      <p id="weather-headline">8月19日（水）～8月29日（土）まで 衛星画像/雨・風の予想シミュレーション</p>
+      <p id="weather-compounds">雨量と豪雨と梅雨と酸性雨・風</p>
+      <section aria-label="多领域读音回归样本">
+        <h2>新闻与体育</h2>
+        <p id="special-days">2026年8月20日（木）から8月24日（月）まで</p>
+        <p id="split-weekday-date"><span>08月20日（</span><strong>木</strong><span>）</span></p>
+        <p id="split-dot-date"><span>08.17 </span>
+          <span>(</span><em>月</em><span>)</span>
+        </p>
+        <p id="split-bare-date"><a href="#"><span style="display: block">20</span><span style="display: block">(<strong>木</strong>)</span></a></p>
+        <p id="invalid-dot-date"><span>13.40 (</span><strong>月</strong><span>)</span></p>
+        <p id="blocked-weekday-date"><span>20日（</span><br><strong>木</strong><span>）</span></p>
+        <p id="round-counters">六回、一回、八回、十回、百回、第108回、昨夏優勝</p>
+
+        <h2>论坛与社区</h2>
+        <p id="community-phrases">既読、自治厨、公録、売り時、トピ立て、スレ主様、後から確認、3日後から開始、辛い焼きそば、仕事が辛い、(笑)、（泣）</p>
+        <p id="people-counters">1人、2人、一人、二人、一人一人、1人旅、2人暮らし、二人組、1人用</p>
+        <p id="people-counter-negatives">一人称、二人称、一人前、二人三脚、12人、21人</p>
+        <p id="split-counter-negative"><span>1人</span><span>称</span></p>
+
+        <h2>学术与医学</h2>
+        <p id="academic-phrases">博士課程、日本研究、協働、日本初、相転移、平均場、骨髄、幹細胞、妊娠高血圧腎症、頭頸部、浸透圧、膵がん</p>
+        <p id="split-compounds"><span>博士</span><span>課程</span>、<span>中</span><span>日</span>、<span>巨</span><span>人</span>、<span>非</span><span>常</span>、<span>3日</span><span>本初記録</span>、<span>骨</span><span>髄</span></p>
+        <p id="ordinary-meanings">博士、木の幹、頭が痛い、場所、相手、神主様、日本初日</p>
+
+        <h2>外国人名</h2>
+        <p id="foreign-name-unique">北朝鮮の金正恩氏、中国の習近平主席、韓国の李在明大統領、ベトナムの阮富仲元書記長</p>
+        <p id="foreign-name-contextual">中国の李強首相と王毅外相、ベトナムの蘇林書記長、梁強国家主席、范明政首相、裴青山外相、胡志明主席</p>
+        <p id="foreign-name-provided">中国の張偉（チャン・ウェイ）氏が出席</p>
+        <p id="foreign-name-split"><span>金</span><strong>正恩</strong>、<span>習近</span><em>平</em>、<span>李在</span><b>明</b>、<span>崔</span><i>竜</i><u>海</u>、<span>全</span><i>斗</i><u>煥</u></p>
+        <p id="foreign-name-negatives">李強化策、王毅然とした態度、蘇林業、胡志明市、胡志明空港、ベトナムの胡志明 市、金曜日、金子、林芳正外相、孫正義</p>
+      </section>
+      <pre id="code">const place = "東京";</pre>
+      <p><ruby id="existing">大阪<rt>おおさか</rt></ruby>には既存の読音があります。</p>
+      <div contenteditable="true" id="editable">京都を編集する</div>
+      <input value="名古屋">
+    </main>
+  </body>
+</html>
