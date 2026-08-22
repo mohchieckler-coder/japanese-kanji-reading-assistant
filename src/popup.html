@@ -24,6 +24,21 @@
       <h1 data-i18n="popup.title">日语汉字读音助手</h1>
       <p id="status" class="status" role="status" aria-live="polite">正在检查当前页面…</p>
       <button id="toggle" type="button" disabled aria-busy="true">启用当前页读音与划词翻译</button>
+      <section class="loanword-action">
+        <button
+          id="toggle-loanword-origins"
+          class="loanword-toggle"
+          type="button"
+          disabled
+          aria-busy="true"
+          aria-pressed="false"
+          aria-describedby="loanword-origin-status"
+          data-i18n="popup.loanword.button.enable"
+        >标注片假名外来语原词</button>
+        <p id="loanword-origin-status" class="loanword-status" role="status" aria-live="polite">
+          正在检查外来语标注状态…
+        </p>
+      </section>
       <section class="translation-card" aria-labelledby="translation-heading">
         <div>
           <h2 id="translation-heading" data-i18n="popup.translation.heading">划词翻译</h2>
@@ -32,7 +47,7 @@
         <span id="translation-badge" class="badge">检查中</span>
       </section>
       <button id="open-options" class="secondary" type="button" disabled aria-busy="true">打开翻译管理面板</button>
-      <p class="privacy" data-i18n="popup.privacy">读音始终在本地处理；只有主动选中的文本会发送到你配置的接口</p>
+      <p class="privacy" data-i18n="popup.privacy">读音与外来语原词始终在本地处理；只有主动选中的文本会发送到你配置的接口</p>
     </main>
     <script src="options-i18n.js"></script>
     <script src="popup.js"></script>

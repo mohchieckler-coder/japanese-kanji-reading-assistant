@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light">
-    <meta name="description" content="日语汉字 AI 读音助手隐私政策：说明本地注音、划词翻译、API Key、历史记录及数据删除方式。">
+    <meta name="description" content="日语汉字 AI 读音助手隐私政策：说明本地注音与外来语词源匹配、划词翻译、API Key、历史记录及数据删除方式。">
     <title>隐私政策｜日语汉字 AI 读音助手</title>
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="styles.css">
@@ -31,19 +31,20 @@
           <p class="section-kicker">PRIVACY POLICY</p>
           <h1>隐私政策</h1>
           <p>本政策说明日语汉字 AI 读音助手（以下简称“本扩展”）处理哪些数据、为何处理，以及你如何控制或删除这些数据。</p>
-          <p class="policy-updated">生效及最后更新日期：2026 年 8 月 21 日</p>
+          <p class="policy-updated">生效及最后更新日期：2026 年 8 月 22 日</p>
         </header>
 
         <article class="policy-card">
           <section>
             <h2>1. 单一用途</h2>
-            <p>本扩展用于在日语网页的汉字上方显示读音，并在用户主动选择文字后，通过用户自行配置的 OpenAI 兼容接口提供翻译。扩展不会将这些能力用于广告、画像、数据销售或与阅读辅助无关的目的。</p>
+            <p>本扩展用于在日语网页的汉字上方显示读音、在高置信片假名外来语上方显示外语原词，并在用户主动选择文字后，通过用户自行配置的 OpenAI 兼容接口提供翻译。扩展不会将这些能力用于广告、画像、数据销售或与阅读辅助无关的目的。</p>
           </section>
 
           <section>
             <h2>2. 本地处理的数据</h2>
             <ul>
               <li>网页正文会在浏览器内进行日语形态分析，以生成读音；正文不会因此发送给开发者服务器。</li>
+              <li>片假名外来语会与扩展安装包内的固定词源子集和人工常用修正进行本地匹配；该功能不会查询远程词典或调用翻译 API。</li>
               <li>API Key、BaseURL、模型、目标语言和界面语言保存在本机的 Chrome 扩展存储中。</li>
               <li>翻译历史可包含所选原文、译文、页面 URL、页面标题、时间、模型、目标语言及 Token 用量；Token 明细包含页面 URL、页面标题、时间及用量。上述记录保存在本机。</li>
             </ul>
@@ -74,7 +75,7 @@
             <h2>6. 权限用途</h2>
             <ul>
               <li><strong>activeTab：</strong>仅在用户操作扩展时访问当前标签页。</li>
-              <li><strong>scripting：</strong>向当前页面注入本地读音与划词翻译界面。</li>
+              <li><strong>scripting：</strong>向当前页面注入本地读音、外来语原词标注与划词翻译界面。</li>
               <li><strong>storage：</strong>在本机保存设置、历史与 Token 记录。</li>
               <li><strong>可选主机权限：</strong>仅在保存或测试 API 配置时，为用户指定的接口来源申请网络访问；扩展不会预先取得固定的全站访问权限。</li>
             </ul>

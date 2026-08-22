@@ -3,6 +3,8 @@
 const i18n = globalThis.JP_TRANSLATION_I18N;
 const statusElement = document.getElementById("status");
 const toggleButton = document.getElementById("toggle");
+const loanwordOriginButton = document.getElementById("toggle-loanword-origins");
+const loanwordOriginStatusElement = document.getElementById("loanword-origin-status");
 const openOptionsButton = document.getElementById("open-options");
 const translationStatusElement = document.getElementById("translation-status");
 const translationBadgeElement = document.getElementById("translation-badge");
@@ -14,12 +16,14 @@ let activeTabId = null;
 let currentLocale = "zh-CN";
 let manifestVersionMismatch = false;
 let furiganaState = { phase: "checking" };
+let loanwordOriginState = { phase: "checking" };
 let translationState = { phase: "checking" };
 let openOptionsState = "initializing";
 let localeFeedback = null;
 let localeFeedbackRevision = 0;
 let localeSelectionRevision = 0;
 let toggleOperationBusy = false;
+let loanwordOperationBusy = false;
 
 function normalizeLocale(value) {
   return i18n?.normalizeLocale(value) || "zh-CN";
@@ -109,6 +113,59 @@ function renderFurigana() {
   }
 }
 
+function renderLoanwordOrigins() {
+  const phase = loanwordOriginState?.phase || "idle";
+  const phaseBusy = phase === "checking" || phase === "loading";
+  const blocked = ["checking", "loading", "system-page", "no-tab", "version-mismatch"].includes(phase);
+  const enabled = phase === "enabled";
+
+  loanwordOriginButton.disabled = loanwordOperationBusy || blocked;
+  loanwordOriginButton.setAttribute("aria-busy", String(loanwordOperationBusy || phaseBusy));
+  loanwordOriginButton.setAttribute("aria-pressed", String(enabled));
+  loanwordOriginButton.classList.toggle("active", enabled);
+  loanwordOriginStatusElement.classList.toggle("error", phase === "error");
+
+  if (phase === "checking") {
+    loanwordOriginStatusElement.textContent = t("popup.loanword.status.checking");
+    loanwordOriginButton.textContent = t("popup.loanword.button.enable");
+  } else if (phase === "loading") {
+    loanwordOriginStatusElement.textContent = t("popup.loanword.status.loading");
+    loanwordOriginButton.textContent = t("popup.loanword.button.analyzing");
+  } else if (phase === "enabled") {
+    const count = new Intl.NumberFormat(currentLocale).format(Number(loanwordOriginState.count) || 0);
+    loanwordOriginStatusElement.textContent = Number(loanwordOriginState.count) > 0
+      ? t("popup.loanword.status.enabled", { count })
+      : t("popup.loanword.status.enabledEmpty");
+    loanwordOriginButton.textContent = t("popup.loanword.button.remove");
+  } else if (phase === "error") {
+    const message = loanwordOriginState.errorKey
+      ? t(loanwordOriginState.errorKey)
+      : localizeError(loanwordOriginState.message || t("popup.status.unknownError"));
+    loanwordOriginStatusElement.textContent = t("popup.loanword.status.error", { message });
+    loanwordOriginButton.textContent = t("popup.loanword.button.retry");
+  } else if (phase === "system-page") {
+    loanwordOriginStatusElement.textContent = t("popup.loanword.status.systemPage");
+    loanwordOriginButton.textContent = t("popup.loanword.button.enable");
+  } else if (phase === "no-tab") {
+    loanwordOriginStatusElement.textContent = t("popup.loanword.status.noActiveTab");
+    loanwordOriginButton.textContent = t("popup.loanword.button.enable");
+  } else if (phase === "version-mismatch") {
+    loanwordOriginStatusElement.textContent = t("popup.loanword.status.versionReload");
+    loanwordOriginButton.textContent = t("popup.loanword.button.enable");
+  } else {
+    loanwordOriginStatusElement.textContent = phase === "idle"
+      ? t("popup.loanword.status.idle")
+      : t("popup.loanword.status.ready");
+    loanwordOriginButton.textContent = t("popup.loanword.button.enable");
+    loanwordOriginButton.disabled = false;
+  }
+
+  if (loanwordOperationBusy && phase !== "loading") {
+    loanwordOriginButton.textContent = t("popup.loanword.button.analyzing");
+    loanwordOriginButton.disabled = true;
+  }
+}
+
 function renderTranslation() {
   translationBadgeElement.classList.remove("ready");
   translationStatusElement.title = "";
@@ -168,6 +225,7 @@ function applyLocale(locale) {
   currentLocale = normalizeLocale(locale);
   renderStaticText();
   renderFurigana();
+  renderLoanwordOrigins();
   renderTranslation();
   renderOpenOptions();
   renderLocaleFeedback();
@@ -176,6 +234,11 @@ function applyLocale(locale) {
 function updateFuriganaState(status) {
   furiganaState = status || { phase: "ready" };
   renderFurigana();
+}
+
+function updateLoanwordOriginState(status) {
+  loanwordOriginState = status || { phase: "ready" };
+  renderLoanwordOrigins();
 }
 
 function showLocaleFeedback(key, params, kind = "success") {
@@ -200,9 +263,11 @@ function renderVersionMismatch() {
 
   manifestVersionMismatch = true;
   furiganaState = { phase: "version-mismatch", runtimeVersion, buildVersion };
+  loanwordOriginState = { phase: "version-mismatch" };
   translationState = { phase: "version-mismatch" };
   uiLanguageSelect.disabled = true;
   renderFurigana();
+  renderLoanwordOrigins();
   renderTranslation();
   renderOpenOptions();
   return true;
@@ -212,11 +277,47 @@ function sendTabMessage(type) {
   return chrome.tabs.sendMessage(activeTabId, { type });
 }
 
+async function injectContentScriptForLoanwordOrigins() {
+  const target = { tabId: activeTabId };
+  await chrome.scripting.executeScript({
+    target,
+    func: () => {
+      globalThis.__JP_LOANWORD_ONLY_BOOTSTRAP__ = true;
+    }
+  });
+  try {
+    await chrome.scripting.executeScript({
+      target,
+      files: ["content.js"]
+    });
+  } catch (error) {
+    try {
+      await chrome.scripting.executeScript({
+        target,
+        func: () => {
+          delete globalThis.__JP_LOANWORD_ONLY_BOOTSTRAP__;
+        }
+      });
+    } catch {
+      // Keep the original injection error; cleanup is best effort only.
+    }
+    throw error;
+  }
+}
+
 async function readStatus() {
   try {
     return await sendTabMessage("GET_FURIGANA_STATUS");
   } catch {
     return { phase: "not-injected" };
+  }
+}
+
+async function readLoanwordOriginStatus() {
+  try {
+    return await sendTabMessage("GET_LOANWORD_ORIGIN_STATUS");
+  } catch {
+    return { phase: "ready" };
   }
 }
 
@@ -231,6 +332,21 @@ async function waitForReady() {
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
   updateFuriganaState({ phase: "error", errorKey: "popup.status.dictionaryTimeout" });
+}
+
+async function waitForLoanwordOriginsReady() {
+  for (let attempt = 0; attempt < 80; attempt += 1) {
+    const status = await readLoanwordOriginStatus();
+    updateLoanwordOriginState(status);
+    if (status?.phase !== "loading") {
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  updateLoanwordOriginState({
+    phase: "error",
+    errorKey: "popup.loanword.status.timeout"
+  });
 }
 
 async function readStoredUiLanguage() {
@@ -306,22 +422,33 @@ async function initialize() {
   const activeTabResult = await activeTabPromise;
   if (activeTabResult.error) {
     updateFuriganaState({ phase: "error", message: activeTabResult.error });
+    updateLoanwordOriginState({ phase: "error", message: activeTabResult.error });
     return;
   }
   const tabs = activeTabResult.tabs;
   const [tab] = tabs || [];
   if (!tab?.id) {
     updateFuriganaState({ phase: "no-tab" });
+    updateLoanwordOriginState({ phase: "no-tab" });
     return;
   }
   activeTabId = tab.id;
 
   if (!/^(https?|file):/i.test(tab.url || "")) {
     updateFuriganaState({ phase: "system-page" });
+    updateLoanwordOriginState({ phase: "system-page" });
     return;
   }
 
-  updateFuriganaState(await readStatus());
+  const [furiganaStatus, loanwordStatus] = await Promise.all([
+    readStatus(),
+    readLoanwordOriginStatus()
+  ]);
+  updateFuriganaState(furiganaStatus);
+  updateLoanwordOriginState(loanwordStatus);
+  if (loanwordStatus?.phase === "loading") {
+    await waitForLoanwordOriginsReady();
+  }
 }
 
 uiLanguageSelect.addEventListener("change", async () => {
@@ -415,8 +542,32 @@ toggleButton.addEventListener("click", async () => {
   }
 });
 
+loanwordOriginButton.addEventListener("click", async () => {
+  loanwordOperationBusy = true;
+  renderLoanwordOrigins();
+  try {
+    let status;
+    try {
+      status = await sendTabMessage("TOGGLE_LOANWORD_ORIGINS");
+    } catch {
+      await injectContentScriptForLoanwordOrigins();
+      status = await sendTabMessage("TOGGLE_LOANWORD_ORIGINS");
+    }
+    updateLoanwordOriginState(status);
+    if (status?.phase === "loading") {
+      await waitForLoanwordOriginsReady();
+    }
+  } catch (error) {
+    updateLoanwordOriginState({ phase: "error", message: error });
+  } finally {
+    loanwordOperationBusy = false;
+    renderLoanwordOrigins();
+  }
+});
+
 initialize().catch((error) => {
   translationState = { phase: "unavailable", error };
   updateFuriganaState({ phase: "error", message: error });
+  updateLoanwordOriginState({ phase: "error", message: error });
   renderTranslation();
 });

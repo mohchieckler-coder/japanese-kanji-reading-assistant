@@ -6,6 +6,7 @@ import {
   PERSON_COUNTRY_HINTS,
   PERSON_ROLE_HINTS
 } from "./person-name-readings.mjs";
+import { findLoanwordMatches } from "./loanword-origins.mjs";
 
 const CONTROLLER_KEY = "__japaneseFuriganaAiController__";
 const RUBY_ATTRIBUTE = "data-jp-furigana";
@@ -15,6 +16,11 @@ const TOAST_ID = "jp-furigana-ai-toast";
 const TRANSLATION_CONTROLLER_KEY = "__japaneseSelectionTranslationController__";
 const TRANSLATION_UI_ATTRIBUTE = "data-jp-translation-ui";
 const TRANSLATION_CONTROLLER_ATTRIBUTE = "data-jp-translation-controller";
+const LOANWORD_CONTROLLER_KEY = "__japaneseLoanwordOriginController__";
+const LOANWORD_ATTRIBUTE = "data-jp-loanword-origin";
+const LOANWORD_STYLE_ID = "jp-loanword-origin-style";
+const LOANWORD_TOAST_ID = "jp-loanword-origin-toast";
+const LOANWORD_COLLAPSE_CHARACTER_LIMIT = 12;
 const CONTENT_BUILD_VERSION = "__EXTENSION_VERSION__";
 const MAX_TRANSLATION_CHARACTERS = 12000;
 const SKIPPED_SELECTOR = [
@@ -40,6 +46,12 @@ const SKIPPED_SELECTOR = [
   "[aria-hidden='true']",
   "[contenteditable]:not([contenteditable='false'])"
 ].join(",");
+const LOANWORD_SKIPPED_SELECTOR = [
+  SKIPPED_SELECTOR,
+  `[${LOANWORD_ATTRIBUTE}]`,
+  `[${TRANSLATION_CONTROLLER_ATTRIBUTE}]`
+].join(",");
+const KATAKANA_CANDIDATE_PATTERN = /[\u30A1-\u30FA\u30FD\u30FE\u30FC]/u;
 const CONTEXT_CANDIDATE_PATTERN = /[日月火水木金土雨笑泣辛後立主人妊娠高血圧腎症博士課程本研究幹細胞頭頸部浸透初相転移平均場自治厨売時骨髄協働既読公録昨夏中巨非常]/u;
 const CONTEXT_MUTATION_PATTERN = /[()（）0-9０-９日月火水木金土]/u;
 const escapeRegularExpression = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -1114,6 +1126,433 @@ function collectAdjacentInlineContext(node, displayCache) {
   };
 }
 
+function isLoanwordElementHidden(element) {
+  for (let current = element; current instanceof Element; current = current.parentElement) {
+    if (current.hidden || current.getAttribute("aria-hidden") === "true") {
+      return true;
+    }
+    const style = getComputedStyle(current);
+    if (
+      style.display === "none"
+      || style.visibility === "hidden"
+      || style.visibility === "collapse"
+      || style.contentVisibility === "hidden"
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function shouldCollapseLoanwordAnnotation(surface, annotation) {
+  const annotationLength = Array.from(annotation).length;
+  const surfaceLength = Math.max(1, Array.from(surface).length);
+  return annotationLength > Math.max(
+    LOANWORD_COLLAPSE_CHARACTER_LIMIT,
+    surfaceLength * 2
+  );
+}
+
+class LoanwordOriginController {
+  constructor() {
+    this.buildVersion = CONTENT_BUILD_VERSION;
+    this.phase = "idle";
+    this.count = 0;
+    this.errorMessage = "";
+    this.observer = null;
+    this.pendingRoots = new Set();
+    this.flushTimer = null;
+    this.runId = 0;
+  }
+
+  getStatus() {
+    if (this.phase === "enabled") {
+      this.syncCount();
+    }
+    return {
+      phase: this.phase,
+      enabled: this.phase === "enabled",
+      count: this.count,
+      message: this.errorMessage
+    };
+  }
+
+  async toggle() {
+    if (this.phase === "enabled" || this.phase === "loading") {
+      this.disable();
+      return this.getStatus();
+    }
+    return this.enable();
+  }
+
+  async enable() {
+    if (this.phase === "enabled" || this.phase === "loading") {
+      return this.getStatus();
+    }
+
+    const currentRun = ++this.runId;
+    this.phase = "loading";
+    this.errorMessage = "";
+    this.installStyle();
+
+    try {
+      this.count = 0;
+      this.processRoot(document.body || document.documentElement);
+      if (currentRun !== this.runId) {
+        return this.getStatus();
+      }
+      this.startObserver();
+      this.phase = "enabled";
+      this.showToast(`已标注 ${this.count} 处片假名外来语原词`, "success");
+    } catch (error) {
+      if (currentRun !== this.runId) {
+        return this.getStatus();
+      }
+      this.phase = "error";
+      this.errorMessage = error instanceof Error ? error.message : String(error);
+      this.removeStyle();
+      this.showToast(`外来语标注失败：${this.errorMessage}`, "error", 6000);
+      console.error("[日语汉字 AI 读音助手：外来语原词]", error);
+    }
+    return this.getStatus();
+  }
+
+  disable() {
+    this.runId += 1;
+    this.observer?.disconnect();
+    this.observer = null;
+    this.pendingRoots.clear();
+    if (this.flushTimer !== null) {
+      clearTimeout(this.flushTimer);
+      this.flushTimer = null;
+    }
+
+    const changedParents = new Set();
+    document.querySelectorAll(`ruby[${LOANWORD_ATTRIBUTE}]`).forEach((ruby) => {
+      if (ruby.parentNode) {
+        changedParents.add(ruby.parentNode);
+      }
+      ruby.replaceWith(document.createTextNode(
+        ruby.dataset.jpOriginal || ruby.firstChild?.textContent || ""
+      ));
+    });
+    changedParents.forEach((parent) => parent.normalize());
+    this.removeStyle();
+    this.count = 0;
+    this.phase = "idle";
+    this.errorMessage = "";
+    this.showToast("已移除外来语原词标注", "success");
+    return this.getStatus();
+  }
+
+  processRoot(root) {
+    if (!root) {
+      return;
+    }
+
+    if (root.nodeType === Node.TEXT_NODE) {
+      this.processTextNode(root);
+      return;
+    }
+    if (!(root instanceof Element || root instanceof Document || root instanceof DocumentFragment)) {
+      return;
+    }
+    if (root instanceof Element && root.matches(LOANWORD_SKIPPED_SELECTOR)) {
+      return;
+    }
+
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: (node) => this.isEligibleTextNode(node)
+        ? NodeFilter.FILTER_ACCEPT
+        : NodeFilter.FILTER_REJECT
+    });
+    const nodes = [];
+    while (walker.nextNode()) {
+      nodes.push(walker.currentNode);
+    }
+    nodes.forEach((node) => this.processTextNode(node));
+  }
+
+  isEligibleTextNode(node) {
+    if (!node.nodeValue || !KATAKANA_CANDIDATE_PATTERN.test(node.nodeValue)) {
+      return false;
+    }
+    const parent = node.parentElement;
+    return Boolean(
+      parent
+      && !parent.closest(LOANWORD_SKIPPED_SELECTOR)
+      && !isLoanwordElementHidden(parent)
+    );
+  }
+
+  processTextNode(node) {
+    if (!node.isConnected || !this.isEligibleTextNode(node)) {
+      return;
+    }
+
+    const originalText = node.nodeValue;
+    const matches = findLoanwordMatches(originalText);
+    if (!matches.length) {
+      return;
+    }
+
+    const fragment = document.createDocumentFragment();
+    let offset = 0;
+    let addedCount = 0;
+    for (const match of matches) {
+      const start = Number(match.start);
+      const end = Number(match.end);
+      if (
+        !Number.isInteger(start)
+        || !Number.isInteger(end)
+        || start < offset
+        || end <= start
+        || end > originalText.length
+      ) {
+        continue;
+      }
+
+      const surface = originalText.slice(start, end);
+      const annotation = String(match.display || match.annotation || match.origin || "").trim();
+      if (!annotation) {
+        continue;
+      }
+
+      fragment.append(document.createTextNode(originalText.slice(offset, start)));
+      fragment.append(this.createAnnotation(surface, annotation, match));
+      offset = end;
+      addedCount += 1;
+    }
+    if (!addedCount) {
+      return;
+    }
+    fragment.append(document.createTextNode(originalText.slice(offset)));
+    node.replaceWith(fragment);
+    this.count += addedCount;
+  }
+
+  createAnnotation(surface, annotation, match) {
+    const ruby = document.createElement("ruby");
+    ruby.setAttribute(LOANWORD_ATTRIBUTE, "");
+    ruby.dataset.jpOriginal = surface;
+    if (match.id) {
+      ruby.dataset.jpLoanwordId = String(match.id);
+    }
+    if (match.languageCode || match.language) {
+      ruby.dataset.jpLoanwordLanguage = String(match.languageCode || match.language);
+    }
+    ruby.append(document.createTextNode(surface));
+
+    const rt = document.createElement("rt");
+    if (!shouldCollapseLoanwordAnnotation(surface, annotation)) {
+      rt.textContent = annotation;
+      ruby.append(rt);
+      return ruby;
+    }
+
+    ruby.dataset.jpLoanwordCollapsible = "true";
+    const toggle = document.createElement("span");
+    toggle.setAttribute("data-jp-loanword-toggle", "");
+    toggle.setAttribute("role", "button");
+    toggle.setAttribute("tabindex", "0");
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.setAttribute("aria-label", `显示完整外来语原词：${annotation}`);
+    toggle.title = `点击显示完整原词：${annotation}`;
+    toggle.textContent = annotation;
+
+    const setExpanded = (expanded) => {
+      toggle.setAttribute("aria-expanded", String(expanded));
+      toggle.setAttribute(
+        "aria-label",
+        expanded ? `收起外来语原词：${annotation}` : `显示完整外来语原词：${annotation}`
+      );
+      toggle.title = expanded ? "点击收起原词" : `点击显示完整原词：${annotation}`;
+    };
+    toggle.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setExpanded(toggle.getAttribute("aria-expanded") !== "true");
+    });
+    toggle.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      setExpanded(toggle.getAttribute("aria-expanded") !== "true");
+    });
+
+    rt.append(toggle);
+    ruby.append(rt);
+    return ruby;
+  }
+
+  syncCount() {
+    this.count = document.querySelectorAll(`ruby[${LOANWORD_ATTRIBUTE}]`).length;
+  }
+
+  observeDocumentChanges() {
+    this.observer?.observe(document.body || document.documentElement, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+      attributes: true,
+      attributeFilter: ["class", "style", "hidden", "aria-hidden"]
+    });
+  }
+
+  startObserver() {
+    this.observer?.disconnect();
+    this.observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.type === "characterData") {
+          this.pendingRoots.add(mutation.target);
+          continue;
+        }
+        if (mutation.type === "attributes") {
+          this.pendingRoots.add(mutation.target);
+          continue;
+        }
+        mutation.addedNodes.forEach((node) => this.pendingRoots.add(node));
+      }
+      this.scheduleFlush();
+    });
+    this.observeDocumentChanges();
+  }
+
+  scheduleFlush() {
+    if (this.flushTimer !== null || this.phase !== "enabled") {
+      return;
+    }
+    this.flushTimer = setTimeout(() => {
+      this.flushTimer = null;
+      const roots = Array.from(this.pendingRoots);
+      this.pendingRoots.clear();
+      this.observer?.disconnect();
+      try {
+        roots.forEach((root) => this.processRoot(root));
+        this.syncCount();
+      } finally {
+        if (this.phase === "enabled") {
+          this.observeDocumentChanges();
+        }
+      }
+    }, 60);
+  }
+
+  installStyle() {
+    if (document.getElementById(LOANWORD_STYLE_ID)) {
+      return;
+    }
+    const style = document.createElement("style");
+    style.id = LOANWORD_STYLE_ID;
+    style.textContent = `
+      ruby[${LOANWORD_ATTRIBUTE}] {
+        display: ruby !important;
+        position: static !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+        background: transparent !important;
+        white-space: nowrap !important;
+        ruby-position: over !important;
+        ruby-align: center !important;
+        /* Latin/source-language labels must participate in line fitting. Auto
+           overhang can leak an rt fragment beyond a narrow article column. */
+        ruby-overhang: none !important;
+      }
+      ruby[${LOANWORD_ATTRIBUTE}] > rt {
+        display: ruby-text !important;
+        position: static !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+        background: transparent !important;
+        opacity: 1 !important;
+        transform: none !important;
+        font-family: system-ui, -apple-system, "Segoe UI", sans-serif !important;
+        font-size: 0.52em !important;
+        font-style: normal !important;
+        font-weight: 650 !important;
+        line-height: 1 !important;
+        color: #175cd3 !important;
+        letter-spacing: normal !important;
+        word-spacing: normal !important;
+        text-align: center !important;
+        text-decoration: none !important;
+        text-indent: 0 !important;
+        text-transform: none !important;
+        white-space: nowrap !important;
+        user-select: text !important;
+      }
+      ruby[${LOANWORD_ATTRIBUTE}] [data-jp-loanword-toggle] {
+        all: unset !important;
+        box-sizing: border-box !important;
+        display: inline-block !important;
+        max-inline-size: 12ch !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        color: inherit !important;
+        border-block-end: 1px dotted currentColor !important;
+        cursor: pointer !important;
+        user-select: none !important;
+      }
+      ruby[${LOANWORD_ATTRIBUTE}] [data-jp-loanword-toggle][aria-expanded="true"] {
+        max-inline-size: none !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+      }
+      ruby[${LOANWORD_ATTRIBUTE}] [data-jp-loanword-toggle]:focus-visible {
+        outline: 2px solid #1570ef !important;
+        outline-offset: 2px !important;
+        border-radius: 2px !important;
+      }
+    `;
+    (document.head || document.documentElement).append(style);
+  }
+
+  removeStyle() {
+    document.getElementById(LOANWORD_STYLE_ID)?.remove();
+  }
+
+  showToast(message, kind = "success", duration = 2600) {
+    let toast = document.getElementById(LOANWORD_TOAST_ID);
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = LOANWORD_TOAST_ID;
+      toast.setAttribute(TRANSLATION_UI_ATTRIBUTE, "");
+      toast.setAttribute("role", "status");
+      Object.assign(toast.style, {
+        position: "fixed",
+        zIndex: "2147483647",
+        top: "70px",
+        right: "18px",
+        maxWidth: "360px",
+        padding: "12px 16px",
+        borderRadius: "10px",
+        color: "#fff",
+        font: "600 14px/1.45 system-ui, sans-serif",
+        boxShadow: "0 8px 28px rgba(0, 0, 0, .24)",
+        transition: "opacity .2s ease",
+        pointerEvents: "none"
+      });
+      document.documentElement.append(toast);
+    }
+    toast.style.background = kind === "error" ? "#b42318" : "#175cd3";
+    toast.style.opacity = "1";
+    toast.textContent = message;
+
+    clearTimeout(toast.__jpLoanwordTimer);
+    if (duration > 0) {
+      toast.__jpLoanwordTimer = setTimeout(() => {
+        toast.style.opacity = "0";
+        setTimeout(() => toast.remove(), 220);
+      }, duration);
+    }
+  }
+}
+
 class FuriganaController {
   constructor() {
     this.buildVersion = CONTENT_BUILD_VERSION;
@@ -1507,6 +1946,34 @@ if (globalThis[TRANSLATION_CONTROLLER_KEY]?.buildVersion !== CONTENT_BUILD_VERSI
   globalThis[TRANSLATION_CONTROLLER_KEY] = new SelectionTranslationController();
 }
 
+if (globalThis[LOANWORD_CONTROLLER_KEY]?.buildVersion !== CONTENT_BUILD_VERSION) {
+  const loanwordController = new LoanwordOriginController();
+  globalThis[LOANWORD_CONTROLLER_KEY] = loanwordController;
+
+  chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+    if (message?.type === "GET_LOANWORD_ORIGIN_STATUS") {
+      sendResponse(loanwordController.getStatus());
+      return false;
+    }
+    if (message?.type === "TOGGLE_LOANWORD_ORIGINS") {
+      loanwordController.toggle().then(sendResponse);
+      return true;
+    }
+    if (message?.type === "ENABLE_LOANWORD_ORIGINS") {
+      loanwordController.enable().then(sendResponse);
+      return true;
+    }
+    if (message?.type === "REMOVE_LOANWORD_ORIGINS") {
+      sendResponse(loanwordController.disable());
+      return false;
+    }
+    return false;
+  });
+}
+
+const loanwordOnlyBootstrap = globalThis.__JP_LOANWORD_ONLY_BOOTSTRAP__ === true;
+delete globalThis.__JP_LOANWORD_ONLY_BOOTSTRAP__;
+
 if (globalThis[CONTROLLER_KEY]?.buildVersion !== CONTENT_BUILD_VERSION) {
   const controller = new FuriganaController();
   globalThis[CONTROLLER_KEY] = controller;
@@ -1523,5 +1990,7 @@ if (globalThis[CONTROLLER_KEY]?.buildVersion !== CONTENT_BUILD_VERSION) {
     return false;
   });
 
-  void controller.enable();
+  if (!loanwordOnlyBootstrap) {
+    void controller.enable();
+  }
 }

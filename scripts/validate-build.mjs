@@ -24,7 +24,10 @@ const requiredThirdPartyFiles = [
   "third_party_licenses/async/LICENSE",
   "third_party_licenses/lodash/LICENSE",
   "third_party_licenses/doublearray/LICENSE.txt",
-  "third_party_licenses/zlibjs/LICENSE"
+  "third_party_licenses/zlibjs/LICENSE",
+  "third_party_licenses/jmdict/JMdict-NOTICE.md",
+  "third_party_licenses/jmdict/EDRDG-GENERAL-DICTIONARY-LICENCE.txt",
+  "third_party_licenses/jmdict/CC-BY-SA-4.0.txt"
 ];
 
 function readPngSize(path) {
@@ -110,6 +113,18 @@ if (!contentBundle.includes("__japaneseFuriganaAiController__")) {
 }
 if (!contentBundle.includes("TRANSLATE_TEXT")) {
   throw new Error("Content bundle does not contain selection translation support");
+}
+for (const marker of [
+  "__japaneseLoanwordOriginController__",
+  "TOGGLE_LOANWORD_ORIGINS",
+  "data-jp-loanword-origin",
+  "fr-coup-etat",
+  "de-arbeit",
+  "sourceVersion"
+]) {
+  if (!contentBundle.includes(marker)) {
+    throw new Error(`Content bundle is missing loanword-origin marker: ${marker}`);
+  }
 }
 if (contentBundle.includes("__EXTENSION_VERSION__")) {
   throw new Error("Content build-version placeholder was not replaced");

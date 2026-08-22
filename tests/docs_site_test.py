@@ -10,10 +10,10 @@ ROOT = Path(__file__).resolve().parents[1]
 SITE = ROOT / "docs" / "index.html"
 PRIVACY_SITE = ROOT / "docs" / "privacy.html"
 ARTIFACTS = ROOT / "artifacts"
-VERSION = "2.4.1"
+VERSION = "2.5.0"
 ARCHIVE_PREFIX = f"japanese-furigana-ai-{VERSION}"
 DOWNLOAD = ROOT / "docs" / "downloads" / f"{ARCHIVE_PREFIX}.zip"
-DOWNLOAD_SHA256 = "4B3F82D26569B763166835C529673B9E33B00C8D627C76F1FA7D5900E6710BB5"
+DOWNLOAD_SHA256 = "0E8430FD87E2D90CC4289CBCC8229233E02ABD056FB928E33E40E6566A3EDFFC"
 
 VIEWPORTS = {
     "desktop": {"width": 1440, "height": 900},
@@ -90,7 +90,7 @@ def main():
         assert not any("/.git/" in name.lower() or "/.env" in name.lower() for name in names)
         assert any(name.endswith("/THIRD_PARTY_NOTICES.md") for name in names)
         license_names = [name for name in names if "/third_party_licenses/" in name and not name.endswith("/")]
-        assert len(license_names) == 6
+        assert len(license_names) == 9
         manifest_names = [name for name in names if name.endswith("/manifest.json")]
         assert manifest_names == [f"{ARCHIVE_PREFIX}/manifest.json"]
         assert names[0] == manifest_names[0]

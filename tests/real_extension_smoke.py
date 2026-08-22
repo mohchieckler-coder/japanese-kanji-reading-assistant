@@ -33,6 +33,7 @@ class LocalCompatibleApi(BaseHTTPRequestHandler):
             "<title>実拡張テスト</title><main><p id='source'>日本語の新聞を読みます。</p>"
             "<p id='okurigana-loanword'>麻辣湯と麻辣烫を食べる。低い層から発せられ、使われた。申し込む。</p>"
             "<p id='foreign-names'>北朝鮮の金正恩氏、中国の李強首相、ベトナムの阮富仲元書記長</p>"
+            "<p id='loanword-origins'>コンピューター、クーデター、アルバイト、パエリア、パン、キムチ。</p>"
             "</main></html>"
         ).encode("utf-8")
         self.send_response(200)
@@ -104,6 +105,7 @@ def run_browser(base_url, extension_path):
                 worker.on("close", lambda: worker_errors.append("service worker closed"))
                 worker.on("console", lambda message: worker_console.append(f"{message.type}: {message.text}"))
                 manifest = worker.evaluate("chrome.runtime.getManifest()")
+                assert manifest.get("version") == "2.5.0", manifest
                 options = context.new_page()
                 page_errors = []
                 console_errors = []
@@ -183,6 +185,25 @@ def run_browser(base_url, extension_path):
                     target_tab_id,
                 )
                 target.locator("ruby[data-jp-furigana]").first.wait_for(timeout=30_000)
+                controller_versions = options.evaluate(
+                    """async (tabId) => {
+                      const [injection] = await chrome.scripting.executeScript({
+                        target: { tabId },
+                        func: () => ({
+                          translation: globalThis.__japaneseSelectionTranslationController__?.buildVersion,
+                          loanword: globalThis.__japaneseLoanwordOriginController__?.buildVersion,
+                          furigana: globalThis.__japaneseFuriganaAiController__?.buildVersion,
+                        }),
+                      });
+                      return injection.result;
+                    }""",
+                    target_tab_id,
+                )
+                assert controller_versions == {
+                    "translation": "2.5.0",
+                    "loanword": "2.5.0",
+                    "furigana": "2.5.0",
+                }, controller_versions
                 foreign_name_annotations = target.eval_on_selector_all(
                     "#foreign-names ruby[data-jp-furigana]",
                     "elements => elements.map((ruby) => [ruby.dataset.jpOriginal, ruby.querySelector('rt').textContent])",
@@ -212,6 +233,76 @@ def run_browser(base_url, extension_path):
                     not any("ぁ" <= character <= "ゖ" or "ァ" <= character <= "ヺ" for character in surface)
                     for surface, _ in okurigana_annotations
                 ), okurigana_annotations
+                initial_loanword_status = options.evaluate(
+                    """async (tabId) => chrome.tabs.sendMessage(
+                      tabId,
+                      { type: 'GET_LOANWORD_ORIGIN_STATUS' }
+                    )""",
+                    target_tab_id,
+                )
+                assert initial_loanword_status == {
+                    "phase": "idle",
+                    "enabled": False,
+                    "count": 0,
+                    "message": "",
+                }, initial_loanword_status
+                assert target.locator("ruby[data-jp-loanword-origin]").count() == 0
+                enabled_loanword_status = options.evaluate(
+                    """async (tabId) => chrome.tabs.sendMessage(
+                      tabId,
+                      { type: 'TOGGLE_LOANWORD_ORIGINS' }
+                    )""",
+                    target_tab_id,
+                )
+                assert enabled_loanword_status["phase"] == "enabled", enabled_loanword_status
+                target.wait_for_function(
+                    "() => document.querySelectorAll('#loanword-origins ruby[data-jp-loanword-origin]').length === 6"
+                )
+                real_loanword_annotations = target.eval_on_selector_all(
+                    "#loanword-origins ruby[data-jp-loanword-origin]",
+                    "elements => elements.map((ruby) => [ruby.dataset.jpOriginal, ruby.querySelector('rt').textContent])",
+                )
+                assert real_loanword_annotations == [
+                    ["コンピューター", "computer"],
+                    ["クーデター", "（仏）coup d'État"],
+                    ["アルバイト", "（独）Arbeit"],
+                    ["パエリア", "（西）paella"],
+                    ["パン", "（葡）pão"],
+                    ["キムチ", "（韓）김치"],
+                ], real_loanword_annotations
+                real_furigana_status = options.evaluate(
+                    """async (tabId) => chrome.tabs.sendMessage(
+                      tabId,
+                      { type: 'GET_FURIGANA_STATUS' }
+                    )""",
+                    target_tab_id,
+                )
+                assert real_furigana_status["phase"] == "enabled", real_furigana_status
+                assert target.locator("ruby[data-jp-furigana]").count() > 0
+                disabled_loanword_status = options.evaluate(
+                    """async (tabId) => chrome.tabs.sendMessage(
+                      tabId,
+                      { type: 'TOGGLE_LOANWORD_ORIGINS' }
+                    )""",
+                    target_tab_id,
+                )
+                assert disabled_loanword_status == {
+                    "phase": "idle",
+                    "enabled": False,
+                    "count": 0,
+                    "message": "",
+                }, disabled_loanword_status
+                assert target.locator("ruby[data-jp-loanword-origin]").count() == 0
+                assert target.locator("#loanword-origins").inner_html() == (
+                    "コンピューター、クーデター、アルバイト、パエリア、パン、キムチ。"
+                )
+                assert options.evaluate(
+                    """async (tabId) => (await chrome.tabs.sendMessage(
+                      tabId,
+                      { type: 'GET_FURIGANA_STATUS' }
+                    )).phase""",
+                    target_tab_id,
+                ) == "enabled"
                 target.evaluate(
                     """() => {
                       const source = document.querySelector('#source');
@@ -307,6 +398,7 @@ def run_browser(base_url, extension_path):
                 assert popup.title() == "일본어 한자 AI 읽기 도우미"
                 assert popup.locator("#ui-language").input_value() == "ko"
                 assert popup.locator("#ui-language").get_attribute("aria-label") == "팝업 인터페이스 언어 선택"
+                assert popup.locator("#toggle-loanword-origins").inner_text() == "가타카나 외래어에 원어 표시"
                 assert popup.locator("#translation-heading").inner_text() == "선택 번역"
                 assert popup.locator("#translation-badge").inner_text() == "설정됨"
                 popup_status = popup.locator("#translation-status").inner_text()
@@ -316,6 +408,7 @@ def run_browser(base_url, extension_path):
                 popup.get_by_text("表示言語を日本語に変更しました", exact=True).wait_for()
                 assert popup.locator("html").get_attribute("lang") == "ja"
                 assert popup.title() == "日本語漢字 AI 読み方アシスタント"
+                assert popup.locator("#toggle-loanword-origins").inner_text() == "カタカナ外来語に原語を表示"
                 assert popup.locator("#translation-status").inner_text() == "翻訳先：英語 · モデル：real-extension-test"
                 popup_dashboard = popup.evaluate(
                     """() => chrome.runtime.sendMessage({ type: 'GET_TRANSLATION_DASHBOARD' })"""
@@ -350,6 +443,8 @@ def run_browser(base_url, extension_path):
                         "popup_status": ascii(popup_status),
                         "selection_state": selection_state,
                         "translation_result": translation_result,
+                        "controller_versions": controller_versions,
+                        "loanword_annotations": ascii(real_loanword_annotations),
                         "foreign_name_annotations": ascii(foreign_name_annotations),
                         "opened_options_url": opened_options.url,
                         "worker_errors": worker_errors,

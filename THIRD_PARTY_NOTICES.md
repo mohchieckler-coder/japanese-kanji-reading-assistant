@@ -1,8 +1,9 @@
 # Third-Party Notices
 
-The browser extension distribution includes third-party software bundled into the
-generated JavaScript and local Japanese dictionary assets. The exact dependency
-versions below are resolved by `package-lock.json`.
+The browser extension distribution includes third-party software and data
+bundled into the generated JavaScript and local dictionary assets. npm package
+versions are resolved by `package-lock.json`; the JMdict conversion is pinned by
+the generated data metadata and its reproducible generator.
 
 This notice does not select or grant a license for this project's original
 source code. It only identifies the licenses that apply to the listed
@@ -15,8 +16,9 @@ third-party components.
 | lodash | 4.18.1 | Runtime dependency of async; bundled into the content script | [MIT license](third_party_licenses/lodash/LICENSE) |
 | doublearray | 0.0.2 | Runtime dependency of kuromoji; bundled into the content script | [MIT license](third_party_licenses/doublearray/LICENSE.txt) |
 | zlibjs | 0.3.1 | Runtime dependency of kuromoji; bundled into the content script | [MIT license](third_party_licenses/zlibjs/LICENSE) |
+| JMdict English data | 2026-08-17 via jmdict-simplified 3.6.2+20260817122448 | A filtered table of complete, explicitly sourced, non-wasei katakana loanword origins is bundled locally | [JMdict notice](third_party_licenses/jmdict/JMdict-NOTICE.md), [EDRDG General Dictionary Licence](third_party_licenses/jmdict/EDRDG-GENERAL-DICTIONARY-LICENCE.txt), [CC BY-SA 4.0 legal code](third_party_licenses/jmdict/CC-BY-SA-4.0.txt) |
 
-The files under `third_party_licenses/` are verbatim copies of the license and
-notice files shipped by the corresponding installed npm packages. When a
-dependency version changes, refresh these copies from the newly resolved
-package before publishing a new build.
+The npm files under `third_party_licenses/` are verbatim copies shipped by the
+corresponding packages. JMdict attribution and licence files accompany the
+generated subset. Before each published update, refresh third-party copies and
+regenerate the JMdict table from a current pinned release.

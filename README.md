@@ -1,6 +1,6 @@
 # 日语汉字 AI 读音助手
 
-这是一个 Chrome Manifest V3 扩展。用户打开日语新闻等普通网页后，点击扩展按钮，即可在汉字上方显示日语读音，并对主动选中的词、句子或段落进行翻译。常规词使用平假名，已核实的外来词和外国人物姓名保留片假名。读音始终由浏览器内的本地日语形态分析流程生成；只有用户主动选中的文本才会发送到用户自行配置的 OpenAI 兼容接口。
+这是一个 Chrome Manifest V3 扩展。用户打开日语新闻等普通网页后，点击扩展按钮，即可在汉字上方显示日语读音，并对主动选中的词、句子或段落进行翻译。常规词使用平假名，已核实的外来词和外国人物姓名保留片假名。弹窗中的独立外来语按钮还可以为高置信片假名外来语显示其外语原词。读音和外来语词源匹配始终在浏览器本地完成；只有用户主动选中的文本才会发送到用户自行配置的 OpenAI 兼容接口。
 
 ## 使用方法
 
@@ -44,6 +44,14 @@ npm test
 
 2.4.1 重设计注音排版：较长读音会作为一个整体居中显示，不再把多字汉字之间的间隔撑开；同时允许读音按浏览器标准适度悬挂，并隔离网页自身对 `rt` 的字距、词距、缩进、对齐和换行样式。新增真实 Chromium 长段落几何回归，校验注音前后换行数量、横向溢出及最终计算样式。
 
+2.5.0 新增独立的“外来语原词标注”按钮：
+
+- 点击弹窗中的独立按钮后，高置信片假名外来语会在上方显示外语原词；该功能可单独开启或移除，不影响汉字读音与划词翻译。
+- 英语来源只显示原词，例如 `コンピューター → computer`；其他语言在原词前使用日语汉字国名简称，例如 `クーデター → （仏）coup d'État`、`アルバイト → （独）Arbeit`、`パエリア → （西）paella`。
+- 较长的原词标注会自动折叠，避免与相邻假名或读音发生视觉冲突；点击折叠标注即可完整展开，再次点击可收起。
+- 词源查询使用随扩展打包的本地数据，不会请求外部 API，也不会上传网页正文。
+- 数据由 2026-08-17 固定版本的 JMdict 高置信子集与人工核验的常用修正组成。只有完整词源、非和制英语且无歧义的项目才会自动标注；歧义词、和制英语、拟声词及可能是人名的上下文会保守跳过，不按片假名逐字猜测。
+
 配置方法：打开扩展弹窗，点击“打开翻译管理面板”，填写 BaseURL、模型和 API Key 后保存。普通服务必须使用 HTTPS；只有 `localhost` 或 `127.0.0.1` 本地服务允许 HTTP。浏览器只会请求当前 BaseURL 主机的可选网络权限，切换服务地址后会尽力移除旧主机权限。
 
 API Key 只保存在 `chrome.storage.local` 的可信扩展上下文中，管理面板和网页都拿不到保存后的完整 Key。Key 不会写入翻译历史、Token 记录或错误信息。历史与用量均为本机数据，可在面板中清空。为了避免误传，每次最多翻译 12,000 个字符；不要选中不希望发送给接口的敏感内容。
@@ -64,8 +72,8 @@ API Key 只保存在 `chrome.storage.local` 的可信扩展上下文中，管理
 - `npm run build`：生成可加载的 `dist` 扩展。
 - `npm run package:download`：重新构建并生成官网使用的版本化解压安装 ZIP；产物位于 `docs/downloads/`，包含单一版本目录。
 - `npm run package:store`：重新构建并验证扩展，然后生成可直接上传 Chrome Web Store 的专用 ZIP；产物位于 `artifacts/chrome-web-store/`。
-- `npm run test:unit`：验证读音逻辑、外国人名词典与边界、翻译请求构造、密钥脱敏、权限边界、容量限制及后台消息流程。
-- `npm run test:e2e`：在无头 Chromium 中验证真实 DOM 标注、词/句/段翻译、管理面板、动态内容、关闭/重开和防重复注入。
+- `npm run test:unit`：验证读音逻辑、外国人名与外来语词源词典边界、翻译请求构造、密钥脱敏、权限边界、容量限制及后台消息流程。
+- `npm run test:e2e`：在无头 Chromium 中验证真实 DOM 读音与外来语原词标注、长标注折叠、词/句/段翻译、管理面板、动态内容、关闭/重开和防重复注入。
 - `npm run test:extension`：加载真实 Manifest V3 扩展，验证 Service Worker、管理面板、划词消息、OpenAI 兼容请求、译文及 Token 返回。
 - `npm run audit:live`：在新闻、体育、论坛与学术网站上执行真实页面兼容性审计，并输出 `artifacts/live-site-audit.json`。
 - `npm run validate`：检查 Manifest、构建文件和本地词典完整性。
@@ -93,6 +101,13 @@ npm run package:store
 - 划词翻译依赖用户自己的兼容 API 配置、网络、额度与模型权限；项目不会创建、内置或上传 API Key。
 - 当前版本处理主文档及其后续动态内容，不处理封闭 Shadow DOM 或跨域 iframe。
 - 相邻标签不会被重排或合并；日期等规则使用受限上下文，已核验外国姓名按原标签中的安全片段分别生成 ruby，从而保留站点事件、CSS 与关闭插件后的 DOM 结构。
+- 片假名并不一定是外来语。外来语原词功能只处理本地词源表中的高置信完整匹配；歧义、和制英语、人名上下文和未知词保持原文，避免为了覆盖率显示未经核实的来源。
+
+## 外来语词源数据与许可
+
+2.5.0 的本地词源表派生自 [JMdict](https://www.edrdg.org/jmdict/jmdict_dtd_h.html) 的 2026-08-17 固定数据版本 `3.6.2+20260817122448`，并使用 [jmdict-simplified](https://github.com/scriptin/jmdict-simplified) 提供的结构化格式生成；常用词另有少量人工核验修正。构建仅保留完整词源、非和制英语且来源唯一的高置信记录，运行时不会下载词典或调用远程词源服务。
+
+JMdict 由 Electronic Dictionary Research and Development Group（EDRDG）维护，相关数据按 [EDRDG General Dictionary Licence Statement](https://www.edrdg.org/edrdg/licence.html) 与 [Creative Commons Attribution-ShareAlike 4.0](https://creativecommons.org/licenses/by-sa/4.0/) 提供。随包许可文本与具体归属见 [`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md) 及 `third_party_licenses/jmdict/`。
 
 完整的后续开发及验收指令见 [DEVELOPMENT_INSTRUCTIONS.md](./DEVELOPMENT_INSTRUCTIONS.md)。
-2.0.0 的多领域实测、翻译验收、修复项与已知边界见 [LIVE_SITE_TEST_REPORT.md](./LIVE_SITE_TEST_REPORT.md) 和 [TRANSLATION_FEATURE_REPORT.md](./TRANSLATION_FEATURE_REPORT.md)；2.0.1 进一步补充了真实扩展进程与升级恢复测试，2.1.0 增加了四语言管理面板及界面语言/翻译目标隔离测试，2.2.0 增加了弹窗四语言、双向同步及窄界面防溢出测试，2.3.0 增加了中韩朝越完整人名、跨标签及动态上下文回归测试，2.4.0 增加了送り仮名分段及外来词片假名覆盖回归测试，2.4.1 增加了长读音紧凑排版与网页样式隔离回归测试。
+2.0.0 的多领域实测、翻译验收、修复项与已知边界见 [LIVE_SITE_TEST_REPORT.md](./LIVE_SITE_TEST_REPORT.md) 和 [TRANSLATION_FEATURE_REPORT.md](./TRANSLATION_FEATURE_REPORT.md)；2.0.1 进一步补充了真实扩展进程与升级恢复测试，2.1.0 增加了四语言管理面板及界面语言/翻译目标隔离测试，2.2.0 增加了弹窗四语言、双向同步及窄界面防溢出测试，2.3.0 增加了中韩朝越完整人名、跨标签及动态上下文回归测试，2.4.0 增加了送り仮名分段及外来词片假名覆盖回归测试，2.4.1 增加了长读音紧凑排版与网页样式隔离回归测试，2.5.0 增加了本地外来语原词、语言简称、长标注折叠、动态正文及独立开关回归测试。

@@ -24,6 +24,30 @@
         text-indent: 1em !important;
         white-space: normal !important;
       }
+
+      .loanword-origin-copy {
+        box-sizing: border-box;
+        width: 760px;
+        margin: 0;
+        font: 22px/2.1 "Yu Gothic", "Noto Sans JP", sans-serif;
+        letter-spacing: 0;
+      }
+
+      /* Simulate hostile site styles that must not stretch origin rubies. */
+      .loanword-origin-copy ruby {
+        ruby-align: space-around !important;
+        margin-inline: 2rem !important;
+        padding-inline: 1rem !important;
+      }
+
+      .loanword-origin-copy rt {
+        font-size: 1.4em !important;
+        letter-spacing: 0.5em !important;
+        word-spacing: 0.4em !important;
+        text-align: justify !important;
+        text-indent: 1em !important;
+        white-space: normal !important;
+      }
     </style>
   </head>
   <body>
@@ -57,6 +81,10 @@
         <h2>论坛与社区</h2>
         <p id="community-phrases">既読、自治厨、公録、売り時、トピ立て、スレ主様、後から確認、3日後から開始、辛い焼きそば、仕事が辛い、(笑)、（泣）</p>
         <p id="okurigana-loanword">麻辣湯と麻辣烫を食べる。地位が低い層ほど、子どもから発せられた話が使われた。お読みいただき、申し込む。</p>
+        <p id="loanword-origin-reference" class="loanword-origin-copy" contenteditable="true">コンピューター、クーデター、アルバイト、パエリア、パン、キムチ、ルポルタージュ。</p>
+        <p id="loanword-origin-regression" class="loanword-origin-copy">コンピューター、クーデター、アルバイト、パエリア、パン、キムチ、ルポルタージュ。</p>
+        <p id="loanword-origin-negatives">ワクワク、サラリーマン、ムラカミ。</p>
+        <p id="loanword-origin-hidden" hidden>キムチとニュース</p>
         <p id="ruby-spacing-reference" class="ruby-spacing-copy" contenteditable="true">【上野千鶴子】いい質問をしてくださってありがとう。以前は、性売買の敵はタダ（無料）のセックスだと思っていたので、女の子たちが性的に解放されて、こだわらずに自由に性交渉できるようになればいい、と思っていました。</p>
         <p id="ruby-spacing-regression" class="ruby-spacing-copy">【上野千鶴子】いい質問をしてくださってありがとう。以前は、性売買の敵はタダ（無料）のセックスだと思っていたので、女の子たちが性的に解放されて、こだわらずに自由に性交渉できるようになればいい、と思っていました。</p>
         <p id="people-counters">1人、2人、一人、二人、一人一人、1人旅、2人暮らし、二人組、1人用</p>

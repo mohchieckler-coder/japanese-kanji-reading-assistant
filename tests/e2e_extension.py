@@ -18,14 +18,25 @@ class QuietHandler(SimpleHTTPRequestHandler):
 def send_message(page, message_type):
     return page.evaluate(
         """(messageType) => new Promise((resolve, reject) => {
-          const listener = window.__furiganaMessageListener;
-          if (!listener) {
+          const listeners = window.__runtimeMessageListeners || [];
+          if (!listeners.length) {
             reject(new Error('message listener was not registered'));
             return;
           }
-          const keepChannelOpen = listener({ type: messageType }, {}, resolve);
-          if (keepChannelOpen !== true && messageType !== 'GET_FURIGANA_STATUS') {
-            reject(new Error('asynchronous response channel was not kept open'));
+          let settled = false;
+          let keepChannelOpen = false;
+          const sendResponse = (response) => {
+            if (settled) return;
+            settled = true;
+            resolve(response);
+          };
+          for (const listener of listeners) {
+            const listenerResult = listener({ type: messageType }, {}, sendResponse);
+            keepChannelOpen ||= listenerResult === true;
+            if (settled) return;
+          }
+          if (!keepChannelOpen) {
+            reject(new Error(`no listener handled ${messageType}`));
           }
         })""",
         message_type,
@@ -43,6 +54,13 @@ def assert_annotation(page, selector, surface, reading):
     annotations = element_annotations(page, selector)
     assert [surface, reading] in annotations, (
         f"{selector}: expected {surface}={reading}, got {annotations}"
+    )
+
+
+def loanword_annotations(page, selector):
+    return page.eval_on_selector_all(
+        f"{selector} ruby[data-jp-loanword-origin]",
+        "elements => elements.map((ruby) => [ruby.dataset.jpOriginal, ruby.querySelector('rt').textContent])",
     )
 
 
@@ -96,12 +114,14 @@ try:
                 }},
                 onMessage: {{
                   addListener: (listener) => {{
-                    window.__furiganaMessageListener = listener;
+                    window.__runtimeMessageListeners = window.__runtimeMessageListeners || [];
+                    window.__runtimeMessageListeners.push(listener);
                   }}
                 }}
               }}
             }};
             window.__japaneseSelectionTranslationController__ = {{ buildVersion: '2.0.0' }};
+            window.__japaneseLoanwordOriginController__ = {{ buildVersion: '2.0.0' }};
             window.__japaneseFuriganaAiController__ = {{ buildVersion: '2.0.0' }};
             document.addEventListener('mouseup', () => {{
               if (!window.__simulateStaleTranslationController) return;
@@ -129,15 +149,26 @@ try:
             )
             startup_status = send_message(page, "GET_FURIGANA_STATUS")
             assert startup_status["phase"] == "enabled", startup_status
+            startup_loanword_status = send_message(page, "GET_LOANWORD_ORIGIN_STATUS")
+            assert startup_loanword_status == {
+                "phase": "idle",
+                "enabled": False,
+                "count": 0,
+                "message": "",
+            }, startup_loanword_status
+            assert page.locator("ruby[data-jp-loanword-origin]").count() == 0
             assert page.locator("ruby[data-jp-furigana]").count() >= 6
             assert page.evaluate(
-                "window.__japaneseSelectionTranslationController__.buildVersion === '2.4.1'"
+                "window.__japaneseSelectionTranslationController__.buildVersion === '2.5.0'"
             )
             assert page.evaluate(
-                "window.__japaneseFuriganaAiController__.buildVersion === '2.4.1'"
+                "window.__japaneseLoanwordOriginController__.buildVersion === '2.5.0'"
+            )
+            assert page.evaluate(
+                "window.__japaneseFuriganaAiController__.buildVersion === '2.5.0'"
             )
         except Exception:
-            status = send_message(page, "GET_FURIGANA_STATUS") if page.evaluate("Boolean(window.__furiganaMessageListener)") else None
+            status = send_message(page, "GET_FURIGANA_STATUS") if page.evaluate("Boolean(window.__runtimeMessageListeners?.length)") else None
             print(f"Diagnostic status: {status}")
             print(f"Diagnostic console errors: {console_errors}")
             print(f"Diagnostic failed responses: {failed_responses}")
@@ -595,6 +626,225 @@ try:
               .some((ruby) => ['チョン', 'ドゥ', 'ファン'].includes(ruby.querySelector('rt')?.textContent))"""
         )
 
+        loanword_source_text = "コンピューター、クーデター、アルバイト、パエリア、パン、キムチ、ルポルタージュ。"
+        loanword_original_html = page.locator("#loanword-origin-regression").inner_html()
+        article_with_furigana_html = page.locator("#article").inner_html()
+        page.evaluate(
+            "window.__translationControllerBeforeLoanwords = window.__japaneseSelectionTranslationController__"
+        )
+        furigana_before_loanwords = send_message(page, "GET_FURIGANA_STATUS")
+        assert furigana_before_loanwords["phase"] == "enabled", furigana_before_loanwords
+
+        enabled_loanwords = send_message(page, "TOGGLE_LOANWORD_ORIGINS")
+        assert enabled_loanwords["phase"] == "enabled", enabled_loanwords
+        assert enabled_loanwords["enabled"] is True, enabled_loanwords
+        page.wait_for_function(
+            "() => document.querySelectorAll('#loanword-origin-regression ruby[data-jp-loanword-origin]').length === 7"
+        )
+        assert loanword_annotations(page, "#loanword-origin-regression") == [
+            ["コンピューター", "computer"],
+            ["クーデター", "（仏）coup d'État"],
+            ["アルバイト", "（独）Arbeit"],
+            ["パエリア", "（西）paella"],
+            ["パン", "（葡）pão"],
+            ["キムチ", "（韓）김치"],
+            ["ルポルタージュ", "（仏）reportage"],
+        ]
+        assert page.locator(
+            "#loanword-origin-regression ruby[data-jp-original='コンピューター'] rt"
+        ).inner_text() == "computer"
+        assert not page.locator(
+            "#loanword-origin-regression ruby[data-jp-original='コンピューター'] rt"
+        ).inner_text().startswith("（")
+        assert page.locator("#loanword-origin-negatives ruby[data-jp-loanword-origin]").count() == 0
+        assert page.locator("#loanword-origin-hidden ruby[data-jp-loanword-origin]").count() == 0
+        assert page.locator(
+            "ruby[data-jp-furigana] ruby[data-jp-loanword-origin], "
+            "ruby[data-jp-loanword-origin] ruby[data-jp-furigana]"
+        ).count() == 0
+        assert send_message(page, "GET_FURIGANA_STATUS")["phase"] == "enabled"
+        assert page.locator("#article").inner_html() == article_with_furigana_html
+        assert page.evaluate(
+            "window.__translationControllerBeforeLoanwords === window.__japaneseSelectionTranslationController__"
+        )
+
+        long_origin_toggle = page.locator(
+            "#loanword-origin-regression ruby[data-jp-original='クーデター'] [data-jp-loanword-toggle]"
+        )
+        assert long_origin_toggle.get_attribute("aria-expanded") == "false"
+        collapsed_style = long_origin_toggle.evaluate(
+            """(toggle) => {
+              const style = getComputedStyle(toggle);
+              return {
+                maxInlineSize: style.maxInlineSize,
+                overflow: style.overflow,
+                textOverflow: style.textOverflow,
+                fullText: toggle.textContent,
+              };
+            }"""
+        )
+        assert collapsed_style["overflow"] == "hidden", collapsed_style
+        assert collapsed_style["textOverflow"] == "ellipsis", collapsed_style
+        assert collapsed_style["fullText"] == "（仏）coup d'État", collapsed_style
+        assert 0 < float(collapsed_style["maxInlineSize"].removesuffix("px")) < 120, collapsed_style
+        long_origin_toggle.click()
+        assert long_origin_toggle.get_attribute("aria-expanded") == "true"
+        expanded_geometry = long_origin_toggle.evaluate(
+            """(toggle) => {
+              const sample = document.querySelector('#loanword-origin-regression');
+              const toggleRect = toggle.getBoundingClientRect();
+              const sampleRect = sample.getBoundingClientRect();
+              const style = getComputedStyle(toggle);
+              return {
+                text: toggle.textContent,
+                maxInlineSize: style.maxInlineSize,
+                overflow: style.overflow,
+                toggleLeft: toggleRect.left,
+                toggleRight: toggleRect.right,
+                sampleLeft: sampleRect.left,
+                sampleRight: sampleRect.right,
+                sampleClientWidth: sample.clientWidth,
+                sampleScrollWidth: sample.scrollWidth,
+                pageClientWidth: document.documentElement.clientWidth,
+                pageScrollWidth: document.documentElement.scrollWidth,
+              };
+            }"""
+        )
+        assert expanded_geometry["text"] == "（仏）coup d'État", expanded_geometry
+        assert expanded_geometry["maxInlineSize"] == "none", expanded_geometry
+        assert expanded_geometry["overflow"] == "visible", expanded_geometry
+        assert expanded_geometry["toggleLeft"] >= expanded_geometry["sampleLeft"] - 1, expanded_geometry
+        assert expanded_geometry["toggleRight"] <= expanded_geometry["sampleRight"] + 1, expanded_geometry
+        assert expanded_geometry["pageScrollWidth"] <= expanded_geometry["pageClientWidth"] + 1, expanded_geometry
+        long_origin_toggle.click()
+        assert long_origin_toggle.get_attribute("aria-expanded") == "false"
+        long_origin_toggle.focus()
+        long_origin_toggle.press("Enter")
+        assert long_origin_toggle.get_attribute("aria-expanded") == "true"
+        long_origin_toggle.press("Enter")
+        assert long_origin_toggle.get_attribute("aria-expanded") == "false"
+        long_origin_toggle.press("Space")
+        assert long_origin_toggle.get_attribute("aria-expanded") == "true"
+        long_origin_toggle.press("Space")
+        assert long_origin_toggle.get_attribute("aria-expanded") == "false"
+
+        loanword_layout = page.evaluate(
+            """() => {
+              const lineTops = (selector) => {
+                const root = document.querySelector(selector);
+                const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+                const tops = [];
+                while (walker.nextNode()) {
+                  const node = walker.currentNode;
+                  if (node.parentElement?.closest('rt, rp')) continue;
+                  for (let offset = 0; offset < node.length; offset += 1) {
+                    const range = document.createRange();
+                    range.setStart(node, offset);
+                    range.setEnd(node, offset + 1);
+                    const rect = range.getBoundingClientRect();
+                    if (rect.width || rect.height) tops.push(Math.round(rect.top * 2) / 2);
+                  }
+                }
+                return [...new Set(tops)].sort((left, right) => left - right);
+              };
+              const maximumGap = (tops) => tops.slice(1)
+                .reduce((maximum, top, index) => Math.max(maximum, top - tops[index]), 0);
+              const sample = document.querySelector('#loanword-origin-regression');
+              const referenceTops = lineTops('#loanword-origin-reference');
+              const annotatedTops = lineTops('#loanword-origin-regression');
+              const rubies = [...sample.querySelectorAll('ruby[data-jp-loanword-origin]')];
+              return {
+                referenceLines: referenceTops.length,
+                annotatedLines: annotatedTops.length,
+                referenceLineGap: maximumGap(referenceTops),
+                annotatedLineGap: maximumGap(annotatedTops),
+                clientWidth: sample.clientWidth,
+                scrollWidth: sample.scrollWidth,
+                sampleRect: (() => {
+                  const rect = sample.getBoundingClientRect();
+                  return { left: rect.left, right: rect.right, width: rect.width };
+                })(),
+                rubyRects: rubies.map((ruby) => {
+                  const rect = ruby.getBoundingClientRect();
+                  const rtRect = ruby.querySelector('rt').getBoundingClientRect();
+                  return {
+                    surface: ruby.dataset.jpOriginal,
+                    left: rect.left,
+                    right: rect.right,
+                    width: rect.width,
+                    rtLeft: rtRect.left,
+                    rtRight: rtRect.right,
+                    rtWidth: rtRect.width,
+                  };
+                }),
+                rubyStyles: rubies.map((ruby) => {
+                  const rt = ruby.querySelector('rt');
+                  const rubyStyle = getComputedStyle(ruby);
+                  const rtStyle = getComputedStyle(rt);
+                  return {
+                    rubyAlign: rubyStyle.rubyAlign,
+                    rubyOverhang: rubyStyle.rubyOverhang,
+                    marginInlineStart: rubyStyle.marginInlineStart,
+                    paddingInlineStart: rubyStyle.paddingInlineStart,
+                    letterSpacing: rtStyle.letterSpacing,
+                    wordSpacing: rtStyle.wordSpacing,
+                    textAlign: rtStyle.textAlign,
+                    textIndent: rtStyle.textIndent,
+                    whiteSpace: rtStyle.whiteSpace,
+                  };
+                }),
+              };
+            }"""
+        )
+        assert loanword_layout["rubyStyles"], loanword_layout
+        for ruby_style in loanword_layout["rubyStyles"]:
+            assert ruby_style["rubyOverhang"] in {"none", "spaces"}, ruby_style
+            assert {key: value for key, value in ruby_style.items() if key != "rubyOverhang"} == {
+                "rubyAlign": "center",
+                "marginInlineStart": "0px",
+                "paddingInlineStart": "0px",
+                "letterSpacing": "normal",
+                "wordSpacing": "0px",
+                "textAlign": "center",
+                "textIndent": "0px",
+                "whiteSpace": "nowrap",
+            }, ruby_style
+        assert loanword_layout["scrollWidth"] <= loanword_layout["clientWidth"] + 1, loanword_layout
+        assert loanword_layout["annotatedLines"] <= loanword_layout["referenceLines"] + 1, loanword_layout
+        assert loanword_layout["annotatedLineGap"] <= loanword_layout["referenceLineGap"] + 2, loanword_layout
+
+        page.evaluate(
+            """() => {
+              const paragraph = document.createElement('p');
+              paragraph.id = 'dynamic-loanword-origins';
+              paragraph.textContent = 'パエリアとパン';
+              document.querySelector('main').append(paragraph);
+            }"""
+        )
+        page.wait_for_function(
+            "() => document.querySelectorAll('#dynamic-loanword-origins ruby[data-jp-loanword-origin]').length === 2"
+        )
+        assert loanword_annotations(page, "#dynamic-loanword-origins") == [
+            ["パエリア", "（西）paella"],
+            ["パン", "（葡）pão"],
+        ]
+        page.locator("#loanword-origin-hidden").evaluate("(element) => element.hidden = false")
+        page.wait_for_function(
+            "() => document.querySelectorAll('#loanword-origin-hidden ruby[data-jp-loanword-origin]').length === 2"
+        )
+        assert loanword_annotations(page, "#loanword-origin-hidden") == [
+            ["キムチ", "（韓）김치"],
+            ["ニュース", "news"],
+        ]
+        current_loanword_status = send_message(page, "GET_LOANWORD_ORIGIN_STATUS")
+        assert current_loanword_status["phase"] == "enabled", current_loanword_status
+        assert current_loanword_status["count"] == page.locator(
+            "ruby[data-jp-loanword-origin]"
+        ).count(), current_loanword_status
+        page.locator("#loanword-origin-regression").screenshot(
+            path=str(ARTIFACTS / "loanword-origin-e2e.png")
+        )
+
         page.evaluate(
             """() => {
               const fixture = document.createElement('section');
@@ -618,6 +868,7 @@ try:
             page.evaluate(
                 """(selector) => {
                   const target = document.querySelector(selector);
+                  window.__selectionBeforeTest = window.__japaneseSelectionTranslationController__?.lastSelection;
                   const range = document.createRange();
                   range.selectNodeContents(target);
                   const selection = window.getSelection();
@@ -630,7 +881,9 @@ try:
             page.wait_for_function(
                 """() => {
                   const controller = window.__japaneseSelectionTranslationController__;
-                  return controller && !controller.actionButton.hidden;
+                  return controller
+                    && controller.lastSelection !== window.__selectionBeforeTest
+                    && !controller.actionButton.hidden;
                 }"""
             )
             return page.evaluate(
@@ -640,6 +893,28 @@ try:
                   label: window.__japaneseSelectionTranslationController__.actionButton.textContent
                 })"""
             )
+
+        loanword_selection = select_translation_fixture("#loanword-origin-regression")
+        assert loanword_selection["text"] == loanword_source_text, loanword_selection
+        assert "computer" not in loanword_selection["text"], loanword_selection
+        disabled_loanwords = send_message(page, "TOGGLE_LOANWORD_ORIGINS")
+        assert disabled_loanwords == {
+            "phase": "idle",
+            "enabled": False,
+            "count": 0,
+            "message": "",
+        }, disabled_loanwords
+        assert send_message(page, "GET_LOANWORD_ORIGIN_STATUS") == disabled_loanwords
+        assert page.locator("ruby[data-jp-loanword-origin]").count() == 0
+        assert page.locator("#loanword-origin-regression").inner_html() == loanword_original_html
+        assert page.locator("#loanword-origin-regression").inner_text() == loanword_source_text
+        assert page.locator("#dynamic-loanword-origins").inner_html() == "パエリアとパン"
+        assert page.locator("#loanword-origin-hidden").inner_html() == "キムチとニュース"
+        assert page.locator("#article").inner_html() == article_with_furigana_html
+        assert page.evaluate(
+            "window.__translationControllerBeforeLoanwords === window.__japaneseSelectionTranslationController__"
+        )
+        assert send_message(page, "GET_FURIGANA_STATUS")["phase"] == "enabled"
 
         sentence_selection = select_translation_fixture("#translation-sentence")
         assert sentence_selection == {
@@ -723,6 +998,7 @@ try:
 
         first_count = page.locator("ruby[data-jp-furigana]").count()
         page.evaluate("window.__translationControllerBefore = window.__japaneseSelectionTranslationController__")
+        page.evaluate("window.__loanwordControllerBefore = window.__japaneseLoanwordOriginController__")
         page.add_script_tag(url=f"{base_url}/dist/content.js")
         page.wait_for_timeout(150)
         assert page.locator("ruby[data-jp-furigana]").count() == first_count
@@ -733,6 +1009,9 @@ try:
         )
         assert page.evaluate(
             "window.__translationControllerBefore === window.__japaneseSelectionTranslationController__"
+        )
+        assert page.evaluate(
+            "window.__loanwordControllerBefore === window.__japaneseLoanwordOriginController__"
         )
 
         disabled = send_message(page, "TOGGLE_FURIGANA")
@@ -749,6 +1028,18 @@ try:
         assert page.locator("#foreign-name-split b").count() == 1
         assert page.locator("#foreign-name-split i").count() == 2
         assert page.locator("#foreign-name-split u").count() == 2
+
+        loanword_only_enabled = send_message(page, "TOGGLE_LOANWORD_ORIGINS")
+        assert loanword_only_enabled["phase"] == "enabled", loanword_only_enabled
+        page.wait_for_selector("#loanword-origin-regression ruby[data-jp-loanword-origin]")
+        assert send_message(page, "GET_FURIGANA_STATUS")["phase"] == "idle"
+        assert page.locator("ruby[data-jp-furigana]").count() == 0
+        assert page.locator("ruby[data-jp-loanword-origin]").count() >= 7
+        loanword_only_disabled = send_message(page, "TOGGLE_LOANWORD_ORIGINS")
+        assert loanword_only_disabled["phase"] == "idle", loanword_only_disabled
+        assert page.locator("ruby[data-jp-loanword-origin]").count() == 0
+        assert page.locator("#loanword-origin-regression").inner_html() == loanword_original_html
+        assert send_message(page, "GET_FURIGANA_STATUS")["phase"] == "idle"
 
         enabled = send_message(page, "TOGGLE_FURIGANA")
         assert enabled["phase"] == "enabled"
@@ -768,6 +1059,7 @@ try:
         popup.add_init_script(
             """
             window.__scriptInjected = false;
+            window.__loanwordEnabled = false;
             window.__popupMessages = [];
             const readPopupSettings = () => {
               let persisted = {};
@@ -783,7 +1075,7 @@ try:
             };
             window.chrome = {
               runtime: {
-                  getManifest: () => ({ version: '2.4.1' }),
+                  getManifest: () => ({ version: '2.5.0' }),
                 sendMessage: async (message) => {
                   window.__popupMessages.push(structuredClone(message));
                   if (message.type === 'GET_TRANSLATION_DASHBOARD') {
@@ -817,10 +1109,21 @@ try:
                 query: async () => [{ id: 42, url: 'https://example.test/news' }],
                 sendMessage: async (_tabId, message) => {
                   if (!window.__scriptInjected) throw new Error('Receiving end does not exist');
-                  if (message.type === 'GET_FURIGANA_STATUS') {
-                    return { phase: 'enabled', enabled: true, count: 8, message: '' };
-                  }
-                  return { phase: 'idle', enabled: false, count: 0, message: '' };
+                   if (message.type === 'GET_FURIGANA_STATUS') {
+                     return { phase: 'enabled', enabled: true, count: 8, message: '' };
+                   }
+                   if (message.type === 'GET_LOANWORD_ORIGIN_STATUS') {
+                     return window.__loanwordEnabled
+                       ? { phase: 'enabled', enabled: true, count: 6, message: '' }
+                       : { phase: 'idle', enabled: false, count: 0, message: '' };
+                   }
+                   if (message.type === 'TOGGLE_LOANWORD_ORIGINS') {
+                     window.__loanwordEnabled = !window.__loanwordEnabled;
+                     return window.__loanwordEnabled
+                       ? { phase: 'enabled', enabled: true, count: 6, message: '' }
+                       : { phase: 'idle', enabled: false, count: 0, message: '' };
+                   }
+                   return { phase: 'idle', enabled: false, count: 0, message: '' };
                 }
               },
               scripting: {
@@ -838,6 +1141,8 @@ try:
                 "title": "Japanese Kanji AI Reading Assistant",
                 "ready": "Enable readings for Japanese kanji and translate selected text.",
                 "enable": "Enable readings and selection translation",
+                "loanword_enable": "Show katakana loanword origins",
+                "loanword_ready": "Show original spellings above katakana loanwords. Non-English origins include markers such as 仏, 独, or 西.",
                 "configured_badge": "Configured",
                 "translation": "Translate to: Simplified Chinese · Model: test-model",
                 "open": "Open translation management",
@@ -849,6 +1154,8 @@ try:
                 "title": "日本語漢字 AI 読み方アシスタント",
                 "ready": "有効にすると漢字にふりがなを表示し、選択したテキストを翻訳できます。",
                 "enable": "ふりがなと選択翻訳を有効にする",
+                "loanword_enable": "カタカナ外来語に原語を表示",
+                "loanword_ready": "カタカナ外来語の上に原語を表示します。英語以外は仏・独・西などの由来記号も表示します。",
                 "configured_badge": "設定済み",
                 "translation": "翻訳先：簡体字中国語 · モデル：test-model",
                 "open": "翻訳管理パネルを開く",
@@ -860,6 +1167,8 @@ try:
                 "title": "일본어 한자 AI 읽기 도우미",
                 "ready": "활성화하면 한자 읽기를 표시하고 선택한 텍스트를 번역할 수 있습니다.",
                 "enable": "읽기 및 선택 번역 활성화",
+                "loanword_enable": "가타카나 외래어에 원어 표시",
+                "loanword_ready": "가타카나 외래어 위에 원래 철자를 표시합니다. 영어 이외의 원어에는 仏, 独, 西 등의 출처 표기도 함께 표시합니다.",
                 "configured_badge": "설정됨",
                 "translation": "번역 언어: 중국어(간체) · 모델: test-model",
                 "open": "번역 관리 패널 열기",
@@ -871,6 +1180,8 @@ try:
                 "title": "日语汉字 AI 读音助手",
                 "ready": "点击启用后，将显示平假名读音，并可选中文字翻译。",
                 "enable": "启用当前页读音与划词翻译",
+                "loanword_enable": "标注片假名外来语原词",
+                "loanword_ready": "可将片假名外来语的原词标注在上方；非英语词会显示仏、独、西等来源标记。",
                 "configured_badge": "已配置",
                 "translation": "目标语：简体中文 · 模型：test-model",
                 "open": "打开翻译管理面板",
@@ -887,6 +1198,8 @@ try:
             assert popup.locator("#ui-language").get_attribute("title") == expected["aria"]
             assert popup.locator("#status").inner_text() == expected["ready"]
             assert popup.locator("#toggle").inner_text() == expected["enable"]
+            assert popup.locator("#toggle-loanword-origins").inner_text() == expected["loanword_enable"]
+            assert popup.locator("#loanword-origin-status").inner_text() == expected["loanword_ready"]
             assert popup.locator("#translation-badge").inner_text() == expected["configured_badge"]
             assert popup.locator("#translation-status").inner_text() == expected["translation"]
             assert popup.locator("#open-options").inner_text() == expected["open"]
@@ -935,6 +1248,20 @@ try:
         popup.get_by_role("button", name="읽기 및 선택 번역 활성화").click()
         popup.get_by_text("현재 페이지의 8곳에 읽기를 표시했습니다.", exact=True).wait_for()
         assert popup.get_by_role("button", name="읽기 제거(선택 번역은 유지)").is_enabled()
+        popup.get_by_role("button", name="가타카나 외래어에 원어 표시").click()
+        popup.get_by_text(
+            "외래어 6곳에 원어를 표시했습니다. 긴 표시는 클릭하면 펼칠 수 있습니다.",
+            exact=True,
+        ).wait_for()
+        assert popup.locator("#toggle").inner_text() == "읽기 제거(선택 번역은 유지)"
+        assert popup.locator("#toggle-loanword-origins").get_attribute("aria-pressed") == "true"
+        popup.get_by_role("button", name="외래어 원어 표시 제거").click()
+        popup.get_by_text(
+            "외래어 원어 표시가 꺼졌습니다. 언제든 다시 켤 수 있습니다.",
+            exact=True,
+        ).wait_for()
+        assert popup.locator("#toggle").inner_text() == "읽기 제거(선택 번역은 유지)"
+        assert popup.locator("#toggle-loanword-origins").get_attribute("aria-pressed") == "false"
         popup.get_by_role("button", name="번역 관리 패널 열기").click()
         assert popup.evaluate("Boolean(window.__optionsOpened)")
         assert not popup_errors, f"Popup console errors: {popup_errors}"
@@ -981,7 +1308,7 @@ try:
         stale_popup.goto(f"{base_url}/dist/popup.html")
         stale_popup.wait_for_load_state("networkidle")
         stale_popup.get_by_text(
-            "Chrome은 아직 이전 버전 1.1.0을 실행 중이지만 디스크 파일은 2.4.1(으)로 업데이트되었습니다.",
+            "Chrome은 아직 이전 버전 1.1.0을 실행 중이지만 디스크 파일은 2.5.0(으)로 업데이트되었습니다.",
             exact=True,
         ).wait_for()
         stale_popup.get_by_text(
@@ -1007,7 +1334,7 @@ try:
             window.__delayedSettings = { targetLanguage: 'en', uiLanguage: 'zh-CN' };
             window.chrome = {
               runtime: {
-                  getManifest: () => ({ version: '2.4.1' }),
+                  getManifest: () => ({ version: '2.5.0' }),
                 sendMessage: async (message) => {
                   if (message.type === 'GET_TRANSLATION_DASHBOARD') {
                     return await new Promise((resolve) => {
@@ -1469,7 +1796,33 @@ try:
         options.close()
         browser.close()
 
-    print("End-to-end DOM test passed.")
+    print(
+        "End-to-end DOM test passed.",
+        {
+            "loanword_collapsed_layout": {
+                key: loanword_layout[key]
+                for key in (
+                    "clientWidth",
+                    "scrollWidth",
+                    "referenceLines",
+                    "annotatedLines",
+                    "referenceLineGap",
+                    "annotatedLineGap",
+                )
+            },
+            "loanword_expanded_page": {
+                key: expanded_geometry[key]
+                for key in (
+                    "pageClientWidth",
+                    "pageScrollWidth",
+                    "toggleLeft",
+                    "toggleRight",
+                    "sampleLeft",
+                    "sampleRight",
+                )
+            },
+        },
+    )
 finally:
     server.shutdown()
     server.server_close()

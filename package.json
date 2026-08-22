@@ -1,9 +1,9 @@
 {
   "name": "japanese-furigana-ai-extension",
-  "version": "2.4.1",
+  "version": "2.5.0",
   "private": true,
   "type": "module",
-  "description": "A Chrome extension for local Japanese furigana and user-configured selection translation.",
+  "description": "A Chrome extension for local Japanese furigana, katakana loanword origins, and user-configured selection translation.",
   "scripts": {
     "icons": "python scripts/generate-icons.py",
     "build": "node scripts/build.mjs",
