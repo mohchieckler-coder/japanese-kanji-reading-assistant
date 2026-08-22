@@ -131,10 +131,10 @@ try:
             assert startup_status["phase"] == "enabled", startup_status
             assert page.locator("ruby[data-jp-furigana]").count() >= 6
             assert page.evaluate(
-                "window.__japaneseSelectionTranslationController__.buildVersion === '2.3.0'"
+                "window.__japaneseSelectionTranslationController__.buildVersion === '2.4.0'"
             )
             assert page.evaluate(
-                "window.__japaneseFuriganaAiController__.buildVersion === '2.3.0'"
+                "window.__japaneseFuriganaAiController__.buildVersion === '2.4.0'"
             )
         except Exception:
             status = send_message(page, "GET_FURIGANA_STATUS") if page.evaluate("Boolean(window.__furiganaMessageListener)") else None
@@ -217,9 +217,10 @@ try:
             ("既読", "きどく"),
             ("自治厨", "じちちゅう"),
             ("公録", "こうろく"),
-            ("売り時", "うりどき"),
-            ("トピ立て", "とぴたて"),
-            ("スレ主様", "すれぬしさま"),
+            ("売", "う"),
+            ("時", "どき"),
+            ("立", "た"),
+            ("主様", "ぬしさま"),
             ("笑", "わらい"),
             ("泣", "なき"),
         ]:
@@ -227,8 +228,35 @@ try:
         community_annotations = element_annotations(page, "#community-phrases")
         assert ["後", "あと"] in community_annotations
         assert ["後", "ご"] in community_annotations
-        assert ["辛い", "からい"] in community_annotations
-        assert ["辛い", "つらい"] in community_annotations
+        assert ["辛", "から"] in community_annotations
+        assert ["辛", "つら"] in community_annotations
+        assert not any(any("ぁ" <= character <= "ゖ" or "ァ" <= character <= "ヺ" for character in surface)
+                       for surface, _ in community_annotations)
+
+        okurigana_annotations = element_annotations(page, "#okurigana-loanword")
+        for expected in [
+            ["麻辣湯", "マーラータン"],
+            ["麻辣烫", "マーラータン"],
+            ["食", "た"],
+            ["低", "ひく"],
+            ["発", "はっ"],
+            ["使", "つか"],
+            ["読", "よ"],
+            ["申", "もう"],
+            ["込", "こ"],
+        ]:
+            assert expected in okurigana_annotations, (
+                f"okurigana/loanword regression: expected {expected}, got {okurigana_annotations}"
+            )
+        assert not any(any("ぁ" <= character <= "ゖ" or "ァ" <= character <= "ヺ" for character in surface)
+                       for surface, _ in okurigana_annotations)
+        assert page.locator("#okurigana-loanword").evaluate(
+            """(element) => {
+              const clone = element.cloneNode(true);
+              clone.querySelectorAll('rt').forEach((reading) => reading.remove());
+              return clone.textContent;
+            }"""
+        ) == "麻辣湯と麻辣烫を食べる。地位が低い層ほど、子どもから発せられた話が使われた。お読みいただき、申し込む。"
 
         for surface, reading in [
             ("1人", "ひとり"),
@@ -696,7 +724,7 @@ try:
             };
             window.chrome = {
               runtime: {
-                  getManifest: () => ({ version: '2.3.0' }),
+                  getManifest: () => ({ version: '2.4.0' }),
                 sendMessage: async (message) => {
                   window.__popupMessages.push(structuredClone(message));
                   if (message.type === 'GET_TRANSLATION_DASHBOARD') {
@@ -894,7 +922,7 @@ try:
         stale_popup.goto(f"{base_url}/dist/popup.html")
         stale_popup.wait_for_load_state("networkidle")
         stale_popup.get_by_text(
-            "Chrome은 아직 이전 버전 1.1.0을 실행 중이지만 디스크 파일은 2.3.0(으)로 업데이트되었습니다.",
+            "Chrome은 아직 이전 버전 1.1.0을 실행 중이지만 디스크 파일은 2.4.0(으)로 업데이트되었습니다.",
             exact=True,
         ).wait_for()
         stale_popup.get_by_text(
@@ -920,7 +948,7 @@ try:
             window.__delayedSettings = { targetLanguage: 'en', uiLanguage: 'zh-CN' };
             window.chrome = {
               runtime: {
-                  getManifest: () => ({ version: '2.3.0' }),
+                  getManifest: () => ({ version: '2.4.0' }),
                 sendMessage: async (message) => {
                   if (message.type === 'GET_TRANSLATION_DASHBOARD') {
                     return await new Promise((resolve) => {

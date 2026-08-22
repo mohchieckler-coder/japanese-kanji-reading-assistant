@@ -1,6 +1,6 @@
 {
   "name": "japanese-furigana-ai-extension",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "private": true,
   "type": "module",
   "description": "A Chrome extension for local Japanese furigana and user-configured selection translation.",
@@ -9,6 +9,7 @@
     "build": "node scripts/build.mjs",
     "validate": "node scripts/validate-build.mjs",
     "package:store": "npm run build && npm run validate && python scripts/package-web-store.py",
+    "package:download": "npm run build && npm run validate && python scripts/package-download.py",
     "test:unit": "node --test tests/unit/*.test.mjs",
     "test:e2e": "python tests/e2e_extension.py",
     "test:extension": "python tests/real_extension_smoke.py",

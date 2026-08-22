@@ -31,6 +31,7 @@ class LocalCompatibleApi(BaseHTTPRequestHandler):
         body = (
             "<!doctype html><html lang='ja'><meta charset='utf-8'>"
             "<title>実拡張テスト</title><main><p id='source'>日本語の新聞を読みます。</p>"
+            "<p id='okurigana-loanword'>麻辣湯と麻辣烫を食べる。低い層から発せられ、使われた。申し込む。</p>"
             "<p id='foreign-names'>北朝鮮の金正恩氏、中国の李強首相、ベトナムの阮富仲元書記長</p>"
             "</main></html>"
         ).encode("utf-8")
@@ -192,6 +193,25 @@ def run_browser(base_url, extension_path):
                     ["阮富仲", "グエン・フー・チョン"],
                 ]:
                     assert expected in foreign_name_annotations, foreign_name_annotations
+                okurigana_annotations = target.eval_on_selector_all(
+                    "#okurigana-loanword ruby[data-jp-furigana]",
+                    "elements => elements.map((ruby) => [ruby.dataset.jpOriginal, ruby.querySelector('rt').textContent])",
+                )
+                for expected in [
+                    ["麻辣湯", "マーラータン"],
+                    ["麻辣烫", "マーラータン"],
+                    ["食", "た"],
+                    ["低", "ひく"],
+                    ["発", "はっ"],
+                    ["使", "つか"],
+                    ["申", "もう"],
+                    ["込", "こ"],
+                ]:
+                    assert expected in okurigana_annotations, okurigana_annotations
+                assert all(
+                    not any("ぁ" <= character <= "ゖ" or "ァ" <= character <= "ヺ" for character in surface)
+                    for surface, _ in okurigana_annotations
+                ), okurigana_annotations
                 target.evaluate(
                     """() => {
                       const source = document.querySelector('#source');

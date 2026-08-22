@@ -4,9 +4,13 @@ import {
   PERSON_ROLE_HINTS,
   getForeignPersonNameParts
 } from "./person-name-readings.mjs";
+import { KATAKANA_READING_OVERRIDES } from "./katakana-reading-overrides.mjs";
 
 const KANJI_PATTERN = /[\p{Script=Han}々〆ヶ]/u;
 const SINGLE_KANJI_PATTERN = /^[\p{Script=Han}々〆ヶ]$/u;
+const KANJI_RUN_PATTERN = /^[\p{Script=Han}々〆ヶ]+$/u;
+const KANA_PATTERN = /[\p{Script=Hiragana}\p{Script=Katakana}ー]/u;
+const JAPANESE_WRITING_RUN_PATTERN = /[\p{Script=Han}々〆ヶ]+|[\p{Script=Hiragana}\p{Script=Katakana}ー]+/gu;
 const HORIZONTAL_SPACE = "[\\p{Zs}\\t]*";
 const WEEKDAY_ABBREVIATION_READINGS = Object.freeze({
   日: "にち",
@@ -70,6 +74,10 @@ const EXACT_PHRASE_READINGS = Object.freeze([
   ["一人一人", "ひとりひとり"],
   ["二人組", "ふたりぐみ"],
   ["膵", "すい"]
+].sort(([left], [right]) => right.length - left.length));
+const EXACT_READING_OVERRIDES = Object.freeze([
+  ...KATAKANA_READING_OVERRIDES,
+  ...EXACT_PHRASE_READINGS
 ].sort(([left], [right]) => right.length - left.length));
 const ROUND_COUNTER_READINGS = Object.freeze({
   一: "いっかい",
@@ -202,6 +210,72 @@ export function katakanaToHiragana(value) {
     }
     return character;
   }).join("");
+}
+
+function splitKanjiReadingFromOkurigana(surface, reading) {
+  if (!reading || !containsKanji(surface) || !KANA_PATTERN.test(surface)) {
+    return [{ text: surface, reading }];
+  }
+
+  const writingRuns = surface.match(JAPANESE_WRITING_RUN_PATTERN) || [];
+  if (writingRuns.join("") !== surface) {
+    // A mixed token containing punctuation, Latin text, or numbers cannot be
+    // aligned safely. Leaving it unannotated is preferable to placing kana
+    // (including okurigana) inside a ruby base.
+    return [{ text: surface, reading: null }];
+  }
+
+  const normalizedReading = katakanaToHiragana(reading);
+  const memo = new Map();
+  const align = (runIndex, readingIndex) => {
+    const memoKey = `${runIndex}:${readingIndex}`;
+    if (memo.has(memoKey)) {
+      return memo.get(memoKey);
+    }
+    if (runIndex === writingRuns.length) {
+      const result = readingIndex === normalizedReading.length ? [] : null;
+      memo.set(memoKey, result);
+      return result;
+    }
+
+    const run = writingRuns[runIndex];
+    if (!KANJI_RUN_PATTERN.test(run)) {
+      const normalizedKana = katakanaToHiragana(run);
+      if (!normalizedReading.startsWith(normalizedKana, readingIndex)) {
+        memo.set(memoKey, null);
+        return null;
+      }
+      const tail = align(runIndex + 1, readingIndex + normalizedKana.length);
+      const result = tail ? [{ text: run, reading: null }, ...tail] : null;
+      memo.set(memoKey, result);
+      return result;
+    }
+
+    // A kanji run must consume at least one reading character. Trying the
+    // shortest viable prefix makes the following literal kana run act as an
+    // anchor; backtracking handles repeated kana and multiple kanji runs such
+    // as 申し込む without guessing where the okurigana belongs.
+    for (let readingEnd = readingIndex + 1; readingEnd <= normalizedReading.length; readingEnd += 1) {
+      const tail = align(runIndex + 1, readingEnd);
+      if (tail) {
+        const result = [{
+          text: run,
+          reading: reading.slice(readingIndex, readingEnd)
+        }, ...tail];
+        memo.set(memoKey, result);
+        return result;
+      }
+    }
+
+    memo.set(memoKey, null);
+    return null;
+  };
+
+  return align(0, 0) || [{ text: surface, reading: null }];
+}
+
+function appendRubyReadySegments(segments, surface, reading) {
+  segments.push(...splitKanjiReadingFromOkurigana(surface, reading));
 }
 
 function parseJapaneseNumber(value) {
@@ -630,7 +704,7 @@ function createTokenEntries(tokens) {
 }
 
 function findExactPhrase(text, start, tokenIndexByStart) {
-  for (const [surface, reading] of EXACT_PHRASE_READINGS) {
+  for (const [surface, reading] of EXACT_READING_OVERRIDES) {
     if (!text.startsWith(surface, start)) {
       continue;
     }
@@ -772,7 +846,7 @@ function buildBaseAnnotationSegments(text, tokenizer, context = {}) {
       ?? findPeopleCounter(text, entry.start, tokenIndexByStart, context)
       ?? findRoundCounter(text, entry.start, tokenIndexByStart, context);
     if (phrase) {
-      segments.push({ text: phrase.surface, reading: phrase.reading });
+      appendRubyReadySegments(segments, phrase.surface, phrase.reading);
       index = phrase.nextTokenIndex;
       continue;
     }
@@ -782,10 +856,11 @@ function buildBaseAnnotationSegments(text, tokenizer, context = {}) {
       : null;
     const reading = getContextualReading(text, entry.start, entry.token.surface_form, context)
       ?? dictionaryReading;
-    segments.push({
-      text: entry.token.surface_form,
-      reading: containsKanji(entry.token.surface_form) ? reading : null
-    });
+    appendRubyReadySegments(
+      segments,
+      entry.token.surface_form,
+      containsKanji(entry.token.surface_form) ? reading : null
+    );
     index += 1;
   }
 
@@ -816,7 +891,7 @@ export function buildAnnotationSegments(text, tokenizer, context = {}) {
         }
       ));
     }
-    segments.push({ text: match.surface, reading: match.reading });
+    appendRubyReadySegments(segments, match.surface, match.reading);
     cursor = match.end;
   }
   if (cursor < text.length) {

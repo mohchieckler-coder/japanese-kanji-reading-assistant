@@ -36,6 +36,16 @@ function assertReading(segments, surface, reading, sourceText) {
   );
 }
 
+function assertRubyBasesContainNoKana(segments, sourceText) {
+  for (const segment of segments.filter(({ reading }) => Boolean(reading))) {
+    assert.doesNotMatch(
+      segment.text,
+      /[\p{Script=Hiragana}\p{Script=Katakana}ー]/u,
+      `${sourceText}: kana leaked into ruby base ${JSON.stringify(segment)}`
+    );
+  }
+}
+
 test("detects Japanese kanji and iteration marks", () => {
   assert.equal(containsKanji("東京"), true);
   assert.equal(containsKanji("時々"), true);
@@ -59,7 +69,8 @@ test("creates ruby-ready segments without changing source text", () => {
   assert.deepEqual(segments, [
     { text: "東京", reading: "とうきょう" },
     { text: "へ", reading: null },
-    { text: "行く", reading: "いく" }
+    { text: "行", reading: "い" },
+    { text: "く", reading: null }
   ]);
   assert.equal(segments.map((segment) => segment.text).join(""), "東京へ行く");
 });
@@ -276,7 +287,11 @@ test("merges irregular people and round counters only at token boundaries", asyn
   const splitLargeRound = await annotateWithRealDictionary("百回", { prefix: "六" });
   assert.equal(splitLargeRound.some((segment) => segment.text === "百回"), false);
   const around = await annotateWithRealDictionary("一回り");
-  assert.equal(around.some((segment) => segment.text === "一回"), false);
+  assert.equal(
+    around.some((segment) => segment.text === "一回" && segment.reading === "いっかい"),
+    false
+  );
+  assertReading(around, "一回", "ひとまわ", "一回り");
   const splitFirstPerson = await annotateWithRealDictionary("1人", { suffix: "称" });
   assert.equal(splitFirstPerson.some((segment) => segment.text === "1人"), false);
   assertReading(splitFirstPerson, "人", "にん", "1人|称");
@@ -328,14 +343,7 @@ test("applies longest high-confidence academic, sports, and community phrase rea
     ["昨夏", "さっか"],
     ["既読", "きどく"],
     ["自治厨", "じちちゅう"],
-    ["公録", "こうろく"],
-    ["売り時", "うりどき"],
-    ["トピ立て", "とぴたて"],
-    ["スレ立て", "すれたて"],
-    ["トピ主", "とぴぬし"],
-    ["トピ主様", "とぴぬしさま"],
-    ["スレ主", "すれぬし"],
-    ["スレ主様", "すれぬしさま"]
+    ["公録", "こうろく"]
   ];
   const text = cases.map(([surface]) => surface).join("・");
   const segments = await annotateWithRealDictionary(text);
@@ -343,6 +351,49 @@ test("applies longest high-confidence academic, sports, and community phrase rea
     assertReading(segments, surface, reading, text);
   }
   assert.equal(segments.map((segment) => segment.text).join(""), text);
+});
+
+test("keeps okurigana and existing katakana outside exact-phrase ruby bases", async () => {
+  const cases = [
+    ["売り時", [
+      { text: "売", reading: "う" },
+      { text: "り", reading: null },
+      { text: "時", reading: "どき" }
+    ]],
+    ["トピ立て", [
+      { text: "トピ", reading: null },
+      { text: "立", reading: "た" },
+      { text: "て", reading: null }
+    ]],
+    ["スレ立て", [
+      { text: "スレ", reading: null },
+      { text: "立", reading: "た" },
+      { text: "て", reading: null }
+    ]],
+    ["トピ主", [
+      { text: "トピ", reading: null },
+      { text: "主", reading: "ぬし" }
+    ]],
+    ["トピ主様", [
+      { text: "トピ", reading: null },
+      { text: "主様", reading: "ぬしさま" }
+    ]],
+    ["スレ主", [
+      { text: "スレ", reading: null },
+      { text: "主", reading: "ぬし" }
+    ]],
+    ["スレ主様", [
+      { text: "スレ", reading: null },
+      { text: "主様", reading: "ぬしさま" }
+    ]]
+  ];
+
+  for (const [text, expected] of cases) {
+    const segments = await annotateWithRealDictionary(text);
+    assert.deepEqual(segments, expected, text);
+    assertRubyBasesContainNoKana(segments, text);
+    assert.equal(segments.map((segment) => segment.text).join(""), text);
+  }
 });
 
 test("keeps ordinary meanings outside exact phrase and online-slang contexts", async () => {
@@ -453,8 +504,8 @@ test("uses conservative community and food contexts", async () => {
   const segments = await annotateWithRealDictionary(text);
   const matchingAfter = segments.filter((segment) => segment.text === "後").map((segment) => segment.reading);
   assert.deepEqual(matchingAfter, ["あと", "ご"]);
-  const matchingSpicy = segments.filter((segment) => segment.text === "辛い").map((segment) => segment.reading);
-  assert.deepEqual(matchingSpicy, ["からい", "つらい"]);
+  const matchingSpicy = segments.filter((segment) => segment.text === "辛").map((segment) => segment.reading);
+  assert.deepEqual(matchingSpicy, ["から", "つら"]);
   assertReading(segments, "笑", "わらい", text);
   assertReading(segments, "泣", "なき", text);
   assert.equal(segments.map((segment) => segment.text).join(""), text);
@@ -462,5 +513,58 @@ test("uses conservative community and food contexts", async () => {
   const splitAfter = await annotateWithRealDictionary("後", { prefix: "。", suffix: "から確認" });
   assertReading(splitAfter, "後", "あと", "。|後|から確認");
   const splitSpicy = await annotateWithRealDictionary("辛い", { suffix: "食品" });
-  assertReading(splitSpicy, "辛い", "からい", "辛い|食品");
+  assert.deepEqual(splitSpicy, [
+    { text: "辛", reading: "から" },
+    { text: "い", reading: null }
+  ]);
+});
+
+test("places inflectional kana outside ruby across verbs, adjectives, and multiple kanji runs", async () => {
+  const text = [
+    "注意したい。親子調査で地位が低い層ほど、子どもから発せられた大事な話。",
+    "お読みいただけます。翻って使われた数の問題。",
+    "気がついて仰向けに倒れ、河童に囲まれて歩いてきた。",
+    "申し込む。引き受ける。取り扱い。"
+  ].join("");
+  const segments = await annotateWithRealDictionary(text);
+
+  for (const [surface, reading] of [
+    ["低", "ひく"],
+    ["発", "はっ"],
+    ["読", "よ"],
+    ["翻", "ひるがえ"],
+    ["使", "つか"],
+    ["気", "き"],
+    ["仰向", "あおむ"],
+    ["倒", "たお"],
+    ["囲", "かこ"],
+    ["歩", "ある"],
+    ["申", "もう"],
+    ["込", "こ"],
+    ["引", "ひ"],
+    ["受", "う"],
+    ["取", "と"],
+    ["扱", "あつか"]
+  ]) {
+    assertReading(segments, surface, reading, text);
+  }
+
+  assertRubyBasesContainNoKana(segments, text);
+  assert.equal(segments.map((segment) => segment.text).join(""), text);
+});
+
+test("fails closed when a mixed kanji-kana token cannot be aligned safely", () => {
+  const badReadingTokenizer = {
+    tokenize: () => [{ surface_form: "行く", reading: "イキマス" }]
+  };
+  assert.deepEqual(buildAnnotationSegments("行く", badReadingTokenizer), [
+    { text: "行く", reading: null }
+  ]);
+
+  const punctuationTokenizer = {
+    tokenize: () => [{ surface_form: "行く!", reading: "イク" }]
+  };
+  assert.deepEqual(buildAnnotationSegments("行く!", punctuationTokenizer), [
+    { text: "行く!", reading: null }
+  ]);
 });

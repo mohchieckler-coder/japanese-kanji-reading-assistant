@@ -10,8 +10,10 @@ ROOT = Path(__file__).resolve().parents[1]
 SITE = ROOT / "docs" / "index.html"
 PRIVACY_SITE = ROOT / "docs" / "privacy.html"
 ARTIFACTS = ROOT / "artifacts"
-DOWNLOAD = ROOT / "docs" / "downloads" / "japanese-furigana-ai-2.3.0.zip"
-DOWNLOAD_SHA256 = "A39AA56AA16019C2A00F36F8605DD1D18E9365F86A336AC0615E7A9B167EDDE0"
+VERSION = "2.4.0"
+ARCHIVE_PREFIX = f"japanese-furigana-ai-{VERSION}"
+DOWNLOAD = ROOT / "docs" / "downloads" / f"{ARCHIVE_PREFIX}.zip"
+DOWNLOAD_SHA256 = "2270D1E2089E57F80AEA66FA2CCBBF23E4574E531D500C4301217EF6C49D30E5"
 
 VIEWPORTS = {
     "desktop": {"width": 1440, "height": 900},
@@ -74,18 +76,39 @@ def assert_page_foundation(page, name):
 def main():
     ARTIFACTS.mkdir(exist_ok=True)
     assert DOWNLOAD.is_file()
+    assert list(DOWNLOAD.parent.glob("*.zip")) == [DOWNLOAD]
     assert hashlib.sha256(DOWNLOAD.read_bytes()).hexdigest().upper() == DOWNLOAD_SHA256
     with zipfile.ZipFile(DOWNLOAD) as archive:
         names = archive.namelist()
+        assert len(names) == len(set(name.casefold() for name in names))
+        assert archive.testzip() is None
+        assert {name.split("/", 1)[0] for name in names} == {ARCHIVE_PREFIX}
+        assert all(name.startswith(f"{ARCHIVE_PREFIX}/") for name in names)
+        assert not any(".." in Path(name).parts for name in names)
         blocked_suffixes = (".pem", ".key", ".p12", ".pfx", ".jks", ".keystore")
         assert not any(name.lower().endswith(blocked_suffixes) for name in names)
         assert not any("/.git/" in name.lower() or "/.env" in name.lower() for name in names)
         assert any(name.endswith("/THIRD_PARTY_NOTICES.md") for name in names)
         license_names = [name for name in names if "/third_party_licenses/" in name and not name.endswith("/")]
         assert len(license_names) == 6
-        manifest_name = next(name for name in names if name.endswith("/manifest.json"))
+        manifest_names = [name for name in names if name.endswith("/manifest.json")]
+        assert manifest_names == [f"{ARCHIVE_PREFIX}/manifest.json"]
+        assert names[0] == manifest_names[0]
+        manifest_name = manifest_names[0]
         manifest = json.loads(archive.read(manifest_name))
-        assert manifest["version"] == "2.3.0"
+        assert manifest["manifest_version"] == 3
+        assert manifest["version"] == VERSION
+        archived_files = {
+            name.removeprefix(f"{ARCHIVE_PREFIX}/")
+            for name in names
+            if not name.endswith("/")
+        }
+        dist_files = {
+            path.relative_to(ROOT / "dist").as_posix()
+            for path in (ROOT / "dist").rglob("*")
+            if path.is_file()
+        }
+        assert archived_files == dist_files
     console_errors = []
     page_errors = []
 
@@ -106,7 +129,7 @@ def main():
             )
 
             assert_page_foundation(page, name)
-            download_link = page.locator('a[download][href$="japanese-furigana-ai-2.3.0.zip"]').first
+            download_link = page.locator(f'a[download][href$="{ARCHIVE_PREFIX}.zip"]').first
             assert download_link.is_visible()
 
             if viewport["width"] <= 800:
@@ -126,7 +149,7 @@ def main():
                 assert menu.get_attribute("aria-expanded") == "false"
                 menu.focus()
                 page.keyboard.press("Tab")
-                assert page.locator('a[download][href$="japanese-furigana-ai-2.3.0.zip"]').first.evaluate(
+                assert page.locator(f'a[download][href$="{ARCHIVE_PREFIX}.zip"]').first.evaluate(
                     "(element) => document.activeElement === element"
                 )
             else:
