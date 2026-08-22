@@ -21,7 +21,7 @@
         "alternateName": "Japanese Kanji Reading Assistant",
         "applicationCategory": "BrowserApplication",
         "operatingSystem": "Chrome 120+",
-        "softwareVersion": "2.5.0",
+    "softwareVersion": "2.5.1",
         "description": "为日语网页汉字添加日语读音，在本地显示高置信片假名外来语原词，并使用用户配置的 OpenAI 兼容接口翻译主动选中的词、句子或段落。"
       }
     </script>
@@ -66,14 +66,14 @@
         <div class="hero-orb hero-orb-two" aria-hidden="true"></div>
         <div class="container hero-grid">
           <div class="hero-copy">
-            <p class="eyebrow"><span>Chrome Extension</span> v2.5.0</p>
+            <p class="eyebrow"><span>Chrome Extension</span> v2.5.1</p>
             <h1>读懂日语网页，<br><em><span>从每一个汉字</span><span>开始。</span></em></h1>
             <p class="hero-lead">
               打开新闻、论坛、论文或体育资讯，一键在汉字上方显示读音，也可独立显示片假名外来语的原词；选中词语、句子或段落，即可调用你自己的翻译接口。
             </p>
             <div class="hero-actions">
-              <a class="button" href="downloads/japanese-furigana-ai-2.5.0.zip" download>
-                下载 v2.5.0
+              <a class="button" href="downloads/japanese-furigana-ai-2.5.1.zip" download>
+                下载 v2.5.1
                 <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7 4 6 6-6 6"/></svg>
               </a>
               <a class="button button-secondary" href="#install">查看安装步骤</a>
@@ -221,12 +221,12 @@
               <div class="feature-copy">
                 <span class="feature-tag">02 · 外来语原词</span>
                 <h3>片假名上方，看见外语原词</h3>
-                <p>弹窗提供独立的“外来语原词标注”按钮。点击后，插件会用随包的本地词源数据匹配高置信外来语，不调用 API，也不会上传网页正文。</p>
+                <p>弹窗提供独立的“外来语原词标注”按钮。点击后，插件会用随包的 3,275 项本地词源记录匹配高置信外来语，覆盖新闻、论坛、学术和体育常用词；不调用 API，也不会上传网页正文。</p>
                 <ul class="check-list">
                   <li>英语只显示原词，不附加国家标记</li>
                   <li>其他语言使用日语汉字国名简称：仏、独、西等</li>
-                  <li>长标注自动折叠，点击即可完整展开或收起</li>
-                  <li>歧义、和制英语、人名上下文与未知词保守跳过</li>
+                  <li>长标注按片假名基底宽度折叠，点击后在限宽浮层完整显示</li>
+                  <li>同形异义、和制英语、地名、人名上下文与未知词保守跳过</li>
                 </ul>
                 <p>词源数据派生自 <a href="https://www.edrdg.org/jmdict/jmdict_dtd_h.html">JMdict</a>，遵循 <a href="https://www.edrdg.org/edrdg/licence.html">EDRDG General Dictionary Licence Statement</a> 与 <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>。</p>
               </div>
@@ -241,7 +241,7 @@
                   <span><ruby>アルバイト<rp>（</rp><rt>（独）Arbeit</rt><rp>）</rp></ruby></span>
                   <span><ruby>パエリア<rp>（</rp><rt>（西）paella</rt><rp>）</rp></ruby></span>
                 </div>
-                <p lang="zh-CN">原词过长时显示折叠摘要；点击标注后再展示完整内容。</p>
+                <p lang="zh-CN">原词过长时显示折叠摘要；点击或按 Enter／Space 后在浮层展示完整内容，不撑开正文间距。</p>
               </div>
             </article>
 
@@ -339,10 +339,10 @@
           <div class="download-panel">
             <div class="download-product">
               <img src="assets/icon.svg" width="54" height="54" alt="">
-              <p><small>官方解压安装包</small><strong>日语汉字 AI 读音助手</strong><span>v2.5.0 · ZIP · 14.9 MiB · Chrome 120+</span></p>
+              <p><small>官方解压安装包</small><strong>日语汉字 AI 读音助手</strong><span>v2.5.1 · ZIP · 14.9 MiB · Chrome 120+</span></p>
             </div>
-            <a class="button button-light" href="downloads/japanese-furigana-ai-2.5.0.zip" download>下载 ZIP</a>
-            <p class="download-hash"><span>SHA-256</span><code>0E8430FD87E2D90CC4289CBCC8229233E02ABD056FB928E33E40E6566A3EDFFC</code></p>
+              <a class="button button-light" href="downloads/japanese-furigana-ai-2.5.1.zip" download>下载 ZIP</a>
+            <p class="download-hash"><span>SHA-256</span><code>CD24D17B4E38CEA1531BAC39874D2B67F7E6143C87B509BF30AD4C3D1EDBB2F0</code></p>
           </div>
 
           <ol class="install-grid">
@@ -401,7 +401,7 @@
             </details>
             <details>
               <summary>为什么有些片假名没有显示外语原词？<span aria-hidden="true">＋</span></summary>
-              <p>片假名也可能是和制英语、拟声词或人名。插件使用 2026-08-17 固定的 JMdict 高置信子集和人工常用修正，只标注完整、来源唯一且非和制英语的已核实词；歧义、未知词和可能是人名的上下文会保留原文。英语只显示原词，其他语言使用仏、独、西等日语国名简称。</p>
+              <p>片假名也可能是和制英语、拟声词、人名或地名。插件使用 2026-08-17 固定的 JMdict 高置信子集和人工复核常用词层，只标注完整、来源唯一且非和制英语的已核实词；跨词条同形异义、未知词及不满足安全上下文的缩略词会保留原文。英语只显示原词，其他语言使用仏、独、西等日语国名简称。</p>
             </details>
             <details>
               <summary>哪些页面暂时无法处理？<span aria-hidden="true">＋</span></summary>
@@ -430,7 +430,7 @@
           <img src="assets/icon.svg" width="38" height="38" alt="">
           <div><strong>日语汉字 AI 读音助手</strong><small>本地优先的日语网页阅读工具</small></div>
         </div>
-        <p>© <span data-year>2026</span> Japanese Kanji Reading Assistant · v2.5.0</p>
+          <p>© <span data-year>2026</span> Japanese Kanji Reading Assistant · v2.5.1</p>
         <a href="#top">返回顶部 <span aria-hidden="true">↑</span></a>
       </div>
     </footer>

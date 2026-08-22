@@ -159,13 +159,13 @@ try:
             assert page.locator("ruby[data-jp-loanword-origin]").count() == 0
             assert page.locator("ruby[data-jp-furigana]").count() >= 6
             assert page.evaluate(
-                "window.__japaneseSelectionTranslationController__.buildVersion === '2.5.0'"
+                "window.__japaneseSelectionTranslationController__.buildVersion === '2.5.1'"
             )
             assert page.evaluate(
-                "window.__japaneseLoanwordOriginController__.buildVersion === '2.5.0'"
+                "window.__japaneseLoanwordOriginController__.buildVersion === '2.5.1'"
             )
             assert page.evaluate(
-                "window.__japaneseFuriganaAiController__.buildVersion === '2.5.0'"
+                "window.__japaneseFuriganaAiController__.buildVersion === '2.5.1'"
             )
         except Exception:
             status = send_message(page, "GET_FURIGANA_STATUS") if page.evaluate("Boolean(window.__runtimeMessageListeners?.length)") else None
@@ -626,8 +626,20 @@ try:
               .some((ruby) => ['チョン', 'ドゥ', 'ファン'].includes(ruby.querySelector('rt')?.textContent))"""
         )
 
-        loanword_source_text = "コンピューター、クーデター、アルバイト、パエリア、パン、キムチ、ルポルタージュ。"
+        loanword_source_text = "コンピューター、クーデター、アルバイト、パエリア、シャボン、キムチ、ルポルタージュ。"
         loanword_original_html = page.locator("#loanword-origin-regression").inner_html()
+        domain_loanword_source_texts = {
+            selector: page.locator(selector).inner_text()
+            for selector in (
+                "#loanword-news",
+                "#loanword-forum",
+                "#loanword-academic",
+                "#loanword-sports",
+                "#loanword-compounds",
+                "#loanword-domain-negatives",
+                "#loanword-long-regression",
+            )
+        }
         article_with_furigana_html = page.locator("#article").inner_html()
         page.evaluate(
             "window.__translationControllerBeforeLoanwords = window.__japaneseSelectionTranslationController__"
@@ -646,7 +658,7 @@ try:
             ["クーデター", "（仏）coup d'État"],
             ["アルバイト", "（独）Arbeit"],
             ["パエリア", "（西）paella"],
-            ["パン", "（葡）pão"],
+            ["シャボン", "（葡）sabão"],
             ["キムチ", "（韓）김치"],
             ["ルポルタージュ", "（仏）reportage"],
         ]
@@ -657,6 +669,73 @@ try:
             "#loanword-origin-regression ruby[data-jp-original='コンピューター'] rt"
         ).inner_text().startswith("（")
         assert page.locator("#loanword-origin-negatives ruby[data-jp-loanword-origin]").count() == 0
+        expected_domain_annotations = {
+            "#loanword-news": [
+                ["インフレ", "inflation"],
+                ["ミサイル", "missile"],
+                ["サミット", "summit"],
+                ["インタビュー", "interview"],
+                ["コメント", "comment"],
+                ["メディア", "media"],
+                ["スクープ", "scoop"],
+            ],
+            "#loanword-forum": [
+                ["アカウント", "account"],
+                ["スレッド", "thread"],
+                ["ハッシュタグ", "hashtag"],
+                ["ログイン", "login"],
+                ["ブログ", "blog"],
+                ["ユーザー", "user"],
+                ["リプライ", "reply"],
+                ["フォロワー", "follower"],
+                ["コミュニティ", "community"],
+                ["プロフィール", "（仏）profil"],
+            ],
+            "#loanword-academic": [
+                ["アルゴリズム", "algorithm"],
+                ["データベース", "database"],
+                ["シミュレーション", "simulation"],
+                ["プロトコル", "protocol"],
+                ["エビデンス", "evidence"],
+                ["カリキュラム", "curriculum"],
+                ["メタアナリシス", "meta-analysis"],
+                ["カルテ", "（独）Karte"],
+                ["ゼミナール", "（独）Seminar"],
+            ],
+            "#loanword-sports": [
+                ["ドラフト", "draft"],
+                ["チーム", "team"],
+                ["メンバー", "member"],
+                ["リーグ", "league"],
+                ["トーナメント", "tournament"],
+                ["スタジアム", "stadium"],
+                ["コーチ", "coach"],
+                ["ゴール", "goal"],
+                ["サッカー", "soccer"],
+                ["ラグビー", "rugby"],
+                ["オリンピック", "Olympic"],
+                ["ゲレンデ", "（独）Gelände"],
+            ],
+            "#loanword-compounds": [
+                ["ニュース", "news"],
+                ["サイト", "site"],
+                ["オンライン", "online"],
+                ["ニュース", "news"],
+                ["スポーツ", "sports"],
+                ["ニュース", "news"],
+                ["データベース", "database"],
+                ["システム", "system"],
+                ["コンピューター", "computer"],
+                ["シミュレーション", "simulation"],
+            ],
+        }
+        for selector, expected in expected_domain_annotations.items():
+            assert loanword_annotations(page, selector) == expected, (
+                f"{selector}: expected {expected}, got {loanword_annotations(page, selector)}"
+            )
+        assert page.locator(
+            "#loanword-domain-negatives ruby[data-jp-loanword-origin]"
+        ).count() == 0
         assert page.locator("#loanword-origin-hidden ruby[data-jp-loanword-origin]").count() == 0
         assert page.locator(
             "ruby[data-jp-furigana] ruby[data-jp-loanword-origin], "
@@ -672,14 +751,20 @@ try:
             "#loanword-origin-regression ruby[data-jp-original='クーデター'] [data-jp-loanword-toggle]"
         )
         assert long_origin_toggle.get_attribute("aria-expanded") == "false"
+        assert long_origin_toggle.get_attribute("role") == "button"
+        assert long_origin_toggle.get_attribute("tabindex") == "0"
+        assert long_origin_toggle.get_attribute("aria-controls") == "jp-loanword-origin-popover"
         collapsed_style = long_origin_toggle.evaluate(
             """(toggle) => {
+              const sample = document.querySelector('#loanword-origin-regression');
               const style = getComputedStyle(toggle);
               return {
                 maxInlineSize: style.maxInlineSize,
                 overflow: style.overflow,
                 textOverflow: style.textOverflow,
                 fullText: toggle.textContent,
+                sampleClientWidth: sample.clientWidth,
+                sampleScrollWidth: sample.scrollWidth,
               };
             }"""
         )
@@ -689,11 +774,14 @@ try:
         assert 0 < float(collapsed_style["maxInlineSize"].removesuffix("px")) < 120, collapsed_style
         long_origin_toggle.click()
         assert long_origin_toggle.get_attribute("aria-expanded") == "true"
+        assert "收起外来语原词" in long_origin_toggle.get_attribute("aria-label")
         expanded_geometry = long_origin_toggle.evaluate(
             """(toggle) => {
               const sample = document.querySelector('#loanword-origin-regression');
               const toggleRect = toggle.getBoundingClientRect();
               const sampleRect = sample.getBoundingClientRect();
+              const popover = document.querySelector('#jp-loanword-origin-popover');
+              const popoverRect = popover.getBoundingClientRect();
               const style = getComputedStyle(toggle);
               return {
                 text: toggle.textContent,
@@ -707,26 +795,200 @@ try:
                 sampleScrollWidth: sample.scrollWidth,
                 pageClientWidth: document.documentElement.clientWidth,
                 pageScrollWidth: document.documentElement.scrollWidth,
+                popoverHidden: popover.hidden,
+                popoverText: popover.textContent,
+                popoverLeft: popoverRect.left,
+                popoverRight: popoverRect.right,
+                popoverTop: popoverRect.top,
+                popoverBottom: popoverRect.bottom,
+                viewportWidth: window.innerWidth,
+                viewportHeight: window.innerHeight,
               };
             }"""
         )
         assert expanded_geometry["text"] == "（仏）coup d'État", expanded_geometry
-        assert expanded_geometry["maxInlineSize"] == "none", expanded_geometry
-        assert expanded_geometry["overflow"] == "visible", expanded_geometry
+        assert expanded_geometry["maxInlineSize"] == collapsed_style["maxInlineSize"], expanded_geometry
+        assert expanded_geometry["overflow"] == "hidden", expanded_geometry
         assert expanded_geometry["toggleLeft"] >= expanded_geometry["sampleLeft"] - 1, expanded_geometry
         assert expanded_geometry["toggleRight"] <= expanded_geometry["sampleRight"] + 1, expanded_geometry
+        assert expanded_geometry["sampleScrollWidth"] == collapsed_style["sampleScrollWidth"], expanded_geometry
         assert expanded_geometry["pageScrollWidth"] <= expanded_geometry["pageClientWidth"] + 1, expanded_geometry
+        assert expanded_geometry["popoverHidden"] is False, expanded_geometry
+        assert expanded_geometry["popoverText"] == "（仏）coup d'État", expanded_geometry
+        assert 0 <= expanded_geometry["popoverLeft"] < expanded_geometry["popoverRight"] <= expanded_geometry["viewportWidth"], expanded_geometry
+        assert 0 <= expanded_geometry["popoverTop"] < expanded_geometry["popoverBottom"] <= expanded_geometry["viewportHeight"], expanded_geometry
         long_origin_toggle.click()
         assert long_origin_toggle.get_attribute("aria-expanded") == "false"
+        assert page.locator("#jp-loanword-origin-popover").is_hidden()
         long_origin_toggle.focus()
         long_origin_toggle.press("Enter")
         assert long_origin_toggle.get_attribute("aria-expanded") == "true"
-        long_origin_toggle.press("Enter")
+        long_origin_toggle.press("Escape")
         assert long_origin_toggle.get_attribute("aria-expanded") == "false"
         long_origin_toggle.press("Space")
         assert long_origin_toggle.get_attribute("aria-expanded") == "true"
         long_origin_toggle.press("Space")
         assert long_origin_toggle.get_attribute("aria-expanded") == "false"
+
+        assert loanword_annotations(page, "#loanword-long-regression") == [
+            ["クーデター", "（仏）coup d'État"],
+            ["ア・ラ・カルト", "（仏）à la carte"],
+            ["オードブル", "（仏）hors-d'œuvre"],
+            ["オートクチュール", "（仏）haute couture"],
+            ["オンブズマン", "（瑞）ombudsman"],
+            ["インタビュー", "interview"],
+            ["コンピューター", "computer"],
+            ["シミュレーション", "simulation"],
+            ["アップロード", "upload"],
+        ]
+        long_domain_toggles = page.locator(
+            "#loanword-long-regression [data-jp-loanword-toggle]"
+        )
+        assert long_domain_toggles.count() >= 2
+        long_domain_layout = page.evaluate(
+            """() => {
+              const sample = document.querySelector('#loanword-long-regression');
+              const toggles = [...sample.querySelectorAll('[data-jp-loanword-toggle]')];
+              const collapsed = toggles.map((toggle) => {
+                const style = getComputedStyle(toggle);
+                return {
+                  text: toggle.textContent,
+                  expanded: toggle.getAttribute('aria-expanded'),
+                  overflow: style.overflow,
+                  textOverflow: style.textOverflow,
+                };
+              });
+              const collapsedSampleClientWidth = sample.clientWidth;
+              const collapsedSampleScrollWidth = sample.scrollWidth;
+              const sampleRect = sample.getBoundingClientRect();
+              const expanded = toggles.map((toggle) => {
+                toggle.click();
+                const rect = toggle.getBoundingClientRect();
+                const popover = document.querySelector('#jp-loanword-origin-popover');
+                const popoverRect = popover.getBoundingClientRect();
+                const result = {
+                  text: toggle.textContent,
+                  expanded: toggle.getAttribute('aria-expanded'),
+                  left: rect.left,
+                  right: rect.right,
+                  popoverText: popover.textContent,
+                  popoverLeft: popoverRect.left,
+                  popoverRight: popoverRect.right,
+                  sampleScrollWidth: sample.scrollWidth,
+                  pageScrollWidth: document.documentElement.scrollWidth,
+                };
+                toggle.click();
+                return result;
+              });
+              return {
+                collapsed,
+                expanded,
+                collapsedSampleClientWidth,
+                collapsedSampleScrollWidth,
+                sampleLeft: sampleRect.left,
+                sampleRight: sampleRect.right,
+                sampleClientWidth: sample.clientWidth,
+                sampleScrollWidth: sample.scrollWidth,
+                pageClientWidth: document.documentElement.clientWidth,
+                pageScrollWidth: document.documentElement.scrollWidth,
+              };
+            }"""
+        )
+        for collapsed in long_domain_layout["collapsed"]:
+            assert collapsed["expanded"] == "false", long_domain_layout
+            assert collapsed["overflow"] == "hidden", long_domain_layout
+            assert collapsed["textOverflow"] == "ellipsis", long_domain_layout
+        for expanded in long_domain_layout["expanded"]:
+            assert expanded["expanded"] == "true", long_domain_layout
+            assert expanded["left"] >= long_domain_layout["sampleLeft"] - 1, long_domain_layout
+            assert expanded["right"] <= long_domain_layout["sampleRight"] + 1, long_domain_layout
+            assert expanded["popoverText"] == expanded["text"], long_domain_layout
+            assert 0 <= expanded["popoverLeft"] < expanded["popoverRight"] <= long_domain_layout["pageClientWidth"], long_domain_layout
+            assert expanded["sampleScrollWidth"] == long_domain_layout["collapsedSampleScrollWidth"], long_domain_layout
+            assert expanded["pageScrollWidth"] <= long_domain_layout["pageClientWidth"] + 1, long_domain_layout
+        assert long_domain_layout["sampleScrollWidth"] <= long_domain_layout["sampleClientWidth"] + 1, long_domain_layout
+        assert long_domain_layout["pageScrollWidth"] <= long_domain_layout["pageClientWidth"] + 1, long_domain_layout
+        assert long_domain_toggles.evaluate_all(
+            "toggles => toggles.every((toggle) => toggle.getAttribute('aria-expanded') === 'false')"
+        )
+
+        narrow_loanword_layouts = page.evaluate(
+            """() => ['loanword-narrow-72', 'loanword-narrow-96', 'loanword-narrow-120', 'loanword-narrow-160']
+              .map((id) => {
+                const sample = document.getElementById(id);
+                sample.scrollIntoView({ block: 'center', inline: 'nearest' });
+                const toggles = [...sample.querySelectorAll('[data-jp-loanword-toggle]')];
+                const loanwordRubies = [...sample.querySelectorAll('ruby[data-jp-loanword-origin]')];
+                const furiganaRects = [...sample.querySelectorAll('ruby[data-jp-furigana] > rt')]
+                  .map((rt) => rt.getBoundingClientRect());
+                const baseWidths = loanwordRubies.map((ruby) => {
+                  const range = document.createRange();
+                  range.selectNodeContents(ruby.firstChild);
+                  return {
+                    surface: ruby.dataset.jpOriginal,
+                    baseWidth: range.getBoundingClientRect().width,
+                    rubyWidth: ruby.getBoundingClientRect().width,
+                    rtRect: ruby.querySelector('rt').getBoundingClientRect(),
+                  };
+                });
+                const overlappingReadings = baseWidths.flatMap(({ surface, rtRect }) =>
+                  furiganaRects
+                    .filter((rect) => (
+                      Math.min(rtRect.right, rect.right) - Math.max(rtRect.left, rect.left) > 1
+                      && Math.min(rtRect.bottom, rect.bottom) - Math.max(rtRect.top, rect.top) > 1
+                    ))
+                    .map(() => surface)
+                );
+                const before = {
+                  clientWidth: sample.clientWidth,
+                  scrollWidth: sample.scrollWidth,
+                  pageScrollWidth: document.documentElement.scrollWidth,
+                };
+                const expanded = toggles.map((toggle) => {
+                  toggle.click();
+                  const popover = document.getElementById('jp-loanword-origin-popover');
+                  const rect = popover.getBoundingClientRect();
+                  const snapshot = {
+                    text: toggle.textContent,
+                    popoverText: popover.textContent,
+                    hidden: popover.hidden,
+                    left: rect.left,
+                    right: rect.right,
+                    top: rect.top,
+                    bottom: rect.bottom,
+                    sampleScrollWidth: sample.scrollWidth,
+                    pageScrollWidth: document.documentElement.scrollWidth,
+                  };
+                  toggle.click();
+                  return snapshot;
+                });
+                return {
+                  id,
+                  toggleCount: toggles.length,
+                  before,
+                  afterScrollWidth: sample.scrollWidth,
+                  baseWidths,
+                  overlappingReadings,
+                  expanded,
+                  pageClientWidth: document.documentElement.clientWidth,
+                  viewportHeight: window.innerHeight,
+                };
+              })"""
+        )
+        for layout in narrow_loanword_layouts:
+            assert layout["toggleCount"] >= 2, layout
+            assert layout["before"]["scrollWidth"] <= layout["before"]["clientWidth"] + 1, layout
+            assert layout["afterScrollWidth"] == layout["before"]["scrollWidth"], layout
+            assert layout["overlappingReadings"] == [], layout
+            for ruby_width in layout["baseWidths"]:
+                assert ruby_width["rubyWidth"] <= ruby_width["baseWidth"] + 1, layout
+            for expanded in layout["expanded"]:
+                assert expanded["hidden"] is False, layout
+                assert expanded["popoverText"] == expanded["text"], layout
+                assert 0 <= expanded["left"] < expanded["right"] <= layout["pageClientWidth"], layout
+                assert 0 <= expanded["top"] < expanded["bottom"] <= layout["viewportHeight"], layout
+                assert expanded["sampleScrollWidth"] == layout["before"]["scrollWidth"], layout
+                assert expanded["pageScrollWidth"] <= layout["pageClientWidth"] + 1, layout
 
         loanword_layout = page.evaluate(
             """() => {
@@ -817,7 +1079,7 @@ try:
             """() => {
               const paragraph = document.createElement('p');
               paragraph.id = 'dynamic-loanword-origins';
-              paragraph.textContent = 'パエリアとパン';
+              paragraph.textContent = 'パエリアとシャボン';
               document.querySelector('main').append(paragraph);
             }"""
         )
@@ -826,7 +1088,7 @@ try:
         )
         assert loanword_annotations(page, "#dynamic-loanword-origins") == [
             ["パエリア", "（西）paella"],
-            ["パン", "（葡）pão"],
+            ["シャボン", "（葡）sabão"],
         ]
         page.locator("#loanword-origin-hidden").evaluate("(element) => element.hidden = false")
         page.wait_for_function(
@@ -908,7 +1170,9 @@ try:
         assert page.locator("ruby[data-jp-loanword-origin]").count() == 0
         assert page.locator("#loanword-origin-regression").inner_html() == loanword_original_html
         assert page.locator("#loanword-origin-regression").inner_text() == loanword_source_text
-        assert page.locator("#dynamic-loanword-origins").inner_html() == "パエリアとパン"
+        for selector, source_text in domain_loanword_source_texts.items():
+            assert page.locator(selector).inner_text() == source_text, selector
+        assert page.locator("#dynamic-loanword-origins").inner_html() == "パエリアとシャボン"
         assert page.locator("#loanword-origin-hidden").inner_html() == "キムチとニュース"
         assert page.locator("#article").inner_html() == article_with_furigana_html
         assert page.evaluate(
@@ -1075,7 +1339,7 @@ try:
             };
             window.chrome = {
               runtime: {
-                  getManifest: () => ({ version: '2.5.0' }),
+                  getManifest: () => ({ version: '2.5.1' }),
                 sendMessage: async (message) => {
                   window.__popupMessages.push(structuredClone(message));
                   if (message.type === 'GET_TRANSLATION_DASHBOARD') {
@@ -1249,8 +1513,10 @@ try:
         popup.get_by_text("현재 페이지의 8곳에 읽기를 표시했습니다.", exact=True).wait_for()
         assert popup.get_by_role("button", name="읽기 제거(선택 번역은 유지)").is_enabled()
         popup.get_by_role("button", name="가타카나 외래어에 원어 표시").click()
+        popup.locator("#toggle-loanword-origins[aria-pressed='true']").wait_for()
+        popup_loanword_count = 6
         popup.get_by_text(
-            "외래어 6곳에 원어를 표시했습니다. 긴 표시는 클릭하면 펼칠 수 있습니다.",
+            f"외래어 {popup_loanword_count}곳에 원어를 표시했습니다. 긴 표시는 클릭하면 펼칠 수 있습니다.",
             exact=True,
         ).wait_for()
         assert popup.locator("#toggle").inner_text() == "읽기 제거(선택 번역은 유지)"
@@ -1308,7 +1574,7 @@ try:
         stale_popup.goto(f"{base_url}/dist/popup.html")
         stale_popup.wait_for_load_state("networkidle")
         stale_popup.get_by_text(
-            "Chrome은 아직 이전 버전 1.1.0을 실행 중이지만 디스크 파일은 2.5.0(으)로 업데이트되었습니다.",
+            "Chrome은 아직 이전 버전 1.1.0을 실행 중이지만 디스크 파일은 2.5.1(으)로 업데이트되었습니다.",
             exact=True,
         ).wait_for()
         stale_popup.get_by_text(
@@ -1334,7 +1600,7 @@ try:
             window.__delayedSettings = { targetLanguage: 'en', uiLanguage: 'zh-CN' };
             window.chrome = {
               runtime: {
-                  getManifest: () => ({ version: '2.5.0' }),
+                  getManifest: () => ({ version: '2.5.1' }),
                 sendMessage: async (message) => {
                   if (message.type === 'GET_TRANSLATION_DASHBOARD') {
                     return await new Promise((resolve) => {

@@ -20,6 +20,7 @@ const LOANWORD_CONTROLLER_KEY = "__japaneseLoanwordOriginController__";
 const LOANWORD_ATTRIBUTE = "data-jp-loanword-origin";
 const LOANWORD_STYLE_ID = "jp-loanword-origin-style";
 const LOANWORD_TOAST_ID = "jp-loanword-origin-toast";
+const LOANWORD_POPOVER_ID = "jp-loanword-origin-popover";
 const LOANWORD_COLLAPSE_CHARACTER_LIMIT = 12;
 const CONTENT_BUILD_VERSION = "__EXTENSION_VERSION__";
 const MAX_TRANSLATION_CHARACTERS = 12000;
@@ -1006,7 +1007,7 @@ function contextualRootContainsForeignPerson(root) {
 }
 
 function getElementDisposition(element, boundary, displayCache) {
-  if (element.matches(`ruby[${RUBY_ATTRIBUTE}]`)) {
+  if (element.matches(`ruby[${RUBY_ATTRIBUTE}], ruby[${LOANWORD_ATTRIBUTE}]`)) {
     return "plugin-ruby";
   }
   if (element.matches(SKIPPED_SELECTOR) || HARD_BOUNDARY_TAGS.has(element.tagName)) {
@@ -1147,10 +1148,19 @@ function isLoanwordElementHidden(element) {
 function shouldCollapseLoanwordAnnotation(surface, annotation) {
   const annotationLength = Array.from(annotation).length;
   const surfaceLength = Math.max(1, Array.from(surface).length);
-  return annotationLength > Math.max(
-    LOANWORD_COLLAPSE_CHARACTER_LIMIT,
-    surfaceLength * 2
-  );
+  return annotationLength >= LOANWORD_COLLAPSE_CHARACTER_LIMIT
+    || (annotationLength >= 8 && annotationLength > surfaceLength * 3);
+}
+
+function collectLoanwordAdjacentContext(node, displayCache) {
+  const boundary = findInlineContextBoundary(node, displayCache);
+  if (!boundary) {
+    return { prefix: "", suffix: "" };
+  }
+  return {
+    prefix: collectPrecedingContext(node, boundary, displayCache),
+    suffix: collectFollowingContext(node, boundary, displayCache)
+  };
 }
 
 class LoanwordOriginController {
@@ -1163,6 +1173,30 @@ class LoanwordOriginController {
     this.pendingRoots = new Set();
     this.flushTimer = null;
     this.runId = 0;
+    this.activeLoanwordToggle = null;
+    this.loanwordPopover = null;
+    this.handlePopoverPointerDown = (event) => {
+      const target = event.target;
+      if (
+        !(target instanceof Node)
+        || this.activeLoanwordToggle?.contains(target)
+        || this.loanwordPopover?.contains(target)
+      ) {
+        return;
+      }
+      this.activeLoanwordToggle?.__jpSetLoanwordExpanded?.(false);
+    };
+    this.handlePopoverKeyDown = (event) => {
+      if (event.key === "Escape") {
+        this.activeLoanwordToggle?.__jpSetLoanwordExpanded?.(false);
+        this.activeLoanwordToggle?.focus();
+      }
+    };
+    this.handlePopoverViewportChange = () => {
+      if (this.activeLoanwordToggle && this.loanwordPopover && !this.loanwordPopover.hidden) {
+        this.positionLoanwordPopover(this.activeLoanwordToggle, this.loanwordPopover);
+      }
+    };
   }
 
   getStatus() {
@@ -1226,6 +1260,9 @@ class LoanwordOriginController {
       clearTimeout(this.flushTimer);
       this.flushTimer = null;
     }
+    this.activeLoanwordToggle?.__jpSetLoanwordExpanded?.(false);
+    this.loanwordPopover?.remove();
+    this.loanwordPopover = null;
 
     const changedParents = new Set();
     document.querySelectorAll(`ruby[${LOANWORD_ATTRIBUTE}]`).forEach((ruby) => {
@@ -1270,7 +1307,12 @@ class LoanwordOriginController {
     while (walker.nextNode()) {
       nodes.push(walker.currentNode);
     }
-    nodes.forEach((node) => this.processTextNode(node));
+    const displayCache = new WeakMap();
+    const jobs = nodes.map((node) => ({
+      node,
+      context: collectLoanwordAdjacentContext(node, displayCache)
+    }));
+    jobs.forEach(({ node, context }) => this.processTextNode(node, context));
   }
 
   isEligibleTextNode(node) {
@@ -1285,13 +1327,13 @@ class LoanwordOriginController {
     );
   }
 
-  processTextNode(node) {
+  processTextNode(node, context = { prefix: "", suffix: "" }) {
     if (!node.isConnected || !this.isEligibleTextNode(node)) {
       return;
     }
 
     const originalText = node.nodeValue;
-    const matches = findLoanwordMatches(originalText);
+    const matches = findLoanwordMatches(originalText, context);
     if (!matches.length) {
       return;
     }
@@ -1342,6 +1384,10 @@ class LoanwordOriginController {
       ruby.dataset.jpLoanwordLanguage = String(match.languageCode || match.language);
     }
     ruby.append(document.createTextNode(surface));
+    ruby.style.setProperty(
+      "--jp-loanword-base-inline-size",
+      `${Math.max(2, Array.from(surface).length * 2)}ch`
+    );
 
     const rt = document.createElement("rt");
     if (!shouldCollapseLoanwordAnnotation(surface, annotation)) {
@@ -1356,6 +1402,7 @@ class LoanwordOriginController {
     toggle.setAttribute("role", "button");
     toggle.setAttribute("tabindex", "0");
     toggle.setAttribute("aria-expanded", "false");
+    toggle.setAttribute("aria-controls", LOANWORD_POPOVER_ID);
     toggle.setAttribute("aria-label", `显示完整外来语原词：${annotation}`);
     toggle.title = `点击显示完整原词：${annotation}`;
     toggle.textContent = annotation;
@@ -1367,7 +1414,13 @@ class LoanwordOriginController {
         expanded ? `收起外来语原词：${annotation}` : `显示完整外来语原词：${annotation}`
       );
       toggle.title = expanded ? "点击收起原词" : `点击显示完整原词：${annotation}`;
+      if (expanded) {
+        this.showLoanwordPopover(toggle, annotation);
+      } else {
+        this.hideLoanwordPopover(toggle);
+      }
     };
+    toggle.__jpSetLoanwordExpanded = setExpanded;
     toggle.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -1385,6 +1438,75 @@ class LoanwordOriginController {
     rt.append(toggle);
     ruby.append(rt);
     return ruby;
+  }
+
+  ensureLoanwordPopover() {
+    if (this.loanwordPopover?.isConnected) {
+      return this.loanwordPopover;
+    }
+    const popover = document.createElement("div");
+    popover.id = LOANWORD_POPOVER_ID;
+    popover.setAttribute(TRANSLATION_UI_ATTRIBUTE, "");
+    popover.setAttribute("role", "tooltip");
+    popover.hidden = true;
+    (document.body || document.documentElement).append(popover);
+    this.loanwordPopover = popover;
+    return popover;
+  }
+
+  showLoanwordPopover(toggle, annotation) {
+    if (this.activeLoanwordToggle && this.activeLoanwordToggle !== toggle) {
+      this.activeLoanwordToggle.__jpSetLoanwordExpanded?.(false);
+    }
+
+    const popover = this.ensureLoanwordPopover();
+    this.activeLoanwordToggle = toggle;
+    popover.textContent = annotation;
+    popover.hidden = false;
+    toggle.setAttribute("aria-describedby", LOANWORD_POPOVER_ID);
+
+    this.positionLoanwordPopover(toggle, popover);
+
+    document.addEventListener("pointerdown", this.handlePopoverPointerDown, true);
+    document.addEventListener("keydown", this.handlePopoverKeyDown, true);
+    window.addEventListener("scroll", this.handlePopoverViewportChange, true);
+    window.addEventListener("resize", this.handlePopoverViewportChange, true);
+  }
+
+  positionLoanwordPopover(toggle, popover) {
+    const anchorRect = toggle.getBoundingClientRect();
+    const popoverRect = popover.getBoundingClientRect();
+    const viewportPadding = 8;
+    const left = Math.min(
+      Math.max(viewportPadding, anchorRect.left + anchorRect.width / 2 - popoverRect.width / 2),
+      Math.max(viewportPadding, window.innerWidth - popoverRect.width - viewportPadding)
+    );
+    const preferredTop = anchorRect.top - popoverRect.height - viewportPadding;
+    const top = preferredTop >= viewportPadding
+      ? preferredTop
+      : Math.min(
+        anchorRect.bottom + viewportPadding,
+        Math.max(viewportPadding, window.innerHeight - popoverRect.height - viewportPadding)
+    );
+    popover.style.setProperty("left", `${Math.round(left)}px`, "important");
+    popover.style.setProperty("top", `${Math.round(top)}px`, "important");
+  }
+
+  hideLoanwordPopover(toggle = null) {
+    if (toggle && this.activeLoanwordToggle !== toggle) {
+      return;
+    }
+    const activeToggle = this.activeLoanwordToggle;
+    activeToggle?.removeAttribute("aria-describedby");
+    if (this.loanwordPopover) {
+      this.loanwordPopover.hidden = true;
+      this.loanwordPopover.textContent = "";
+    }
+    this.activeLoanwordToggle = null;
+    document.removeEventListener("pointerdown", this.handlePopoverPointerDown, true);
+    document.removeEventListener("keydown", this.handlePopoverKeyDown, true);
+    window.removeEventListener("scroll", this.handlePopoverViewportChange, true);
+    window.removeEventListener("resize", this.handlePopoverViewportChange, true);
   }
 
   syncCount() {
@@ -1489,7 +1611,7 @@ class LoanwordOriginController {
         all: unset !important;
         box-sizing: border-box !important;
         display: inline-block !important;
-        max-inline-size: 12ch !important;
+        max-inline-size: min(12ch, var(--jp-loanword-base-inline-size, 12ch)) !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
         white-space: nowrap !important;
@@ -1499,14 +1621,37 @@ class LoanwordOriginController {
         user-select: none !important;
       }
       ruby[${LOANWORD_ATTRIBUTE}] [data-jp-loanword-toggle][aria-expanded="true"] {
-        max-inline-size: none !important;
-        overflow: visible !important;
-        text-overflow: clip !important;
+        background: #eff8ff !important;
+        border-block-end-style: solid !important;
       }
       ruby[${LOANWORD_ATTRIBUTE}] [data-jp-loanword-toggle]:focus-visible {
         outline: 2px solid #1570ef !important;
         outline-offset: 2px !important;
         border-radius: 2px !important;
+      }
+      #${LOANWORD_POPOVER_ID} {
+        all: initial !important;
+        box-sizing: border-box !important;
+        position: fixed !important;
+        z-index: 2147483647 !important;
+        display: block !important;
+        inline-size: max-content !important;
+        max-inline-size: min(22rem, calc(100vw - 16px)) !important;
+        padding: 8px 10px !important;
+        border: 1px solid #b2ccff !important;
+        border-radius: 8px !important;
+        background: #ffffff !important;
+        box-shadow: 0 8px 24px rgba(16, 24, 40, .22) !important;
+        color: #1849a9 !important;
+        font: 650 13px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif !important;
+        letter-spacing: normal !important;
+        text-align: start !important;
+        white-space: normal !important;
+        overflow-wrap: anywhere !important;
+        user-select: text !important;
+      }
+      #${LOANWORD_POPOVER_ID}[hidden] {
+        display: none !important;
       }
     `;
     (document.head || document.documentElement).append(style);
@@ -1881,11 +2026,26 @@ class FuriganaController {
     // extra width between the base kanji (the default ruby-align behavior).
     style.textContent = `
       ruby[${RUBY_ATTRIBUTE}] {
+        display: ruby !important;
+        position: static !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+        background: transparent !important;
+        white-space: nowrap !important;
         ruby-position: over !important;
         ruby-align: center !important;
         ruby-overhang: auto !important;
       }
       ruby[${RUBY_ATTRIBUTE}] > rt {
+        display: ruby-text !important;
+        position: static !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+        background: transparent !important;
+        opacity: 1 !important;
+        transform: none !important;
         font-size: 0.55em !important;
         line-height: 1 !important;
         color: #b42318 !important;

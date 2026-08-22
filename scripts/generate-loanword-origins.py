@@ -57,6 +57,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--source-version", required=True)
     parser.add_argument("--source-url", required=True)
     parser.add_argument("--source-sha256", required=True)
+    parser.add_argument(
+        "--review-output",
+        type=Path,
+        help=(
+            "Optional JSON queue of common katakana forms that were not safe to "
+            "generate. This is evidence for manual review, never runtime data."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -83,8 +91,10 @@ def normalize_origin(value: object) -> str:
     return normalized
 
 
-def extract(data: dict) -> tuple[list[tuple[str, str, str]], int]:
+def extract(data: dict) -> tuple[list[tuple[str, str, str]], int, int]:
     candidates: dict[str, set[tuple[str, str]]] = defaultdict(set)
+    sourced_word_ids: dict[str, set[str]] = defaultdict(set)
+    common_unattributed_word_ids: dict[str, set[str]] = defaultdict(set)
 
     for word in data.get("words", []):
         forms = {
@@ -94,6 +104,13 @@ def extract(data: dict) -> tuple[list[tuple[str, str, str]], int]:
         }
         if not forms:
             continue
+        common_forms = {
+            item.get("text", "")
+            for item in word.get("kana", [])
+            if item.get("common") is True
+            and item.get("text", "") in forms
+        }
+        word_id = str(word.get("id", ""))
 
         for sense in word.get("sense", []):
             sources: set[tuple[str, str]] = set()
@@ -107,22 +124,155 @@ def extract(data: dict) -> tuple[list[tuple[str, str, str]], int]:
                     and source.get("wasei") is False
                 ):
                     sources.add((language, origin))
-            if not sources:
-                continue
-
             restrictions = sense.get("appliesToKana", ["*"])
             applicable_forms = forms if "*" in restrictions else forms.intersection(restrictions)
+            if not sources:
+                applicable_common_forms = common_forms.intersection(applicable_forms)
+                for surface in applicable_common_forms:
+                    common_unattributed_word_ids[surface].add(word_id)
+                continue
+
             for surface in applicable_forms:
                 candidates[surface].update(sources)
+                sourced_word_ids[surface].add(word_id)
+
+    # A source attached to a rare homograph must not leak onto a different,
+    # common word with the same katakana spelling. For example, JMdict records
+    # サッカー=sucker, プロ=German Pro(zent), and リード=German Lied in sourced
+    # entries, while their common soccer/pro/lead senses are separate entries
+    # without source fields. Treating the sourced record as globally unique
+    # produces confident-looking but incorrect annotations on ordinary pages.
+    common_homographs = {
+        surface
+        for surface, unattributed_ids in common_unattributed_word_ids.items()
+        if surface in candidates
+        and len(candidates[surface]) == 1
+        and any(
+            word_id not in sourced_word_ids[surface]
+            for word_id in unattributed_ids
+        )
+    }
 
     entries = [
         (surface, *next(iter(sources)))
         for surface, sources in candidates.items()
-        if len(sources) == 1
+        if len(sources) == 1 and surface not in common_homographs
     ]
     entries.sort(key=lambda item: item[0])
     ambiguous_count = sum(len(sources) > 1 for sources in candidates.values())
-    return entries, ambiguous_count
+    return entries, ambiguous_count, len(common_homographs)
+
+
+def build_review_queue(
+    data: dict,
+    generated_surfaces: set[str],
+) -> list[dict[str, object]]:
+    """Return deterministic, review-only evidence for common omitted forms.
+
+    A katakana spelling and an English gloss are not proof that the word is a
+    loanword (e.g. native words, sound-symbolic words, and names are also often
+    written in katakana). Consequently this queue must never be merged into the
+    runtime table automatically.
+    """
+
+    queue: dict[str, dict[str, object]] = {}
+    for word in data.get("words", []):
+        common_forms = {
+            item.get("text", "")
+            for item in word.get("kana", [])
+            if item.get("common") is True
+            and is_katakana_surface(item.get("text", ""))
+            and item.get("text", "") not in generated_surfaces
+        }
+        if not common_forms:
+            continue
+
+        reasons: set[str] = set()
+        glosses: set[str] = set()
+        fields: set[str] = set()
+        misc: set[str] = set()
+        source_evidence: set[tuple[str, bool | None, bool | None, str]] = set()
+        for sense in word.get("sense", []):
+            glosses.update(
+                normalize_origin(gloss.get("text"))
+                for gloss in sense.get("gloss", [])
+                if gloss.get("lang") == "eng" and normalize_origin(gloss.get("text"))
+            )
+            fields.update(sense.get("field", []))
+            misc.update(sense.get("misc", []))
+
+            sources = sense.get("languageSource", [])
+            if not sources:
+                reasons.add("no_language_source")
+                continue
+            for source in sources:
+                language = source.get("lang", "")
+                origin = normalize_origin(source.get("text"))
+                source_evidence.add(
+                    (language, source.get("full"), source.get("wasei"), origin)
+                )
+                if language not in CANONICAL_LANGUAGES:
+                    reasons.add("unsupported_language")
+                if not origin:
+                    reasons.add("missing_source_text")
+                if source.get("full") is not True:
+                    reasons.add("partial_source")
+                if source.get("wasei") is not False:
+                    reasons.add("wasei_or_unknown")
+
+        if not reasons:
+            reasons.add("ambiguous_or_restricted_source")
+
+        for surface in common_forms:
+            record = queue.setdefault(
+                surface,
+                {
+                    "surface": surface,
+                    "wordIds": set(),
+                    "reasons": set(),
+                    "glosses": set(),
+                    "fields": set(),
+                    "misc": set(),
+                    "languageSources": set(),
+                },
+            )
+            record["wordIds"].add(str(word.get("id", "")))
+            record["reasons"].update(reasons)
+            record["glosses"].update(glosses)
+            record["fields"].update(fields)
+            record["misc"].update(misc)
+            record["languageSources"].update(source_evidence)
+
+    rendered = []
+    for surface, record in sorted(queue.items()):
+        rendered.append(
+            {
+                "surface": surface,
+                "wordIds": sorted(record["wordIds"]),
+                "reasons": sorted(record["reasons"]),
+                "glosses": sorted(record["glosses"]),
+                "fields": sorted(record["fields"]),
+                "misc": sorted(record["misc"]),
+                "languageSources": [
+                    {
+                        "lang": language,
+                        "full": full,
+                        "wasei": wasei,
+                        "text": origin or None,
+                    }
+                    for language, full, wasei, origin in sorted(
+                        record["languageSources"],
+                        key=lambda source: (
+                            source[0],
+                            str(source[1]),
+                            str(source[2]),
+                            source[3],
+                        ),
+                    )
+                ],
+            }
+        )
+    return rendered
 
 
 def render(
@@ -133,6 +283,7 @@ def render(
     source_url: str,
     source_sha256: str,
     ambiguous_count: int,
+    common_homograph_count: int,
 ) -> str:
     metadata = {
         "dictionaryDate": dictionary_date,
@@ -141,6 +292,7 @@ def render(
         "sourceSha256": source_sha256.upper(),
         "entryCount": len(entries),
         "ambiguousSurfacesOmitted": ambiguous_count,
+        "commonHomographicSurfacesOmitted": common_homograph_count,
         "license": "CC BY-SA 4.0 / EDRDG General Dictionary Licence",
     }
     lines = [
@@ -169,7 +321,7 @@ def main() -> None:
         )
 
     data = json.loads(source_bytes)
-    entries, ambiguous_count = extract(data)
+    entries, ambiguous_count, common_homograph_count = extract(data)
     if len(entries) < 500:
         raise SystemExit(f"Unexpectedly small generated dictionary: {len(entries)} entries")
 
@@ -180,12 +332,40 @@ def main() -> None:
         source_url=args.source_url,
         source_sha256=actual_sha256,
         ambiguous_count=ambiguous_count,
+        common_homograph_count=common_homograph_count,
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(output, encoding="utf-8", newline="\n")
+
+    if args.review_output:
+        review_queue = build_review_queue(
+            data,
+            {surface for surface, _language, _origin in entries},
+        )
+        review_document = {
+            "sourceVersion": args.source_version,
+            "sourceSha256": actual_sha256,
+            "warning": (
+                "Review evidence only. Katakana spelling and English glosses are "
+                "not sufficient evidence for automatic inclusion."
+            ),
+            "candidateCount": len(review_queue),
+            "candidates": review_queue,
+        }
+        args.review_output.parent.mkdir(parents=True, exist_ok=True)
+        args.review_output.write_text(
+            json.dumps(review_document, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        print(
+            f"Wrote {len(review_queue)} common omitted forms for manual review "
+            f"at {args.review_output}."
+        )
     print(
         f"Generated {len(entries)} unambiguous origins at {args.output} "
-        f"({ambiguous_count} ambiguous surfaces omitted)."
+        f"({ambiguous_count} source-conflicted and {common_homograph_count} "
+        "common homographic surfaces omitted)."
     )
 
 

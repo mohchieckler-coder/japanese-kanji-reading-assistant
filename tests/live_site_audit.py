@@ -59,6 +59,16 @@ SITES = [
     },
     {
         "category": "news",
+        "name": "Asahi News",
+        "url": "https://www.asahi.com/articles/DA3S16528387.html",
+    },
+    {
+        "category": "sports",
+        "name": "Yahoo Sports Article",
+        "url": "https://news.yahoo.co.jp/articles/23331cd5c79e0ef5f9e014f7dbe5604d50443ffa",
+    },
+    {
+        "category": "news",
         "name": "Weathernews",
         "url": "https://weathernews.jp/",
     },
@@ -114,6 +124,23 @@ SITES = [
     },
 ]
 
+KATAKANA_CANDIDATE_PATTERN = re.compile(r"[\u30a0-\u30ffー・]{2,}")
+KNOWN_LOANWORD_ANNOTATIONS = {
+    "ニュース": "news",
+    "サイト": "site",
+    "メンバー": "member",
+    "ドラフト": "draft",
+    "サッカー": "soccer",
+    "ルポ": "（仏）reportage",
+    "マーラータン": "（中）málàtàng",
+}
+CONTEXTUAL_LOANWORD_ANNOTATIONS = {
+    # プロ is intentionally suppressed unless the surrounding DOM establishes
+    # a professional/sports meaning. Validate it whenever the matcher emits it,
+    # but do not require isolated surface occurrences to be annotated.
+    "プロ": "professional",
+}
+
 MOCK_CHROME = """
 (() => {
   const chromeObject = window.chrome || {};
@@ -167,6 +194,84 @@ def compact_annotations(raw_annotations):
     ]
 
 
+def compact_katakana_candidates(body_text):
+    counts = Counter(KATAKANA_CANDIDATE_PATTERN.findall(body_text))
+    return [
+        {"surface": surface, "count": count}
+        for surface, count in counts.most_common(400)
+    ]
+
+
+def compact_loanword_annotations(raw_annotations):
+    counts = Counter()
+    examples = defaultdict(list)
+    for annotation in raw_annotations:
+        key = (
+            annotation.get("surface", ""),
+            annotation.get("origin", ""),
+            annotation.get("language", ""),
+        )
+        counts[key] += 1
+        context = " ".join(annotation.get("context", "").split())[:140]
+        if context and context not in examples[key] and len(examples[key]) < 2:
+            examples[key].append(context)
+
+    return [
+        {
+            "surface": surface,
+            "origin": origin,
+            "language": language,
+            "count": count,
+            "examples": examples[(surface, origin, language)],
+        }
+        for (surface, origin, language), count in counts.most_common(400)
+    ]
+
+
+def validate_loanword_annotations(raw_annotations, candidate_surfaces):
+    errors = []
+    validated_targets = 0
+    annotations_by_surface = defaultdict(list)
+    for annotation in raw_annotations:
+        surface = annotation.get("surface", "")
+        origin = annotation.get("origin", "")
+        annotations_by_surface[surface].append(origin)
+        if not surface or not origin:
+            errors.append(f"empty loanword ruby payload: {annotation!r}")
+        if annotation.get("base_text") != surface:
+            errors.append(
+                f"loanword ruby source mismatch: data={surface!r}, "
+                f"base={annotation.get('base_text')!r}"
+            )
+        if annotation.get("nested"):
+            errors.append(f"nested loanword ruby: {surface!r}")
+        if annotation.get("inside_skipped"):
+            errors.append(f"loanword ruby inside skipped content: {surface!r}")
+        expected = (
+            KNOWN_LOANWORD_ANNOTATIONS.get(surface)
+            or CONTEXTUAL_LOANWORD_ANNOTATIONS.get(surface)
+        )
+        if expected is not None:
+            validated_targets += 1
+            if origin != expected:
+                errors.append(
+                    f"known loanword mismatch: {surface}={origin}, expected {expected}"
+                )
+    for surface, expected in KNOWN_LOANWORD_ANNOTATIONS.items():
+        if surface not in candidate_surfaces:
+            continue
+        if expected not in annotations_by_surface.get(surface, []):
+            errors.append(
+                f"known loanword missing: {surface}, expected annotation {expected}"
+            )
+    if errors:
+        preview = "; ".join(errors[:8])
+        raise RuntimeError(
+            f"loanword annotation validation failed ({len(errors)} issues): {preview}"
+        )
+    return validated_targets
+
+
 def validate_annotations(raw_annotations):
     if not raw_annotations:
         raise RuntimeError("extension enabled but produced zero annotations")
@@ -207,8 +312,12 @@ def audit_page(context, bundle, site):
         "final_url": None,
         "status": "error",
         "annotation_count": 0,
+        "loanword_annotation_count": 0,
+        "validated_loanword_target_count": 0,
         "validated_target_count": 0,
         "annotations": [],
+        "loanword_annotations": [],
+        "katakana_candidates": [],
         "error": None,
     }
 
@@ -224,6 +333,7 @@ def audit_page(context, bundle, site):
         body_text = page.locator("body").inner_text(timeout=10_000)
         if not re.search(r"[\u3040-\u30ff\u3400-\u9fff]", body_text):
             raise RuntimeError("page did not expose Japanese body text")
+        result["katakana_candidates"] = compact_katakana_candidates(body_text)
 
         page.add_script_tag(content=bundle)
         page.wait_for_function(
@@ -235,6 +345,12 @@ def audit_page(context, bundle, site):
         )
         if controller_status.get("phase") != "enabled":
             raise RuntimeError(f"extension status: {controller_status}")
+
+        loanword_status = page.evaluate(
+            "async () => window.__japaneseLoanwordOriginController__?.enable()"
+        )
+        if not loanword_status or loanword_status.get("phase") != "enabled":
+            raise RuntimeError(f"loanword extension status: {loanword_status}")
 
         raw_annotations = page.eval_on_selector_all(
             "ruby[data-jp-furigana]",
@@ -253,10 +369,36 @@ def audit_page(context, bundle, site):
             }))""",
         )
         validated_target_count = validate_annotations(raw_annotations)
+        raw_loanword_annotations = page.eval_on_selector_all(
+            "ruby[data-jp-loanword-origin]",
+            """elements => elements.map((ruby) => ({
+              surface: ruby.dataset.jpOriginal,
+              origin: ruby.querySelector('rt')?.textContent || '',
+              language: ruby.dataset.jpLoanwordLanguage || '',
+              context: (ruby.parentElement?.innerText || '').slice(0, 500),
+              base_text: Array.from(ruby.childNodes)
+                .filter((node) => node.nodeType === Node.TEXT_NODE)
+                .map((node) => node.nodeValue || '')
+                .join(''),
+              nested: Boolean(ruby.querySelector('ruby')),
+              inside_skipped: Boolean(ruby.parentElement?.closest(
+                "script,style,noscript,textarea,input,select,option,button,code,pre,kbd,samp,rt,rp,svg,math,[hidden],[aria-hidden='true'],[contenteditable]:not([contenteditable='false'])"
+              ))
+            }))""",
+        )
+        validated_loanword_target_count = validate_loanword_annotations(
+            raw_loanword_annotations,
+            {item["surface"] for item in result["katakana_candidates"]},
+        )
         result["status"] = "passed"
         result["annotation_count"] = len(raw_annotations)
+        result["loanword_annotation_count"] = len(raw_loanword_annotations)
+        result["validated_loanword_target_count"] = validated_loanword_target_count
         result["validated_target_count"] = validated_target_count
         result["annotations"] = compact_annotations(raw_annotations)
+        result["loanword_annotations"] = compact_loanword_annotations(
+            raw_loanword_annotations
+        )
         screenshot_path = ARTIFACTS / f"{site['category']}-{safe_slug(site['name'])}.png"
         page.screenshot(path=str(screenshot_path), full_page=False)
         result["screenshot"] = str(screenshot_path.relative_to(ROOT)).replace("\\", "/")
@@ -298,7 +440,8 @@ with sync_playwright() as playwright:
         results.append(page_result)
         print(
             f"[{page_result['status']}] {target_site['category']}: "
-            f"{target_site['name']} ({page_result['annotation_count']} annotations)",
+            f"{target_site['name']} ({page_result['annotation_count']} readings, "
+            f"{page_result['loanword_annotation_count']} loanword origins)",
             flush=True,
         )
 
@@ -310,7 +453,13 @@ summary = {
     "passed_count": sum(result["status"] == "passed" for result in results),
     "failed_count": sum(result["status"] != "passed" for result in results),
     "annotation_count": sum(result["annotation_count"] for result in results),
+    "loanword_annotation_count": sum(
+        result["loanword_annotation_count"] for result in results
+    ),
     "validated_target_count": sum(result["validated_target_count"] for result in results),
+    "validated_loanword_target_count": sum(
+        result["validated_loanword_target_count"] for result in results
+    ),
     "results": results,
 }
 REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -318,7 +467,10 @@ REPORT_PATH.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encodi
 print(
     f"Live audit complete: {summary['passed_count']}/{summary['site_count']} pages, "
     f"{summary['annotation_count']} annotations, "
-    f"{summary['validated_target_count']} known-reading checks. Report: {REPORT_PATH}"
+    f"{summary['loanword_annotation_count']} loanword origins, "
+    f"{summary['validated_target_count']} known-reading checks, "
+    f"{summary['validated_loanword_target_count']} known-loanword checks. "
+    f"Report: {REPORT_PATH}"
 )
 if summary["failed_count"]:
     raise SystemExit(1)

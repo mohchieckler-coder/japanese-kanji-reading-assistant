@@ -33,7 +33,7 @@ class LocalCompatibleApi(BaseHTTPRequestHandler):
             "<title>実拡張テスト</title><main><p id='source'>日本語の新聞を読みます。</p>"
             "<p id='okurigana-loanword'>麻辣湯と麻辣烫を食べる。低い層から発せられ、使われた。申し込む。</p>"
             "<p id='foreign-names'>北朝鮮の金正恩氏、中国の李強首相、ベトナムの阮富仲元書記長</p>"
-            "<p id='loanword-origins'>コンピューター、クーデター、アルバイト、パエリア、パン、キムチ。</p>"
+            "<p id='loanword-origins'>コンピューター、クーデター、アルバイト、パエリア、シャボン、キムチ。</p>"
             "</main></html>"
         ).encode("utf-8")
         self.send_response(200)
@@ -105,7 +105,7 @@ def run_browser(base_url, extension_path):
                 worker.on("close", lambda: worker_errors.append("service worker closed"))
                 worker.on("console", lambda message: worker_console.append(f"{message.type}: {message.text}"))
                 manifest = worker.evaluate("chrome.runtime.getManifest()")
-                assert manifest.get("version") == "2.5.0", manifest
+                assert manifest.get("version") == "2.5.1", manifest
                 options = context.new_page()
                 page_errors = []
                 console_errors = []
@@ -200,9 +200,9 @@ def run_browser(base_url, extension_path):
                     target_tab_id,
                 )
                 assert controller_versions == {
-                    "translation": "2.5.0",
-                    "loanword": "2.5.0",
-                    "furigana": "2.5.0",
+                    "translation": "2.5.1",
+                    "loanword": "2.5.1",
+                    "furigana": "2.5.1",
                 }, controller_versions
                 foreign_name_annotations = target.eval_on_selector_all(
                     "#foreign-names ruby[data-jp-furigana]",
@@ -267,7 +267,7 @@ def run_browser(base_url, extension_path):
                     ["クーデター", "（仏）coup d'État"],
                     ["アルバイト", "（独）Arbeit"],
                     ["パエリア", "（西）paella"],
-                    ["パン", "（葡）pão"],
+                    ["シャボン", "（葡）sabão"],
                     ["キムチ", "（韓）김치"],
                 ], real_loanword_annotations
                 real_furigana_status = options.evaluate(
@@ -294,7 +294,7 @@ def run_browser(base_url, extension_path):
                 }, disabled_loanword_status
                 assert target.locator("ruby[data-jp-loanword-origin]").count() == 0
                 assert target.locator("#loanword-origins").inner_html() == (
-                    "コンピューター、クーデター、アルバイト、パエリア、パン、キムチ。"
+                    "コンピューター、クーデター、アルバイト、パエリア、シャボン、キムチ。"
                 )
                 assert options.evaluate(
                     """async (tabId) => (await chrome.tabs.sendMessage(

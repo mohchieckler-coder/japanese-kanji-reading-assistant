@@ -52,6 +52,7 @@ test("pins and exposes auditable JMdict generation metadata", () => {
   assert.match(JMDICT_LOANWORD_ORIGIN_METADATA.sourceSha256, /^[A-F0-9]{64}$/u);
   assert.ok(JMDICT_LOANWORD_ORIGIN_METADATA.entryCount >= 2900);
   assert.ok(JMDICT_LOANWORD_ORIGIN_METADATA.ambiguousSurfacesOmitted > 0);
+  assert.ok(JMDICT_LOANWORD_ORIGIN_METADATA.commonHomographicSurfacesOmitted > 0);
 
   const generated = getLoanwordOrigin("アイオリ");
   assert.equal(generated.source, "jmdict");
@@ -151,13 +152,12 @@ test("covers the requested and representative high-confidence language groups", 
     ["パエリア", "es", "西", "paella"],
     ["オペラ", "it", "伊", "opera"],
     ["コーヒー", "nl", "蘭", "koffie"],
-    ["パン", "pt", "葡", "pão"],
+    ["シャボン", "pt", "葡", "sabão"],
     ["イクラ", "ru", "露", "икра"],
     ["ギョーザ", "zh", "中", "餃子"],
     ["キムチ", "ko", "韓", "김치"],
     ["スキー", "no", "諾", "ski"],
-    ["サウナ", "fi", "芬", "sauna"],
-    ["ヨーグルト", "tr", "土", "yoğurt"]
+    ["サウナ", "fi", "芬", "sauna"]
   ];
 
   for (const [surface, language, countryMark, origin] of cases) {
@@ -171,16 +171,179 @@ test("covers the requested and representative high-confidence language groups", 
   }
 });
 
+test("covers common loanwords across news, forums, academic writing, and sports", () => {
+  const domainCases = {
+    news: [
+      ["インフレ", "inflation"],
+      ["ミサイル", "missile"],
+      ["サミット", "summit"],
+      ["インタビュー", "interview"],
+      ["コメント", "comment"],
+      ["メディア", "media"],
+      ["スクープ", "scoop"]
+    ],
+    forum: [
+      ["アカウント", "account"],
+      ["スレッド", "thread"],
+      ["ハッシュタグ", "hashtag"],
+      ["ログイン", "login"],
+      ["ブログ", "blog"],
+      ["ユーザー", "user"],
+      ["リプライ", "reply"],
+      ["フォロワー", "follower"],
+      ["コミュニティ", "community"]
+    ],
+    academic: [
+      ["アルゴリズム", "algorithm"],
+      ["データベース", "database"],
+      ["シミュレーション", "simulation"],
+      ["プロトコル", "protocol"],
+      ["エビデンス", "evidence"],
+      ["カリキュラム", "curriculum"],
+      ["メタアナリシス", "meta-analysis"]
+    ],
+    sports: [
+      ["ドラフト", "draft"],
+      ["チーム", "team"],
+      ["メンバー", "member"],
+      ["リーグ", "league"],
+      ["トーナメント", "tournament"],
+      ["スタジアム", "stadium"],
+      ["コーチ", "coach"],
+      ["ゴール", "goal"],
+      ["サッカー", "soccer"],
+      ["ラグビー", "rugby"],
+      ["オリンピック", "Olympic"]
+    ]
+  };
+
+  const failures = [];
+  for (const [domain, cases] of Object.entries(domainCases)) {
+    for (const [surface, origin] of cases) {
+      const entry = getLoanwordOrigin(surface);
+      if (!entry) {
+        failures.push(`${domain}: missing ${surface}`);
+        continue;
+      }
+      const actual = {
+        language: entry.language,
+        countryMark: entry.countryMark,
+        origin: entry.origin,
+        annotation: formatLoanwordAnnotation(entry)
+      };
+      const expected = { language: "en", countryMark: null, origin, annotation: origin };
+      if (!Object.keys(expected).every((key) => actual[key] === expected[key])) {
+        failures.push(`${domain}: ${surface} expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+      }
+    }
+  }
+  assert.deepEqual(failures, []);
+});
+
+test("uses Japanese country marks for non-English words found in multiple domains", () => {
+  const cases = [
+    ["アンケート", "fr", "仏", "enquête"],
+    ["プロフィール", "fr", "仏", "profil"],
+    ["カルテ", "de", "独", "Karte"],
+    ["ゼミナール", "de", "独", "Seminar"],
+    ["ゲレンデ", "de", "独", "Gelände"],
+    ["パエリア", "es", "西", "paella"],
+    ["シャボン", "pt", "葡", "sabão"],
+    ["キムチ", "ko", "韓", "김치"]
+  ];
+
+  for (const [surface, language, countryMark, origin] of cases) {
+    const entry = getLoanwordOrigin(surface);
+    assert.ok(entry, surface);
+    assert.deepEqual(
+      {
+        language: entry.language,
+        countryMark: entry.countryMark,
+        origin: entry.origin,
+        annotation: formatLoanwordAnnotation(entry)
+      },
+      { language, countryMark, origin, annotation: `（${countryMark}）${origin}` },
+      surface
+    );
+  }
+});
+
+test("segments only fully known multi-domain compounds", () => {
+  const cases = [
+    ["ニュースサイト", [["ニュース", "news"], ["サイト", "site"]]],
+    ["オンラインニュース", [["オンライン", "online"], ["ニュース", "news"]]],
+    ["スポーツニュース", [["スポーツ", "sports"], ["ニュース", "news"]]],
+    ["データベースシステム", [["データベース", "database"], ["システム", "system"]]],
+    ["コンピューターシミュレーション", [["コンピューター", "computer"], ["シミュレーション", "simulation"]]]
+  ];
+
+  const failures = [];
+  for (const [text, expected] of cases) {
+    const actual = findLoanwordMatches(text).map(({ surface, annotation }) => [surface, annotation]);
+    if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+      failures.push(`${text}: expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+    }
+  }
+  assert.deepEqual(failures, []);
+});
+
 test("does not guess proper names, onomatopoeia, or wasei-eigo", () => {
   assert.deepEqual(findLoanwordMatches("トランプ氏がワクワクしながらパソコンを使った"), []);
   assert.deepEqual(
-    findLoanwordMatches("トランプ氏はトランプで遊んだ").map(({ surface, origin }) => [surface, origin]),
-    [["トランプ", "trump"]]
+    findLoanwordMatches("トランプ政権のニュース").map(({ surface }) => surface),
+    ["ニュース"]
   );
+  assert.deepEqual(findLoanwordMatches("トランプファミリーの動向"), []);
+  assert.deepEqual(findLoanwordMatches("トランプ氏はトランプで遊んだ"), []);
+  assert.equal(getLoanwordOrigin("トランプ"), null);
   assert.equal(getLoanwordOrigin("サラリーマン"), null);
   assert.equal(getLoanwordOrigin("コンセント"), null);
   assert.equal(getLoanwordOrigin("スマホ"), null);
   assert.equal(getLoanwordOrigin("ピカピカ"), null);
+});
+
+test("does not annotate broader proper-name, sound-symbolic, native, or wasei-eigo samples", () => {
+  const groups = {
+    properNames: ["ムラカミ", "サトウ", "スズキ", "タナカ", "オオタニ"],
+    geographicNames: ["ロシア", "オランダ", "ギリシャ", "イギリス", "ドイツ", "イタリア", "トルコ", "パレスチナ", "ヨーロッパ", "モスクワ", "ウィーン", "ミュンヘン", "プラハ", "サイゴン"],
+    soundSymbolic: ["ワクワク", "ドキドキ", "キラキラ", "ゴロゴロ", "ピカピカ"],
+    nativeKatakana: ["カタカナ", "ケガ", "ダメ", "ゴミ"],
+    waseiEigo: ["サラリーマン", "コンセント", "パソコン", "スマホ", "オフィスレディー", "ベビーカー", "ガソリンスタンド"],
+    ambiguousOrigins: [
+      "リード", "ウイルス", "ウィルス", "アル", "イオン", "イス",
+      "カテゴリー", "カテゴリ", "ガス", "スイス",
+      "クラブ", "スプリント", "タイム", "チップ", "フレーズ", "ブロック",
+      "ドン", "トランプ", "バス", "パン", "ボタン", "マラソン", "メジャー",
+      "メス", "ヨーグルト", "リスク", "リスト", "カッパ", "ロコ", "ロン"
+    ]
+  };
+
+  for (const [group, surfaces] of Object.entries(groups)) {
+    for (const surface of surfaces) {
+      assert.equal(getLoanwordOrigin(surface), null, `${group}: ${surface}`);
+      assert.deepEqual(findLoanwordMatches(surface), [], `${group}: ${surface}`);
+    }
+  }
+});
+
+test("requires professional context before expanding the ambiguous clipping プロ", () => {
+  const entry = getLoanwordOrigin("プロ");
+  assert.ok(entry);
+  assert.equal(entry.origin, "professional");
+  assert.deepEqual(findLoanwordMatches("プロ"), []);
+  assert.deepEqual(
+    findLoanwordMatches("プロ", { suffix: "用" }).map(({ surface, origin }) => [surface, origin]),
+    [["プロ", "professional"]]
+  );
+  assert.deepEqual(findLoanwordMatches("プロパガンダ"), []);
+  assert.deepEqual(
+    findLoanwordMatches("プロ野球の選手").map(({ surface, origin }) => [surface, origin]),
+    [["プロ", "professional"]]
+  );
+  assert.deepEqual(
+    findLoanwordMatches("現役プロが指導する").map(({ surface, origin }) => [surface, origin]),
+    [["プロ", "professional"]]
+  );
 });
 
 test("rejects non-string matching input without mutating the catalog", () => {

@@ -2,6 +2,9 @@ import {
   JMDICT_LOANWORD_ORIGINS,
   JMDICT_LOANWORD_ORIGIN_METADATA
 } from "./data/loanword-origins-jmdict.mjs";
+import {
+  REVIEWED_CORE_LOANWORD_DEFINITIONS
+} from "./data/loanword-origins-reviewed-core.mjs";
 
 export { JMDICT_LOANWORD_ORIGIN_METADATA };
 
@@ -44,7 +47,7 @@ export const LOANWORD_LANGUAGE_MARKS = Object.freeze({
   cs: "捷"
 });
 
-const CURATED_LOANWORD_DEFINITIONS = Object.freeze([
+const LEGACY_CURATED_LOANWORD_DEFINITIONS = Object.freeze([
   // English. English origins intentionally have no country mark.
   ["en-account", "en", "account", ["アカウント"]],
   ["en-access", "en", "access", ["アクセス"]],
@@ -90,7 +93,6 @@ const CURATED_LOANWORD_DEFINITIONS = Object.freeze([
   ["en-report", "en", "report", ["レポート"]],
   ["en-hotel", "en", "hotel", ["ホテル"]],
   ["en-taxi", "en", "taxi", ["タクシー"]],
-  ["en-bus", "en", "bus", ["バス"]],
   ["en-sandwich", "en", "sandwich", ["サンドイッチ"]],
 
   // French.
@@ -172,14 +174,10 @@ const CURATED_LOANWORD_DEFINITIONS = Object.freeze([
   ["nl-gom", "nl", "gom", ["ゴム"]],
   ["nl-blik", "nl", "blik", ["ブリキ"]],
   ["nl-pincet", "nl", "pincet", ["ピンセット"]],
-  ["nl-mes", "nl", "mes", ["メス"]],
   ["nl-orgel", "nl", "orgel", ["オルゴール"]],
   ["nl-lens", "nl", "lens", ["レンズ"]],
 
   // Portuguese (historical direct loans into Japanese).
-  ["pt-pao", "pt", "pão", ["パン"]],
-  ["pt-botao", "pt", "botão", ["ボタン"]],
-  ["pt-capa", "pt", "capa", ["カッパ"]],
   ["pt-sabao", "pt", "sabão", ["シャボン"]],
   ["pt-vidro", "pt", "vidro", ["ビードロ"]],
   ["pt-confeito", "pt", "confeito", ["コンペイトウ", "コンペイトー"]],
@@ -211,8 +209,12 @@ const CURATED_LOANWORD_DEFINITIONS = Object.freeze([
   ["ko-jjigae", "ko", "찌개", ["チゲ"]],
   ["ko-tteokbokki", "ko", "떡볶이", ["トッポッキ"]],
   ["no-ski", "no", "ski", ["スキー"]],
-  ["fi-sauna", "fi", "sauna", ["サウナ"]],
-  ["tr-yogurt", "tr", "yoğurt", ["ヨーグルト"]]
+  ["fi-sauna", "fi", "sauna", ["サウナ"]]
+]);
+
+const CURATED_LOANWORD_DEFINITIONS = Object.freeze([
+  ...LEGACY_CURATED_LOANWORD_DEFINITIONS,
+  ...REVIEWED_CORE_LOANWORD_DEFINITIONS
 ]);
 
 const JMDICT_LANGUAGE_CODES = Object.freeze({
@@ -247,11 +249,68 @@ const CURATED_SURFACES = new Set(
   CURATED_LOANWORD_DEFINITIONS.flatMap(([, , , surfaces]) => surfaces)
 );
 
+// JMdict records the historical source forms of some foreign place names.
+// They are useful dictionary facts, but this feature labels lexical
+// loanwords, not people or places. Keep the high-frequency geographic forms
+// that appear in news copy out of the automatic layer so pages do not show
+// distracting annotations such as ロシア -> （露）Rossiya.
+const GENERATED_SURFACE_BLOCKLIST = new Set([
+  // Common homographs whose source form or immediate donor language cannot be
+  // selected safely from spelling alone.
+  "ウイルス",
+  "ウィルス",
+  "アル",
+  "イオン",
+  "イス",
+  "カテゴリー",
+  "カテゴリ",
+  "ガス",
+  "クラブ",
+  "スイス",
+  "スプリント",
+  "タイム",
+  "チップ",
+  "ドン",
+  "トランプ",
+  "フレーズ",
+  "ブロック",
+  "バス",
+  "パン",
+  "ボタン",
+  "マラソン",
+  "メジャー",
+  "リスク",
+  "リスト",
+  "カッパ",
+  "メス",
+  "ヨーグルト",
+  "ロコ",
+  "ロン",
+
+  // Foreign place names are dictionary facts rather than lexical loanwords.
+  "イギリス",
+  "イタリア",
+  "ウィーン",
+  "オランダ",
+  "ギリシャ",
+  "サイゴン",
+  "トルコ",
+  "ドイツ",
+  "パレスチナ",
+  "プラハ",
+  "ミュンヘン",
+  "モスクワ",
+  "ヨーロッパ",
+  "ロシア"
+]);
+
 // JMdict supplies the broad, pinned dictionary layer. Curated entries win on
 // duplicate spellings so reviewed modern forms and donor languages remain
 // stable across future dictionary regeneration.
 const GENERATED_LOANWORD_DEFINITIONS = JMDICT_LOANWORD_ORIGINS
-  .filter(([surface]) => !CURATED_SURFACES.has(surface))
+  .filter(([surface]) =>
+    !CURATED_SURFACES.has(surface) && !GENERATED_SURFACE_BLOCKLIST.has(surface)
+  )
   .map(([surface, rawLanguage, origin], index) => {
     const language = JMDICT_LANGUAGE_CODES[rawLanguage];
     if (!language) {
@@ -332,14 +391,20 @@ function hasSafeKatakanaBoundaries(text, start, end) {
     !isKatakanaWordCharacter(text[end]);
 }
 
-const AMBIGUOUS_PERSON_NAME_SURFACES = new Set(["トランプ"]);
-const PERSON_TITLE_AFTER = /^(?:氏|さん|大統領|前大統領|元大統領|首相|会長|選手|監督|容疑者|被告|議員)/u;
+const PROFESSIONAL_CONTEXT_BEFORE = /(?:元|現役|女子|男子|若手|トップ|ベテラン|アマ(?:チュア)?(?:から)?|職業)$/u;
+const PROFESSIONAL_CONTEXT_AFTER = /^(?:野球|スポーツ|選手|契約|入り|転向|棋士|レス|ゴルファー|テニス|サッカー|ボクサー|レーサー|リーグ|チーム|コーチ|仕様|版|向け|用|並み|級|として|にな(?:る|った)|の(?:世界|仕事|選手)|が(?:参加|出場|指導)|を(?:目指|育成))/u;
 
-function looksLikePersonNameContext(text, surface, end) {
-  return AMBIGUOUS_PERSON_NAME_SURFACES.has(surface) && PERSON_TITLE_AFTER.test(text.slice(end));
+function lacksRequiredLoanwordContext(text, surface, start, end, context = {}) {
+  if (surface !== "プロ") {
+    return false;
+  }
+  const prefix = typeof context.prefix === "string" ? context.prefix : "";
+  const suffix = typeof context.suffix === "string" ? context.suffix : "";
+  return !PROFESSIONAL_CONTEXT_BEFORE.test(`${prefix}${text.slice(0, start)}`)
+    && !PROFESSIONAL_CONTEXT_AFTER.test(`${text.slice(end)}${suffix}`);
 }
 
-function findCompleteCompoundPath(text, runStart, runEnd) {
+function findCompleteCompoundPath(text, runStart, runEnd, context) {
   const paths = new Map([[runEnd, Object.freeze([])]]);
   for (let position = runEnd - 1; position >= runStart; position -= 1) {
     const candidates = MATCH_CANDIDATES_BY_FIRST_CHARACTER.get(text[position]) ?? [];
@@ -351,7 +416,7 @@ function findCompleteCompoundPath(text, runStart, runEnd) {
         end > runEnd
         || !suffix
         || !text.startsWith(candidate.surface, position)
-        || looksLikePersonNameContext(text, candidate.surface, end)
+        || lacksRequiredLoanwordContext(text, candidate.surface, position, end, context)
       ) {
         continue;
       }
@@ -401,7 +466,7 @@ export function getLoanwordOrigin(surface) {
 
 // Returns longest-first-at-each-position, non-overlapping matches. Offsets are
 // UTF-16 string offsets, matching DOM Text node and Range APIs.
-export function findLoanwordMatches(text) {
+export function findLoanwordMatches(text, context = {}) {
   if (typeof text !== "string") {
     throw new TypeError("Loanword matching requires a string");
   }
@@ -414,7 +479,7 @@ export function findLoanwordMatches(text) {
       const end = start + surface.length;
       return text.startsWith(surface, start)
         && hasSafeKatakanaBoundaries(text, start, end)
-        && !looksLikePersonNameContext(text, surface, end);
+        && !lacksRequiredLoanwordContext(text, surface, start, end, context);
     });
 
     if (!candidate && isKatakanaWordCharacter(text[start]) && !isKatakanaWordCharacter(text[start - 1])) {
@@ -422,7 +487,7 @@ export function findLoanwordMatches(text) {
       while (runEnd < text.length && isKatakanaWordCharacter(text[runEnd])) {
         runEnd += 1;
       }
-      const compoundPath = findCompleteCompoundPath(text, start, runEnd);
+      const compoundPath = findCompleteCompoundPath(text, start, runEnd, context);
       if (compoundPath) {
         let partStart = start;
         for (const part of compoundPath) {

@@ -44,6 +44,14 @@ npm test
 
 2.4.1 重设计注音排版：较长读音会作为一个整体居中显示，不再把多字汉字之间的间隔撑开；同时允许读音按浏览器标准适度悬挂，并隔离网页自身对 `rt` 的字距、词距、缩进、对齐和换行样式。新增真实 Chromium 长段落几何回归，校验注音前后换行数量、横向溢出及最终计算样式。
 
+2.5.1 扩充并收紧了片假名外来语词源功能：
+
+- 新增 263 项人工核验的新闻、论坛、学术、技术、体育与生活常用词定义（276 个表面写法）；经跨词条同形过滤和高风险歧义过滤后，运行时共提供 3,275 项词源记录、3,296 个表面写法。截图中常见的 `メンバー → member`、`ドラフト → draft`、`ファン → fan`、`サッカー → soccer`、`キロ → （仏）kilo-`、`ルポ → （仏）reportage` 等均已覆盖。
+- JMdict 生成器新增跨词条同形异义过滤，避免把罕见词义错误套到常用词，例如旧数据中的 `サッカー → sucker`、`プロ → （独）Pro(zent)`、`リード → （独）Lied`。另对来源冲突、国家／城市名称、和制英语及 `チップ`、`カテゴリー` 等无法只凭拼写消歧的词保持不标注。
+- `プロ` 只有在 `プロ野球`、`現役プロが指導` 等体育或职业上下文中才显示 `professional`；上下文可跨扩展生成的 ruby 和相邻内联节点读取，孤立的 `プロ` 不会强行猜测。
+- 长原词不再在正文行内无限展开：折叠宽度受片假名基底宽度限制，点击或按 Enter／Space 后在限宽、可换行的浮层中显示完整原词；72、96、120、160 像素极窄栏均有无溢出和注音不重叠回归。
+- 真实页面审计覆盖 NHK、朝日新闻系页面、体育新闻、大学／J-STAGE 学术页面与社区文章；不适合作为日语语料的韩文页面不会混入词表。
+
 2.5.0 新增独立的“外来语原词标注”按钮：
 
 - 点击弹窗中的独立按钮后，高置信片假名外来语会在上方显示外语原词；该功能可单独开启或移除，不影响汉字读音与划词翻译。
@@ -105,9 +113,9 @@ npm run package:store
 
 ## 外来语词源数据与许可
 
-2.5.0 的本地词源表派生自 [JMdict](https://www.edrdg.org/jmdict/jmdict_dtd_h.html) 的 2026-08-17 固定数据版本 `3.6.2+20260817122448`，并使用 [jmdict-simplified](https://github.com/scriptin/jmdict-simplified) 提供的结构化格式生成；常用词另有少量人工核验修正。构建仅保留完整词源、非和制英语且来源唯一的高置信记录，运行时不会下载词典或调用远程词源服务。
+2.5.1 的本地词源表派生自 [JMdict](https://www.edrdg.org/jmdict/jmdict_dtd_h.html) 的 2026-08-17 固定数据版本 `3.6.2+20260817122448`，并使用 [jmdict-simplified](https://github.com/scriptin/jmdict-simplified) 提供的结构化格式生成；另有独立的人工复核常用词层。生成器只保留完整词源、非和制英语且来源唯一的记录，并排除来源冲突以及“罕见来源词义与常用无来源同形词并存”的表面写法。运行时不会下载词典或调用远程词源服务；可选审核队列也只用于人工复核，绝不会自动进入运行词表。
 
 JMdict 由 Electronic Dictionary Research and Development Group（EDRDG）维护，相关数据按 [EDRDG General Dictionary Licence Statement](https://www.edrdg.org/edrdg/licence.html) 与 [Creative Commons Attribution-ShareAlike 4.0](https://creativecommons.org/licenses/by-sa/4.0/) 提供。随包许可文本与具体归属见 [`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md) 及 `third_party_licenses/jmdict/`。
 
 完整的后续开发及验收指令见 [DEVELOPMENT_INSTRUCTIONS.md](./DEVELOPMENT_INSTRUCTIONS.md)。
-2.0.0 的多领域实测、翻译验收、修复项与已知边界见 [LIVE_SITE_TEST_REPORT.md](./LIVE_SITE_TEST_REPORT.md) 和 [TRANSLATION_FEATURE_REPORT.md](./TRANSLATION_FEATURE_REPORT.md)；2.0.1 进一步补充了真实扩展进程与升级恢复测试，2.1.0 增加了四语言管理面板及界面语言/翻译目标隔离测试，2.2.0 增加了弹窗四语言、双向同步及窄界面防溢出测试，2.3.0 增加了中韩朝越完整人名、跨标签及动态上下文回归测试，2.4.0 增加了送り仮名分段及外来词片假名覆盖回归测试，2.4.1 增加了长读音紧凑排版与网页样式隔离回归测试，2.5.0 增加了本地外来语原词、语言简称、长标注折叠、动态正文及独立开关回归测试。
+2.0.0 的多领域实测、翻译验收、修复项与已知边界见 [LIVE_SITE_TEST_REPORT.md](./LIVE_SITE_TEST_REPORT.md) 和 [TRANSLATION_FEATURE_REPORT.md](./TRANSLATION_FEATURE_REPORT.md)；2.0.1 进一步补充了真实扩展进程与升级恢复测试，2.1.0 增加了四语言管理面板及界面语言/翻译目标隔离测试，2.2.0 增加了弹窗四语言、双向同步及窄界面防溢出测试，2.3.0 增加了中韩朝越完整人名、跨标签及动态上下文回归测试，2.4.0 增加了送り仮名分段及外来词片假名覆盖回归测试，2.4.1 增加了长读音紧凑排版与网页样式隔离回归测试，2.5.0 增加了本地外来语原词、语言简称、长标注折叠、动态正文及独立开关回归测试，2.5.1 增加了多站点常用词覆盖、跨 JMdict 词条同形过滤、上下文门控、极窄栏浮层展开及无溢出回归测试。

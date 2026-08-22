@@ -48,6 +48,52 @@
         text-indent: 1em !important;
         white-space: normal !important;
       }
+
+      .loanword-origin-dense {
+        box-sizing: border-box;
+        width: 420px;
+        max-width: 100%;
+        margin: 0;
+        font: 20px/2.1 "Yu Gothic", "Noto Sans JP", sans-serif;
+        letter-spacing: 0;
+      }
+
+      /* Stress narrow article columns used by news and forum sidebars. */
+      .loanword-origin-dense ruby {
+        ruby-align: space-around !important;
+        margin-inline: 1.5rem !important;
+        padding-inline: 1rem !important;
+      }
+
+      .loanword-origin-dense rt {
+        font-size: 1.35em !important;
+        letter-spacing: 0.45em !important;
+        word-spacing: 0.35em !important;
+        text-align: justify !important;
+        text-indent: 1em !important;
+        white-space: normal !important;
+      }
+
+      .loanword-origin-ultra-narrow {
+        box-sizing: border-box;
+        max-width: 100%;
+        margin: 8px 0;
+        font: 20px/2.1 "Yu Gothic", "Noto Sans JP", sans-serif;
+        letter-spacing: 0;
+      }
+
+      .loanword-origin-ultra-narrow ruby {
+        ruby-align: space-around !important;
+        margin-inline: 1.5rem !important;
+        padding-inline: 1rem !important;
+      }
+
+      .loanword-origin-ultra-narrow rt {
+        font-size: 1.35em !important;
+        letter-spacing: 0.45em !important;
+        word-spacing: 0.35em !important;
+        text-align: justify !important;
+      }
     </style>
   </head>
   <body>
@@ -81,10 +127,30 @@
         <h2>论坛与社区</h2>
         <p id="community-phrases">既読、自治厨、公録、売り時、トピ立て、スレ主様、後から確認、3日後から開始、辛い焼きそば、仕事が辛い、(笑)、（泣）</p>
         <p id="okurigana-loanword">麻辣湯と麻辣烫を食べる。地位が低い層ほど、子どもから発せられた話が使われた。お読みいただき、申し込む。</p>
-        <p id="loanword-origin-reference" class="loanword-origin-copy" contenteditable="true">コンピューター、クーデター、アルバイト、パエリア、パン、キムチ、ルポルタージュ。</p>
-        <p id="loanword-origin-regression" class="loanword-origin-copy">コンピューター、クーデター、アルバイト、パエリア、パン、キムチ、ルポルタージュ。</p>
+        <p id="loanword-origin-reference" class="loanword-origin-copy" contenteditable="true">コンピューター、クーデター、アルバイト、パエリア、シャボン、キムチ、ルポルタージュ。</p>
+        <p id="loanword-origin-regression" class="loanword-origin-copy">コンピューター、クーデター、アルバイト、パエリア、シャボン、キムチ、ルポルタージュ。</p>
         <p id="loanword-origin-negatives">ワクワク、サラリーマン、ムラカミ。</p>
         <p id="loanword-origin-hidden" hidden>キムチとニュース</p>
+        <section aria-label="多领域外来语回归样本">
+          <h3>新闻</h3>
+          <p id="loanword-news">インフレ、ミサイル、サミット、インタビュー、コメント、メディア、スクープ。</p>
+          <h3>论坛</h3>
+          <p id="loanword-forum">アカウント、スレッド、ハッシュタグ、ログイン、ブログ、ユーザー、リプライ、フォロワー、コミュニティ、プロフィール。</p>
+          <h3>学术</h3>
+          <p id="loanword-academic">アルゴリズム、データベース、シミュレーション、プロトコル、エビデンス、カリキュラム、メタアナリシス、カルテ、ゼミナール。</p>
+          <h3>体育</h3>
+          <p id="loanword-sports">ドラフト、チーム、メンバー、リーグ、トーナメント、スタジアム、コーチ、ゴール、サッカー、ラグビー、オリンピック、ゲレンデ。</p>
+          <p id="loanword-compounds">ニュースサイト、オンラインニュース、スポーツニュース、データベースシステム、コンピューターシミュレーション。</p>
+          <p id="loanword-domain-negatives">ムラカミ、サトウ、スズキ、タナカ、オオタニ、ワクワク、ドキドキ、キラキラ、ゴロゴロ、ピカピカ、カタカナ、ケガ、ダメ、ゴミ、サラリーマン、コンセント、パソコン、スマホ、オフィスレディー、ベビーカー、ガソリンスタンド。</p>
+          <p id="loanword-long-reference" class="loanword-origin-dense" contenteditable="true">クーデターとア・ラ・カルト、オードブル、オートクチュール、オンブズマンについてインタビューし、コンピューターシミュレーションをアップロードした。</p>
+          <p id="loanword-long-regression" class="loanword-origin-dense">クーデターとア・ラ・カルト、オードブル、オートクチュール、オンブズマンについてインタビューし、コンピューターシミュレーションをアップロードした。</p>
+          <div aria-label="极窄栏外来语回归样本">
+            <p id="loanword-narrow-72" class="loanword-origin-ultra-narrow" style="width: 72px">プロ用<br>ルポ</p>
+            <p id="loanword-narrow-96" class="loanword-origin-ultra-narrow" style="width: 96px">プロ用とルポ。</p>
+            <p id="loanword-narrow-120" class="loanword-origin-ultra-narrow" style="width: 120px">クーデターとプロ用、ルポ。</p>
+            <p id="loanword-narrow-160" class="loanword-origin-ultra-narrow" style="width: 160px">技術プロ用、ルポ記事。</p>
+          </div>
+        </section>
         <p id="ruby-spacing-reference" class="ruby-spacing-copy" contenteditable="true">【上野千鶴子】いい質問をしてくださってありがとう。以前は、性売買の敵はタダ（無料）のセックスだと思っていたので、女の子たちが性的に解放されて、こだわらずに自由に性交渉できるようになればいい、と思っていました。</p>
         <p id="ruby-spacing-regression" class="ruby-spacing-copy">【上野千鶴子】いい質問をしてくださってありがとう。以前は、性売買の敵はタダ（無料）のセックスだと思っていたので、女の子たちが性的に解放されて、こだわらずに自由に性交渉できるようになればいい、と思っていました。</p>
         <p id="people-counters">1人、2人、一人、二人、一人一人、1人旅、2人暮らし、二人組、1人用</p>
