@@ -131,10 +131,10 @@ try:
             assert startup_status["phase"] == "enabled", startup_status
             assert page.locator("ruby[data-jp-furigana]").count() >= 6
             assert page.evaluate(
-                "window.__japaneseSelectionTranslationController__.buildVersion === '2.4.0'"
+                "window.__japaneseSelectionTranslationController__.buildVersion === '2.4.1'"
             )
             assert page.evaluate(
-                "window.__japaneseFuriganaAiController__.buildVersion === '2.4.0'"
+                "window.__japaneseFuriganaAiController__.buildVersion === '2.4.1'"
             )
         except Exception:
             status = send_message(page, "GET_FURIGANA_STATUS") if page.evaluate("Boolean(window.__furiganaMessageListener)") else None
@@ -257,6 +257,65 @@ try:
               return clone.textContent;
             }"""
         ) == "麻辣湯と麻辣烫を食べる。地位が低い層ほど、子どもから発せられた話が使われた。お読みいただき、申し込む。"
+
+        spacing_layout = page.evaluate(
+            """() => {
+              const lineTops = (selector) => {
+                const root = document.querySelector(selector);
+                const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+                const tops = [];
+                while (walker.nextNode()) {
+                  const node = walker.currentNode;
+                  if (node.parentElement?.closest('rt, rp')) continue;
+                  for (let offset = 0; offset < node.length; offset += 1) {
+                    const range = document.createRange();
+                    range.setStart(node, offset);
+                    range.setEnd(node, offset + 1);
+                    const rect = range.getBoundingClientRect();
+                    if (rect.width || rect.height) tops.push(Math.round(rect.top * 2) / 2);
+                  }
+                }
+                return [...new Set(tops)].length;
+              };
+              const sample = document.querySelector('#ruby-spacing-regression');
+              const rubies = [...sample.querySelectorAll('ruby[data-jp-furigana]')];
+              return {
+                referenceLines: lineTops('#ruby-spacing-reference'),
+                annotatedLines: lineTops('#ruby-spacing-regression'),
+                clientWidth: sample.clientWidth,
+                scrollWidth: sample.scrollWidth,
+                rubyStyles: rubies.map((ruby) => {
+                  const reading = ruby.querySelector('rt');
+                  const rubyStyle = getComputedStyle(ruby);
+                  const readingStyle = getComputedStyle(reading);
+                  return {
+                    surface: ruby.dataset.jpOriginal,
+                    rubyAlign: rubyStyle.rubyAlign,
+                    rubyOverhang: rubyStyle.rubyOverhang,
+                    letterSpacing: readingStyle.letterSpacing,
+                    wordSpacing: readingStyle.wordSpacing,
+                    textAlign: readingStyle.textAlign,
+                    textIndent: readingStyle.textIndent,
+                    whiteSpace: readingStyle.whiteSpace
+                  };
+                })
+              };
+            }"""
+        )
+        assert spacing_layout["rubyStyles"], spacing_layout
+        for ruby_style in spacing_layout["rubyStyles"]:
+            assert ruby_style == {
+                "surface": ruby_style["surface"],
+                "rubyAlign": "center",
+                "rubyOverhang": "auto",
+                "letterSpacing": "normal",
+                "wordSpacing": "0px",
+                "textAlign": "center",
+                "textIndent": "0px",
+                "whiteSpace": "nowrap",
+            }, ruby_style
+        assert spacing_layout["scrollWidth"] <= spacing_layout["clientWidth"] + 1, spacing_layout
+        assert spacing_layout["annotatedLines"] <= spacing_layout["referenceLines"] + 1, spacing_layout
 
         for surface, reading in [
             ("1人", "ひとり"),
@@ -724,7 +783,7 @@ try:
             };
             window.chrome = {
               runtime: {
-                  getManifest: () => ({ version: '2.4.0' }),
+                  getManifest: () => ({ version: '2.4.1' }),
                 sendMessage: async (message) => {
                   window.__popupMessages.push(structuredClone(message));
                   if (message.type === 'GET_TRANSLATION_DASHBOARD') {
@@ -922,7 +981,7 @@ try:
         stale_popup.goto(f"{base_url}/dist/popup.html")
         stale_popup.wait_for_load_state("networkidle")
         stale_popup.get_by_text(
-            "Chrome은 아직 이전 버전 1.1.0을 실행 중이지만 디스크 파일은 2.4.0(으)로 업데이트되었습니다.",
+            "Chrome은 아직 이전 버전 1.1.0을 실행 중이지만 디스크 파일은 2.4.1(으)로 업데이트되었습니다.",
             exact=True,
         ).wait_for()
         stale_popup.get_by_text(
@@ -948,7 +1007,7 @@ try:
             window.__delayedSettings = { targetLanguage: 'en', uiLanguage: 'zh-CN' };
             window.chrome = {
               runtime: {
-                  getManifest: () => ({ version: '2.4.0' }),
+                  getManifest: () => ({ version: '2.4.1' }),
                 sendMessage: async (message) => {
                   if (message.type === 'GET_TRANSLATION_DASHBOARD') {
                     return await new Promise((resolve) => {

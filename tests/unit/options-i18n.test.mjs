@@ -22,7 +22,7 @@ test("management localization catalogs cover Chinese, English, Japanese, and Kor
         message: "details",
         model: "test-model",
         runtimeVersion: "2.1.0",
-        buildVersion: "2.4.0",
+        buildVersion: "2.4.1",
         title: "sample"
       });
       assert.ok(output && output !== key, `${locale}:${key} is missing`);

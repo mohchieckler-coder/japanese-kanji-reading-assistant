@@ -1,6 +1,6 @@
 {
   "name": "japanese-furigana-ai-extension",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "private": true,
   "type": "module",
   "description": "A Chrome extension for local Japanese furigana and user-configured selection translation.",

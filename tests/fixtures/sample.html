@@ -3,6 +3,28 @@
   <head>
     <meta charset="utf-8">
     <title>日本語ニュースのテスト</title>
+    <style>
+      .ruby-spacing-copy {
+        box-sizing: border-box;
+        width: 760px;
+        margin: 0;
+        font: 22px/2.1 "Yu Gothic", "Noto Sans JP", sans-serif;
+        letter-spacing: 0;
+      }
+
+      /* Simulate article CSS that would otherwise leak into generated ruby. */
+      .ruby-spacing-copy ruby {
+        ruby-align: space-around !important;
+      }
+
+      .ruby-spacing-copy rt {
+        letter-spacing: 0.45em !important;
+        word-spacing: 0.35em !important;
+        text-align: justify !important;
+        text-indent: 1em !important;
+        white-space: normal !important;
+      }
+    </style>
   </head>
   <body>
     <main>
@@ -35,6 +57,8 @@
         <h2>论坛与社区</h2>
         <p id="community-phrases">既読、自治厨、公録、売り時、トピ立て、スレ主様、後から確認、3日後から開始、辛い焼きそば、仕事が辛い、(笑)、（泣）</p>
         <p id="okurigana-loanword">麻辣湯と麻辣烫を食べる。地位が低い層ほど、子どもから発せられた話が使われた。お読みいただき、申し込む。</p>
+        <p id="ruby-spacing-reference" class="ruby-spacing-copy" contenteditable="true">【上野千鶴子】いい質問をしてくださってありがとう。以前は、性売買の敵はタダ（無料）のセックスだと思っていたので、女の子たちが性的に解放されて、こだわらずに自由に性交渉できるようになればいい、と思っていました。</p>
+        <p id="ruby-spacing-regression" class="ruby-spacing-copy">【上野千鶴子】いい質問をしてくださってありがとう。以前は、性売買の敵はタダ（無料）のセックスだと思っていたので、女の子たちが性的に解放されて、こだわらずに自由に性交渉できるようになればいい、と思っていました。</p>
         <p id="people-counters">1人、2人、一人、二人、一人一人、1人旅、2人暮らし、二人組、1人用</p>
         <p id="people-counter-negatives">一人称、二人称、一人前、二人三脚、12人、21人</p>
         <p id="split-counter-negative"><span>1人</span><span>称</span></p>

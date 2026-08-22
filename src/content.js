@@ -1438,14 +1438,25 @@ class FuriganaController {
     }
     const style = document.createElement("style");
     style.id = STYLE_ID;
+    // Center wider readings as one annotation instead of distributing their
+    // extra width between the base kanji (the default ruby-align behavior).
     style.textContent = `
-      ruby[${RUBY_ATTRIBUTE}] { ruby-position: over; }
+      ruby[${RUBY_ATTRIBUTE}] {
+        ruby-position: over !important;
+        ruby-align: center !important;
+        ruby-overhang: auto !important;
+      }
       ruby[${RUBY_ATTRIBUTE}] > rt {
-        font-size: 0.55em;
-        line-height: 1;
-        color: #b42318;
-        font-weight: 600;
-        user-select: none;
+        font-size: 0.55em !important;
+        line-height: 1 !important;
+        color: #b42318 !important;
+        font-weight: 600 !important;
+        letter-spacing: normal !important;
+        word-spacing: normal !important;
+        text-align: center !important;
+        text-indent: 0 !important;
+        white-space: nowrap !important;
+        user-select: none !important;
       }
     `;
     (document.head || document.documentElement).append(style);
