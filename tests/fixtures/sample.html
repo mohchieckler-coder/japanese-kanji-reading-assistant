@@ -94,10 +94,79 @@
         word-spacing: 0.35em !important;
         text-align: justify !important;
       }
+
+      .asahi-layout-shell {
+        box-sizing: border-box;
+        width: 100%;
+        padding: 0 20px;
+        border-bottom: 1px solid #ddd;
+        font-family: Arial, "Yu Gothic", sans-serif;
+      }
+
+      .asahi-layout-nav {
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 504px;
+        height: 33px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        font-size: 13px;
+        line-height: 18.2px;
+        white-space: nowrap;
+      }
+
+      .asahi-layout-nav a {
+        display: inline-block;
+        color: #111;
+        text-decoration: none;
+      }
+
+      .asahi-layout-nav ruby,
+      .asahi-layout-nav rt {
+        margin-inline: 12px !important;
+        padding-inline: 8px !important;
+        letter-spacing: .35em !important;
+        line-height: 2 !important;
+      }
+
+      .asahi-layout-article-header {
+        box-sizing: border-box;
+        width: 680px;
+        max-width: 100%;
+        padding: 12px 0;
+      }
+
+      .asahi-layout-article-header h2 {
+        width: 680px;
+        max-width: 100%;
+        margin: 0;
+        font: 700 30px/1.45 "Yu Gothic", "Noto Sans JP", sans-serif;
+        letter-spacing: 0;
+      }
     </style>
   </head>
   <body>
+    <header id="asahi-layout-shell" class="asahi-layout-shell">
+      <nav aria-label="朝日新闻布局回归">
+        <ul id="asahi-layout-nav" class="asahi-layout-nav">
+          <li><a href="#">高市政権</a></li>
+          <li><a href="#">熊本地震</a></li>
+          <li><a href="#">速報</a></li>
+          <li><a href="#">朝刊</a></li>
+          <li><a href="#">夕刊</a></li>
+          <li><a href="#">連載</a></li>
+          <li><a href="#">ランキング</a></li>
+          <li><a href="#">GAMES</a></li>
+        </ul>
+      </nav>
+    </header>
     <main>
+      <header id="asahi-layout-article-header" class="asahi-layout-article-header">
+        <h2>高市首相、サッチャー氏や孔子を引用「中傷動画報道」に反論</h2>
+      </header>
       <h1>東京で新しい技術を発表</h1>
       <p id="article">日本語の漢字に読み仮名を付けます。今日の天気は晴れです。</p>
       <p id="weekdays">
@@ -151,6 +220,14 @@
             <p id="loanword-narrow-160" class="loanword-origin-ultra-narrow" style="width: 160px">技術プロ用、ルポ記事。</p>
           </div>
         </section>
+        <section aria-label="外国专名原文回归样本">
+          <h3>外国政要与名人</h3>
+          <p id="proper-name-people">ドナルド・トランプ氏、エマニュエル・マクロン大統領、マーガレット・サッチャー元首相、テイラー・スウィフト、イーロン・マスク氏、リオネル・メッシ選手。</p>
+          <p id="proper-name-contextual">トランプ氏とフランスのマクロン大統領、歌手スウィフト、メッシ選手。</p>
+          <h3>外国地名</h3>
+          <p id="proper-name-places">ニューヨーク、パリ、ベルリン、マドリード、モスクワ、キーウ、ソウル、ハノイ。</p>
+          <p id="proper-name-negatives">トランプカード、マスク着用、ソウルミュージック、ローマ字。</p>
+        </section>
         <p id="ruby-spacing-reference" class="ruby-spacing-copy" contenteditable="true">【上野千鶴子】いい質問をしてくださってありがとう。以前は、性売買の敵はタダ（無料）のセックスだと思っていたので、女の子たちが性的に解放されて、こだわらずに自由に性交渉できるようになればいい、と思っていました。</p>
         <p id="ruby-spacing-regression" class="ruby-spacing-copy">【上野千鶴子】いい質問をしてくださってありがとう。以前は、性売買の敵はタダ（無料）のセックスだと思っていたので、女の子たちが性的に解放されて、こだわらずに自由に性交渉できるようになればいい、と思っていました。</p>
         <p id="people-counters">1人、2人、一人、二人、一人一人、1人旅、2人暮らし、二人組、1人用</p>
@@ -168,6 +245,12 @@
         <p id="foreign-name-provided">中国の張偉（チャン・ウェイ）氏が出席</p>
         <p id="foreign-name-split"><span>金</span><strong>正恩</strong>、<span>習近</span><em>平</em>、<span>李在</span><b>明</b>、<span>崔</span><i>竜</i><u>海</u>、<span>全</span><i>斗</i><u>煥</u></p>
         <p id="foreign-name-negatives">李強化策、王毅然とした態度、蘇林業、胡志明市、胡志明空港、ベトナムの胡志明 市、金曜日、金子、林芳正外相、孫正義</p>
+
+        <h2>日本公众人物姓名</h2>
+        <p id="japanese-public-names">高市早苗氏、大谷翔平選手、鈴木誠也選手、羽生結弦氏、藤井聡太棋士、久保建英選手、三笘薫選手、森保一監督、宮﨑駿監督</p>
+        <p id="japanese-public-name-split"><span>羽生</span><strong>結弦</strong>選手、<span>大谷</span><em>翔平</em>選手</p>
+        <p id="japanese-name-provided">山田太郎（やまだたろう）氏が出席</p>
+        <p id="japanese-public-name-wrong-page">大谷翔平（おおやしょうたいら）選手が出場</p>
       </section>
       <pre id="code">const place = "東京";</pre>
       <p><ruby id="existing">大阪<rt>おおさか</rt></ruby>には既存の読音があります。</p>

@@ -1,8 +1,8 @@
 import {
-  FOREIGN_PERSON_NAMES,
+  VERIFIED_PERSON_NAMES,
   PERSON_COUNTRY_HINTS,
   PERSON_ROLE_HINTS,
-  getForeignPersonNameParts
+  getVerifiedPersonNameParts
 } from "./person-name-readings.mjs";
 import { KATAKANA_READING_OVERRIDES } from "./katakana-reading-overrides.mjs";
 
@@ -188,11 +188,11 @@ const SPLIT_COMPOUND_READINGS = Object.freeze([
   }
 ]);
 
-const FOREIGN_PERSON_SURFACES = Object.freeze(FOREIGN_PERSON_NAMES.flatMap((entry) =>
+const VERIFIED_PERSON_SURFACES = Object.freeze(VERIFIED_PERSON_NAMES.flatMap((entry) =>
   entry.surfaces.map((surface) => Object.freeze({
     entry,
     surface,
-    parts: Object.freeze(getForeignPersonNameParts(entry, surface))
+    parts: Object.freeze(getVerifiedPersonNameParts(entry, surface))
   }))
 ).sort((left, right) => right.surface.length - left.surface.length));
 const ALL_PERSON_COUNTRY_HINTS = Object.freeze(Object.values(PERSON_COUNTRY_HINTS).flat());
@@ -318,7 +318,9 @@ function personRoleImmediatelyPrecedes(textBefore, roleHints = PERSON_ROLE_HINTS
 const COUNTRY_AFFILIATION_PATTERN = /^[\p{Zs}\t]*(?:(?:の|・|、|政府(?:の)?|共産党(?:の)?|国家(?:主席)?(?:の)?|政権(?:の)?|代表(?:の)?|首脳(?:の)?|大統領府(?:の)?)[\p{Zs}\t]*)?$/u;
 
 function hasCountryHint(entry, contextualText, start, end) {
-  const hints = entry ? PERSON_COUNTRY_HINTS[entry.country] : ALL_PERSON_COUNTRY_HINTS;
+  const hints = entry
+    ? PERSON_COUNTRY_HINTS[entry.country] ?? []
+    : ALL_PERSON_COUNTRY_HINTS;
   const before = contextualText.slice(Math.max(0, start - 36), start);
   const after = contextualText.slice(end, Math.min(contextualText.length, end + 36));
   const lastBoundary = Math.max(
@@ -363,13 +365,15 @@ function hasPersonNameBoundary(contextualText, start, end, entry = null) {
   const textBefore = contextualText.slice(0, start);
   const textAfter = contextualText.slice(end);
   const boundaryAfter = textAfter.replace(/^[\p{Zs}\t]+/u, "");
-  if (entry && startsWithAny(boundaryAfter, entry.blockedSuffixes)) {
+  if (entry && startsWithAny(boundaryAfter, entry.blockedSuffixes ?? [])) {
     return false;
   }
 
   const previousCharacter = Array.from(textBefore).at(-1) || "";
   if (SINGLE_KANJI_PATTERN.test(previousCharacter)) {
-    const countryHints = entry ? PERSON_COUNTRY_HINTS[entry.country] : ALL_PERSON_COUNTRY_HINTS;
+    const countryHints = entry
+      ? PERSON_COUNTRY_HINTS[entry.country] ?? []
+      : ALL_PERSON_COUNTRY_HINTS;
     if (!endsWithAny(textBefore, countryHints)) {
       return false;
     }
@@ -378,7 +382,7 @@ function hasPersonNameBoundary(contextualText, start, end, entry = null) {
   const nextCharacter = Array.from(boundaryAfter)[0] || "";
   if (SINGLE_KANJI_PATTERN.test(nextCharacter)) {
     const allowedSuffixes = entry
-      ? [...PERSON_ROLE_HINTS, ...entry.roleHints]
+      ? [...PERSON_ROLE_HINTS, ...(entry.roleHints ?? [])]
       : PERSON_ROLE_HINTS;
     if (!startsWithAny(boundaryAfter, allowedSuffixes)) {
       return false;
@@ -387,8 +391,8 @@ function hasPersonNameBoundary(contextualText, start, end, entry = null) {
   return true;
 }
 
-function findForeignPersonSurface(surface) {
-  return FOREIGN_PERSON_SURFACES.find((candidate) => candidate.surface === surface) || null;
+function findVerifiedPersonSurface(surface) {
+  return VERIFIED_PERSON_SURFACES.find((candidate) => candidate.surface === surface) || null;
 }
 
 function findPageProvidedPersonName(text, start, contextualText, contextualOffset) {
@@ -402,7 +406,7 @@ function findPageProvidedPersonName(text, start, contextualText, contextualOffse
     return null;
   }
 
-  const known = findForeignPersonSurface(surface);
+  const known = findVerifiedPersonSurface(surface);
   const contextualStart = contextualOffset + start;
   const contextualEnd = contextualStart + surface.length;
   if (!hasPersonNameBoundary(contextualText, contextualStart, contextualEnd, known?.entry || null)) {
@@ -413,8 +417,11 @@ function findPageProvidedPersonName(text, start, contextualText, contextualOffse
     const parentheticalEnd = contextualOffset + start + match[0].length;
     const afterParenthetical = contextualText.slice(parentheticalEnd);
     if (
-      !hasCountryHint(null, contextualText, contextualStart, contextualEnd)
-      || !personRoleImmediatelyFollows(afterParenthetical)
+      !personRoleImmediatelyFollows(afterParenthetical)
+      || (
+        !hasCountryHint(null, contextualText, contextualStart, contextualEnd)
+        && !/\p{Script=Hiragana}/u.test(reading)
+      )
     ) {
       return null;
     }
@@ -431,7 +438,7 @@ function findPageProvidedPersonName(text, start, contextualText, contextualOffse
 }
 
 function findKnownPersonName(text, start, contextualText, contextualOffset) {
-  for (const candidate of FOREIGN_PERSON_SURFACES) {
+  for (const candidate of VERIFIED_PERSON_SURFACES) {
     if (!text.startsWith(candidate.surface, start)) {
       continue;
     }
@@ -458,7 +465,7 @@ function findCrossBoundaryPersonParts(text, contextualText, contextualOffset) {
   const currentStart = contextualOffset;
   const currentEnd = contextualOffset + text.length;
   const matches = [];
-  for (const candidate of FOREIGN_PERSON_SURFACES) {
+  for (const candidate of VERIFIED_PERSON_SURFACES) {
     let nameStart = contextualText.indexOf(
       candidate.surface,
       Math.max(0, currentStart - candidate.surface.length + 1)
@@ -496,7 +503,7 @@ function findCrossBoundaryPersonParts(text, contextualText, contextualOffset) {
   return matches;
 }
 
-function findForeignPersonNameMatches(text, context) {
+function findVerifiedPersonNameMatches(text, context) {
   const normalizedContext = normalizeContext(context);
   const contextualText = `${normalizedContext.prefix}${text}${normalizedContext.suffix}`;
   const contextualOffset = normalizedContext.prefix.length;
@@ -504,10 +511,12 @@ function findForeignPersonNameMatches(text, context) {
   for (let start = 0; start < text.length; start += 1) {
     const pageProvided = findPageProvidedPersonName(text, start, contextualText, contextualOffset);
     const known = findKnownPersonName(text, start, contextualText, contextualOffset);
-    if (pageProvided) {
-      candidates.push(pageProvided);
-    } else if (known) {
+    // Locally verified public names take precedence over untrusted
+    // parenthetical readings supplied by an arbitrary page.
+    if (known) {
       candidates.push(known);
+    } else if (pageProvided) {
+      candidates.push(pageProvided);
     }
   }
   candidates.push(...findCrossBoundaryPersonParts(text, contextualText, contextualOffset));
@@ -872,7 +881,7 @@ export function buildAnnotationSegments(text, tokenizer, context = {}) {
     return [{ text, reading: null }];
   }
 
-  const matches = findForeignPersonNameMatches(text, context);
+  const matches = findVerifiedPersonNameMatches(text, context);
   if (matches.length === 0) {
     return buildBaseAnnotationSegments(text, tokenizer, context);
   }

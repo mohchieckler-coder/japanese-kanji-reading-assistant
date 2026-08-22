@@ -5,8 +5,12 @@ import {
 import {
   REVIEWED_CORE_LOANWORD_DEFINITIONS
 } from "./data/loanword-origins-reviewed-core.mjs";
+import {
+  NINJAL_LOANWORD_SOURCE,
+  NINJAL_REVIEWED_LOANWORD_DEFINITIONS
+} from "./data/loanword-origins-ninjal-reviewed.mjs";
 
-export { JMDICT_LOANWORD_ORIGIN_METADATA };
+export { JMDICT_LOANWORD_ORIGIN_METADATA, NINJAL_LOANWORD_SOURCE };
 
 // Curated origins for established katakana loanwords.
 //
@@ -214,7 +218,8 @@ const LEGACY_CURATED_LOANWORD_DEFINITIONS = Object.freeze([
 
 const CURATED_LOANWORD_DEFINITIONS = Object.freeze([
   ...LEGACY_CURATED_LOANWORD_DEFINITIONS,
-  ...REVIEWED_CORE_LOANWORD_DEFINITIONS
+  ...REVIEWED_CORE_LOANWORD_DEFINITIONS,
+  ...NINJAL_REVIEWED_LOANWORD_DEFINITIONS
 ]);
 
 const JMDICT_LANGUAGE_CODES = Object.freeze({
@@ -324,7 +329,7 @@ const GENERATED_LOANWORD_DEFINITIONS = JMDICT_LOANWORD_ORIGINS
     ]);
   });
 
-function defineLoanword([id, language, origin, rawSurfaces], source = "curated") {
+function defineLoanword([id, language, origin, rawSurfaces, evidence = null], source = "curated") {
   const countryMark = LOANWORD_LANGUAGE_MARKS[language];
   if (countryMark === undefined) {
     throw new Error(`Unknown loanword language: ${language}`);
@@ -342,7 +347,8 @@ function defineLoanword([id, language, origin, rawSurfaces], source = "curated")
     reviewedAt: source === "curated"
       ? REVIEWED_AT
       : JMDICT_LOANWORD_ORIGIN_METADATA.dictionaryDate,
-    source
+    source,
+    sourceId: typeof evidence?.sourceId === "string" ? evidence.sourceId : null
   });
 }
 

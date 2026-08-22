@@ -64,6 +64,76 @@ def loanword_annotations(page, selector):
     )
 
 
+def asahi_layout_metrics(page):
+    return page.evaluate(
+        """() => {
+          const rect = (element) => {
+            const value = element.getBoundingClientRect();
+            return { x: value.x, y: value.y, width: value.width, height: value.height };
+          };
+          const baseCharacterRects = (selector) => {
+            const root = document.querySelector(selector);
+            const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+              acceptNode(node) {
+                return node.parentElement?.closest('rt, rp')
+                  ? NodeFilter.FILTER_REJECT
+                  : NodeFilter.FILTER_ACCEPT;
+              }
+            });
+            const characters = [];
+            while (walker.nextNode()) {
+              const node = walker.currentNode;
+              let offset = 0;
+              for (const character of Array.from(node.nodeValue || '')) {
+                const range = document.createRange();
+                range.setStart(node, offset);
+                offset += character.length;
+                range.setEnd(node, offset);
+                const value = range.getBoundingClientRect();
+                if (value.width || value.height) {
+                  characters.push({
+                    x: Math.round(value.x * 2) / 2,
+                    top: Math.round(value.top * 2) / 2,
+                    width: Math.round(value.width * 2) / 2
+                  });
+                }
+              }
+            }
+            return characters;
+          };
+          const baseLineBreaks = (characters) => {
+            const breaks = [];
+            characters.forEach((character, index) => {
+              if (index === 0 || character.top !== characters[index - 1].top) breaks.push(index);
+            });
+            return breaks;
+          };
+          const nav = document.querySelector('#asahi-layout-nav');
+          const readings = [...nav.querySelectorAll('rt')].map(rect);
+          let overlaps = 0;
+          for (let left = 0; left < readings.length; left += 1) {
+            for (let right = left + 1; right < readings.length; right += 1) {
+              const a = readings[left];
+              const b = readings[right];
+              const width = Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x);
+              const height = Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y);
+              if (width > 1 && height > 1) overlaps += 1;
+            }
+          }
+          const titleCharacters = baseCharacterRects('#asahi-layout-article-header h2');
+          return {
+            nav: rect(nav),
+            navClientWidth: nav.clientWidth,
+            navScrollWidth: nav.scrollWidth,
+            items: [...nav.querySelectorAll('a')].map(rect),
+            readingOverlaps: overlaps,
+            titleBreaks: baseLineBreaks(titleCharacters),
+            titleCharacters
+          };
+        }"""
+    )
+
+
 handler = partial(QuietHandler, directory=str(ROOT))
 server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
 thread = Thread(target=server.serve_forever, daemon=True)
@@ -140,6 +210,7 @@ try:
         )
         page.goto(f"{base_url}/tests/fixtures/sample.html")
         page.wait_for_load_state("networkidle")
+        asahi_layout_before = asahi_layout_metrics(page)
         page.add_script_tag(url=f"{base_url}/dist/content.js")
 
         try:
@@ -159,13 +230,13 @@ try:
             assert page.locator("ruby[data-jp-loanword-origin]").count() == 0
             assert page.locator("ruby[data-jp-furigana]").count() >= 6
             assert page.evaluate(
-                "window.__japaneseSelectionTranslationController__.buildVersion === '2.5.1'"
+                "window.__japaneseSelectionTranslationController__.buildVersion === '2.6.0'"
             )
             assert page.evaluate(
-                "window.__japaneseLoanwordOriginController__.buildVersion === '2.5.1'"
+                "window.__japaneseLoanwordOriginController__.buildVersion === '2.6.0'"
             )
             assert page.evaluate(
-                "window.__japaneseFuriganaAiController__.buildVersion === '2.5.1'"
+                "window.__japaneseFuriganaAiController__.buildVersion === '2.6.0'"
             )
         except Exception:
             status = send_message(page, "GET_FURIGANA_STATUS") if page.evaluate("Boolean(window.__runtimeMessageListeners?.length)") else None
@@ -179,6 +250,38 @@ try:
             "elements => elements.map((ruby) => ({ text: ruby.dataset.jpOriginal, reading: ruby.querySelector('rt').textContent }))",
         )
         assert {"text": "東京", "reading": "とうきょう"} in annotations
+
+        asahi_layout_after = asahi_layout_metrics(page)
+        assert page.locator(
+            "#asahi-layout-shell ruby[data-jp-furigana][data-jp-layout-safe]"
+        ).count() >= 1
+        assert page.locator(
+            "#asahi-layout-article-header ruby[data-jp-furigana]:not([data-jp-layout-safe])"
+        ).count() >= 1
+        for metric in ("x", "y", "width", "height"):
+            assert abs(asahi_layout_after["nav"][metric] - asahi_layout_before["nav"][metric]) <= 1, (
+                metric, asahi_layout_before, asahi_layout_after
+            )
+        assert len(asahi_layout_after["items"]) == len(asahi_layout_before["items"])
+        for before_item, after_item in zip(asahi_layout_before["items"], asahi_layout_after["items"]):
+            for metric in ("x", "y", "width", "height"):
+                assert abs(after_item[metric] - before_item[metric]) <= 1, (
+                    metric, before_item, after_item
+                )
+        assert asahi_layout_after["navClientWidth"] == asahi_layout_before["navClientWidth"]
+        assert asahi_layout_after["navScrollWidth"] <= asahi_layout_before["navScrollWidth"] + 1
+        assert asahi_layout_after["readingOverlaps"] == 0, asahi_layout_after
+        assert asahi_layout_after["titleBreaks"] == asahi_layout_before["titleBreaks"], (
+            asahi_layout_before, asahi_layout_after
+        )
+        assert len(asahi_layout_after["titleCharacters"]) == len(asahi_layout_before["titleCharacters"])
+        for before_character, after_character in zip(
+            asahi_layout_before["titleCharacters"], asahi_layout_after["titleCharacters"]
+        ):
+            for metric in ("x", "width"):
+                assert abs(after_character[metric] - before_character[metric]) <= 1, (
+                    metric, before_character, after_character
+                )
         assert {"text": "漢字", "reading": "かんじ"} in annotations
         weekday_cases = {
             "weekday-sun": ("日", "にち"),
@@ -452,6 +555,35 @@ try:
             ["胡志明", "ホー・チ・ミン"],
         ]:
             assert forbidden not in negative_person_annotations
+        for surface, reading in [
+            ("高市早苗", "たかいちさなえ"),
+            ("大谷翔平", "おおたにしょうへい"),
+            ("鈴木誠也", "すずきせいや"),
+            ("羽生結弦", "はにゅうゆづる"),
+            ("藤井聡太", "ふじいそうた"),
+            ("久保建英", "くぼたけふさ"),
+            ("三笘薫", "みとまかおる"),
+            ("森保一", "もりやすはじめ"),
+            ("宮﨑駿", "みやざきはやお"),
+        ]:
+            assert_annotation(page, "#japanese-public-names", surface, reading)
+        for surface, reading in [
+            ("羽生", "はにゅう"),
+            ("結弦", "ゆづる"),
+            ("大谷", "おおたに"),
+            ("翔平", "しょうへい"),
+        ]:
+            assert_annotation(page, "#japanese-public-name-split", surface, reading)
+        assert_annotation(page, "#japanese-name-provided", "山田太郎", "やまだたろう")
+        assert_annotation(
+            page, "#japanese-public-name-wrong-page", "大谷翔平", "おおたにしょうへい"
+        )
+        assert ["大谷翔平", "おおやしょうたいら"] not in element_annotations(
+            page, "#japanese-public-name-wrong-page"
+        )
+        assert page.locator(
+            "#japanese-public-names ruby[data-jp-verified-person]"
+        ).count() >= 9
         assert page.locator("#code ruby").count() == 0
         assert page.locator("#editable ruby").count() == 0
         assert page.locator("#existing ruby").count() == 0
@@ -638,6 +770,10 @@ try:
                 "#loanword-compounds",
                 "#loanword-domain-negatives",
                 "#loanword-long-regression",
+                "#proper-name-people",
+                "#proper-name-contextual",
+                "#proper-name-places",
+                "#proper-name-negatives",
             )
         }
         article_with_furigana_html = page.locator("#article").inner_html()
@@ -733,6 +869,86 @@ try:
             assert loanword_annotations(page, selector) == expected, (
                 f"{selector}: expected {expected}, got {loanword_annotations(page, selector)}"
             )
+        expected_proper_people = [
+            ["ドナルド・トランプ", "（米）Donald J. Trump"],
+            ["エマニュエル・マクロン", "（仏）Emmanuel Macron"],
+            ["マーガレット・サッチャー", "（英）Margaret Thatcher"],
+            ["テイラー・スウィフト", "（米）Taylor Swift"],
+            ["イーロン・マスク", "（米）Elon Musk"],
+            ["リオネル・メッシ", "（亜）Lionel Messi"],
+        ]
+        actual_proper_people = loanword_annotations(page, "#proper-name-people")
+        assert actual_proper_people == expected_proper_people, (
+            repr(actual_proper_people).encode("unicode_escape").decode("ascii")
+        )
+        expected_proper_contextual = [
+            ["トランプ", "（米）Donald J. Trump"],
+            ["マクロン", "（仏）Emmanuel Macron"],
+            ["スウィフト", "（米）Taylor Swift"],
+            ["メッシ", "（亜）Lionel Messi"],
+        ]
+        assert loanword_annotations(page, "#proper-name-contextual") == expected_proper_contextual, (
+            loanword_annotations(page, "#proper-name-contextual")
+        )
+        expected_proper_places = [
+            ["ニューヨーク", "（米）New York"],
+            ["パリ", "（仏）Paris"],
+            ["ベルリン", "（独）Berlin"],
+            ["マドリード", "（西）Madrid"],
+            ["モスクワ", "（露）Москва"],
+            ["キーウ", "（宇）Київ"],
+            ["ソウル", "（韓）서울"],
+            ["ハノイ", "（越）Hà Nội"],
+        ]
+        assert loanword_annotations(page, "#proper-name-places") == expected_proper_places, (
+            loanword_annotations(page, "#proper-name-places")
+        )
+        assert page.locator(
+            "#proper-name-negatives ruby[data-jp-proper-name-origin]"
+        ).count() == 0
+        proper_name_rubies = page.locator(
+            "section[aria-label='外国专名原文回归样本'] ruby[data-jp-proper-name-origin]"
+        )
+        assert proper_name_rubies.count() == 18
+        assert proper_name_rubies.evaluate_all(
+            """rubies => rubies.every((ruby) => ruby.dataset.jpProperNameId
+              && ['person', 'place'].includes(ruby.dataset.jpEntityKind)
+              && ruby.dataset.jpCountryMark
+              && ruby.dataset.jpSourceIds)"""
+        )
+        assert loanword_annotations(page, "#asahi-layout-article-header") == [
+            ["サッチャー", "（英）Margaret Thatcher"]
+        ]
+        asahi_layout_with_origins = asahi_layout_metrics(page)
+        assert asahi_layout_with_origins["titleBreaks"] == asahi_layout_before["titleBreaks"], (
+            asahi_layout_before,
+            asahi_layout_with_origins,
+        )
+        for metric in ("x", "y", "width", "height"):
+            assert abs(asahi_layout_with_origins["nav"][metric] - asahi_layout_before["nav"][metric]) <= 1, (
+                metric,
+                asahi_layout_before,
+                asahi_layout_with_origins,
+            )
+        assert len(asahi_layout_with_origins["items"]) == len(asahi_layout_before["items"])
+        for before_item, after_item in zip(asahi_layout_before["items"], asahi_layout_with_origins["items"]):
+            for metric in ("x", "y", "width", "height"):
+                assert abs(after_item[metric] - before_item[metric]) <= 1, (
+                    metric, before_item, after_item
+                )
+        assert asahi_layout_with_origins["readingOverlaps"] == 0, asahi_layout_with_origins
+        assert len(asahi_layout_with_origins["titleCharacters"]) == len(asahi_layout_before["titleCharacters"])
+        for before_character, after_character in zip(
+            asahi_layout_before["titleCharacters"], asahi_layout_with_origins["titleCharacters"]
+        ):
+            for metric in ("x", "width"):
+                assert abs(after_character[metric] - before_character[metric]) <= 1, (
+                    metric, before_character, after_character
+                )
+        assert asahi_layout_with_origins["navScrollWidth"] <= asahi_layout_before["navScrollWidth"] + 1
+        page.locator("section[aria-label='外国专名原文回归样本']").screenshot(
+            path=str(ARTIFACTS / "proper-name-origins-e2e.png")
+        )
         assert page.locator(
             "#loanword-domain-negatives ruby[data-jp-loanword-origin]"
         ).count() == 0
@@ -1339,7 +1555,7 @@ try:
             };
             window.chrome = {
               runtime: {
-                  getManifest: () => ({ version: '2.5.1' }),
+                  getManifest: () => ({ version: '2.6.0' }),
                 sendMessage: async (message) => {
                   window.__popupMessages.push(structuredClone(message));
                   if (message.type === 'GET_TRANSLATION_DASHBOARD') {
@@ -1574,7 +1790,7 @@ try:
         stale_popup.goto(f"{base_url}/dist/popup.html")
         stale_popup.wait_for_load_state("networkidle")
         stale_popup.get_by_text(
-            "Chrome은 아직 이전 버전 1.1.0을 실행 중이지만 디스크 파일은 2.5.1(으)로 업데이트되었습니다.",
+            "Chrome은 아직 이전 버전 1.1.0을 실행 중이지만 디스크 파일은 2.6.0(으)로 업데이트되었습니다.",
             exact=True,
         ).wait_for()
         stale_popup.get_by_text(
@@ -1600,7 +1816,7 @@ try:
             window.__delayedSettings = { targetLanguage: 'en', uiLanguage: 'zh-CN' };
             window.chrome = {
               runtime: {
-                  getManifest: () => ({ version: '2.5.1' }),
+                  getManifest: () => ({ version: '2.6.0' }),
                 sendMessage: async (message) => {
                   if (message.type === 'GET_TRANSLATION_DASHBOARD') {
                     return await new Promise((resolve) => {

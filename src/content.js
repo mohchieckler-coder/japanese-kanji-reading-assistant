@@ -2,15 +2,19 @@ import kuromoji from "kuromoji";
 import { buildAnnotationSegments, containsKanji } from "./core.mjs";
 import {
   FOREIGN_PERSON_NAMES,
-  getForeignPersonNameParts,
+  VERIFIED_PERSON_NAMES,
+  getVerifiedPersonNameParts,
   PERSON_COUNTRY_HINTS,
   PERSON_ROLE_HINTS
 } from "./person-name-readings.mjs";
 import { findLoanwordMatches } from "./loanword-origins.mjs";
+import { findProperNameMatches } from "./proper-name-origins.mjs";
 
 const CONTROLLER_KEY = "__japaneseFuriganaAiController__";
 const RUBY_ATTRIBUTE = "data-jp-furigana";
 const FOREIGN_PERSON_RUBY_ATTRIBUTE = "data-jp-foreign-person";
+const VERIFIED_PERSON_RUBY_ATTRIBUTE = "data-jp-verified-person";
+const LAYOUT_SAFE_RUBY_ATTRIBUTE = "data-jp-layout-safe";
 const STYLE_ID = "jp-furigana-ai-style";
 const TOAST_ID = "jp-furigana-ai-toast";
 const TRANSLATION_CONTROLLER_KEY = "__japaneseSelectionTranslationController__";
@@ -18,6 +22,7 @@ const TRANSLATION_UI_ATTRIBUTE = "data-jp-translation-ui";
 const TRANSLATION_CONTROLLER_ATTRIBUTE = "data-jp-translation-controller";
 const LOANWORD_CONTROLLER_KEY = "__japaneseLoanwordOriginController__";
 const LOANWORD_ATTRIBUTE = "data-jp-loanword-origin";
+const PROPER_NAME_ORIGIN_ATTRIBUTE = "data-jp-proper-name-origin";
 const LOANWORD_STYLE_ID = "jp-loanword-origin-style";
 const LOANWORD_TOAST_ID = "jp-loanword-origin-toast";
 const LOANWORD_POPOVER_ID = "jp-loanword-origin-popover";
@@ -56,28 +61,28 @@ const KATAKANA_CANDIDATE_PATTERN = /[\u30A1-\u30FA\u30FD\u30FE\u30FC]/u;
 const CONTEXT_CANDIDATE_PATTERN = /[日月火水木金土雨笑泣辛後立主人妊娠高血圧腎症博士課程本研究幹細胞頭頸部浸透初相転移平均場自治厨売時骨髄協働既読公録昨夏中巨非常]/u;
 const CONTEXT_MUTATION_PATTERN = /[()（）0-9０-９日月火水木金土]/u;
 const escapeRegularExpression = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-const foreignPersonNameCharacters = [...new Set(
-  FOREIGN_PERSON_NAMES.flatMap((entry) => entry.surfaces.flatMap((surface) => Array.from(surface)))
+const verifiedPersonNameCharacters = [...new Set(
+  VERIFIED_PERSON_NAMES.flatMap((entry) => entry.surfaces.flatMap((surface) => Array.from(surface)))
 )];
-const foreignPersonMutationTerms = [...new Set([
-  ...FOREIGN_PERSON_NAMES.flatMap((entry) => [
+const verifiedPersonMutationTerms = [...new Set([
+  ...VERIFIED_PERSON_NAMES.flatMap((entry) => [
     ...entry.surfaces,
-    ...entry.roleHints,
-    ...entry.blockedSuffixes
+    ...(entry.roleHints ?? []),
+    ...(entry.blockedSuffixes ?? [])
   ]),
   ...Object.values(PERSON_COUNTRY_HINTS).flat(),
   ...PERSON_ROLE_HINTS
 ])].filter(Boolean).sort((left, right) => right.length - left.length);
 const FOREIGN_PERSON_CONTEXT_PATTERN = new RegExp(
-  foreignPersonNameCharacters.map(escapeRegularExpression).join("|"),
+  verifiedPersonNameCharacters.map(escapeRegularExpression).join("|"),
   "u"
 );
 const FOREIGN_PERSON_MUTATION_PATTERN = new RegExp(
-  foreignPersonMutationTerms.map(escapeRegularExpression).join("|"),
+  verifiedPersonMutationTerms.map(escapeRegularExpression).join("|"),
   "u"
 );
 const FOREIGN_PERSON_SURFACE_PATTERN = new RegExp(
-  FOREIGN_PERSON_NAMES.flatMap((entry) => entry.surfaces)
+  VERIFIED_PERSON_NAMES.flatMap((entry) => entry.surfaces)
     .sort((left, right) => right.length - left.length)
     .map(escapeRegularExpression)
     .join("|"),
@@ -85,7 +90,12 @@ const FOREIGN_PERSON_SURFACE_PATTERN = new RegExp(
 );
 const foreignPersonAnnotationSignatures = new Set(
   FOREIGN_PERSON_NAMES.flatMap((entry) => entry.surfaces.flatMap((surface) =>
-    getForeignPersonNameParts(entry, surface).map((part) => `${part.surface}\u0000${part.reading}`)
+    getVerifiedPersonNameParts(entry, surface).map((part) => `${part.surface}\u0000${part.reading}`)
+  ))
+);
+const verifiedPersonAnnotationSignatures = new Set(
+  VERIFIED_PERSON_NAMES.flatMap((entry) => entry.surfaces.flatMap((surface) =>
+    getVerifiedPersonNameParts(entry, surface).map((part) => `${part.surface}\u0000${part.reading}`)
   ))
 );
 const CONTEXT_CHARACTER_LIMIT = 48;
@@ -155,6 +165,27 @@ const TRANSLATION_BLOCK_TAGS = new Set([
   "TR",
   "UL"
 ]);
+
+// Page-level navigation is commonly a fixed-height flex/grid row. Replacing
+// its direct text with normal ruby changes intrinsic item width and line-box
+// height, which can move an entire news-site header. Furigana uses an overlay
+// mode there, while the wider loanword/proper-name labels stay out of site
+// chrome. Semantic headers nested inside main/article retain normal ruby flow.
+function isPageChromeElement(element) {
+  if (!(element instanceof Element)) {
+    return false;
+  }
+  if (element.closest("main, article, [role='main']")) {
+    return false;
+  }
+  return Boolean(element.closest("header, nav, [role='navigation']"));
+}
+
+function getFuriganaFontSize(surface, reading) {
+  const baseUnits = Math.max(1, Array.from(surface).length);
+  const readingUnits = Math.max(1, Array.from(reading).length);
+  return Math.min(0.5, baseUnits / readingUnits);
+}
 
 function containsContextCandidate(value) {
   return CONTEXT_CANDIDATE_PATTERN.test(value) || FOREIGN_PERSON_CONTEXT_PATTERN.test(value);
@@ -1152,6 +1183,28 @@ function shouldCollapseLoanwordAnnotation(surface, annotation) {
     || (annotationLength >= 8 && annotationLength > surfaceLength * 3);
 }
 
+function mergeOriginAnnotationMatches(properNameMatches, loanwordMatches) {
+  const candidates = [
+    ...properNameMatches.map((match) => ({ match, priority: 0 })),
+    ...loanwordMatches.map((match) => ({ match, priority: 1 }))
+  ].sort((left, right) =>
+    left.match.start - right.match.start
+    || left.priority - right.priority
+    || right.match.end - left.match.end
+  );
+
+  const matches = [];
+  let offset = 0;
+  for (const { match } of candidates) {
+    if (match.start < offset) {
+      continue;
+    }
+    matches.push(match);
+    offset = match.end;
+  }
+  return matches;
+}
+
 function collectLoanwordAdjacentContext(node, displayCache) {
   const boundary = findInlineContextBoundary(node, displayCache);
   if (!boundary) {
@@ -1322,6 +1375,7 @@ class LoanwordOriginController {
     const parent = node.parentElement;
     return Boolean(
       parent
+      && !isPageChromeElement(parent)
       && !parent.closest(LOANWORD_SKIPPED_SELECTOR)
       && !isLoanwordElementHidden(parent)
     );
@@ -1333,7 +1387,10 @@ class LoanwordOriginController {
     }
 
     const originalText = node.nodeValue;
-    const matches = findLoanwordMatches(originalText, context);
+    const matches = mergeOriginAnnotationMatches(
+      findProperNameMatches(originalText, context),
+      findLoanwordMatches(originalText, context)
+    );
     if (!matches.length) {
       return;
     }
@@ -1377,7 +1434,13 @@ class LoanwordOriginController {
     const ruby = document.createElement("ruby");
     ruby.setAttribute(LOANWORD_ATTRIBUTE, "");
     ruby.dataset.jpOriginal = surface;
-    if (match.id) {
+    if (match.entityKind) {
+      ruby.setAttribute(PROPER_NAME_ORIGIN_ATTRIBUTE, "");
+      ruby.dataset.jpProperNameId = String(match.id || "");
+      ruby.dataset.jpEntityKind = String(match.entityKind);
+      ruby.dataset.jpCountryMark = String(match.countryMark || "");
+      ruby.dataset.jpSourceIds = Array.isArray(match.sourceIds) ? match.sourceIds.join(",") : "";
+    } else if (match.id) {
       ruby.dataset.jpLoanwordId = String(match.id);
     }
     if (match.languageCode || match.language) {
@@ -1403,17 +1466,18 @@ class LoanwordOriginController {
     toggle.setAttribute("tabindex", "0");
     toggle.setAttribute("aria-expanded", "false");
     toggle.setAttribute("aria-controls", LOANWORD_POPOVER_ID);
-    toggle.setAttribute("aria-label", `显示完整外来语原词：${annotation}`);
-    toggle.title = `点击显示完整原词：${annotation}`;
+    const annotationLabel = match.entityKind ? "专名原文" : "外来语原词";
+    toggle.setAttribute("aria-label", `显示完整${annotationLabel}：${annotation}`);
+    toggle.title = `点击显示完整${annotationLabel}：${annotation}`;
     toggle.textContent = annotation;
 
     const setExpanded = (expanded) => {
       toggle.setAttribute("aria-expanded", String(expanded));
       toggle.setAttribute(
         "aria-label",
-        expanded ? `收起外来语原词：${annotation}` : `显示完整外来语原词：${annotation}`
+        expanded ? `收起${annotationLabel}：${annotation}` : `显示完整${annotationLabel}：${annotation}`
       );
-      toggle.title = expanded ? "点击收起原词" : `点击显示完整原词：${annotation}`;
+      toggle.title = expanded ? `点击收起${annotationLabel}` : `点击显示完整${annotationLabel}：${annotation}`;
       if (expanded) {
         this.showLoanwordPopover(toggle, annotation);
       } else {
@@ -1861,7 +1925,10 @@ class FuriganaController {
       return false;
     }
     const parent = node.parentElement;
-    return Boolean(parent && !parent.closest(SKIPPED_SELECTOR));
+    return Boolean(
+      parent
+      && !parent.closest(SKIPPED_SELECTOR)
+    );
   }
 
   processTextNode(node, tokenizer, context = {}) {
@@ -1875,15 +1942,35 @@ class FuriganaController {
       return;
     }
 
+    const useLayoutSafeRuby = isPageChromeElement(node.parentElement);
     const fragment = document.createDocumentFragment();
+    let pendingPlainText = "";
+    const flushPlainText = () => {
+      if (!pendingPlainText) {
+        return;
+      }
+      fragment.append(document.createTextNode(pendingPlainText));
+      pendingPlainText = "";
+    };
     for (const segment of segments) {
       if (!segment.reading) {
-        fragment.append(document.createTextNode(segment.text));
+        pendingPlainText += segment.text;
         continue;
       }
 
+      flushPlainText();
       const ruby = document.createElement("ruby");
       ruby.setAttribute(RUBY_ATTRIBUTE, "");
+      if (useLayoutSafeRuby) {
+        ruby.setAttribute(LAYOUT_SAFE_RUBY_ATTRIBUTE, "");
+      }
+      ruby.style.setProperty(
+        "--jp-furigana-font-size",
+        `${getFuriganaFontSize(segment.text, segment.reading).toFixed(4)}em`
+      );
+      if (verifiedPersonAnnotationSignatures.has(`${segment.text}\u0000${segment.reading}`)) {
+        ruby.setAttribute(VERIFIED_PERSON_RUBY_ATTRIBUTE, "");
+      }
       if (foreignPersonAnnotationSignatures.has(`${segment.text}\u0000${segment.reading}`)) {
         ruby.setAttribute(FOREIGN_PERSON_RUBY_ATTRIBUTE, "");
       }
@@ -1895,6 +1982,7 @@ class FuriganaController {
       fragment.append(ruby);
       this.count += 1;
     }
+    flushPlainText();
     node.replaceWith(fragment);
   }
 
@@ -1956,7 +2044,7 @@ class FuriganaController {
                 || contextualRootContainsForeignPerson(refreshRoot)
                 || (FOREIGN_PERSON_CONTEXT_PATTERN.test(oldValue)
                   && Boolean(refreshRoot.querySelector(
-                    `ruby[${RUBY_ATTRIBUTE}][${FOREIGN_PERSON_RUBY_ATTRIBUTE}]`
+                    `ruby[${RUBY_ATTRIBUTE}][${VERIFIED_PERSON_RUBY_ATTRIBUTE}]`
                   )))
               )
             ) {
@@ -1980,7 +2068,7 @@ class FuriganaController {
               || contextualRootContainsForeignPerson(refreshRoot)
               || (mutationNodesContainForeignNameCharacter(mutation.removedNodes)
                 && Boolean(refreshRoot.querySelector(
-                  `ruby[${RUBY_ATTRIBUTE}][${FOREIGN_PERSON_RUBY_ATTRIBUTE}]`
+                  `ruby[${RUBY_ATTRIBUTE}][${VERIFIED_PERSON_RUBY_ATTRIBUTE}]`
                 )))
             )
           ) {
@@ -2028,11 +2116,19 @@ class FuriganaController {
       ruby[${RUBY_ATTRIBUTE}] {
         display: ruby !important;
         position: static !important;
+        vertical-align: baseline !important;
+        line-height: inherit !important;
         margin: 0 !important;
         padding: 0 !important;
         border: 0 !important;
         background: transparent !important;
-        white-space: nowrap !important;
+        font-family: inherit !important;
+        font-size: inherit !important;
+        font-style: inherit !important;
+        font-weight: inherit !important;
+        letter-spacing: inherit !important;
+        word-spacing: inherit !important;
+        white-space: normal !important;
         ruby-position: over !important;
         ruby-align: center !important;
         ruby-overhang: auto !important;
@@ -2046,7 +2142,7 @@ class FuriganaController {
         background: transparent !important;
         opacity: 1 !important;
         transform: none !important;
-        font-size: 0.55em !important;
+        font-size: var(--jp-furigana-font-size, 0.5em) !important;
         line-height: 1 !important;
         color: #b42318 !important;
         font-weight: 600 !important;
@@ -2056,6 +2152,22 @@ class FuriganaController {
         text-indent: 0 !important;
         white-space: nowrap !important;
         user-select: none !important;
+      }
+      ruby[${RUBY_ATTRIBUTE}][${LAYOUT_SAFE_RUBY_ATTRIBUTE}] {
+        display: inline-block !important;
+        position: relative !important;
+        vertical-align: baseline !important;
+        line-height: inherit !important;
+        white-space: nowrap !important;
+      }
+      ruby[${RUBY_ATTRIBUTE}][${LAYOUT_SAFE_RUBY_ATTRIBUTE}] > rt {
+        display: block !important;
+        position: absolute !important;
+        inset: auto auto calc(100% - 0.08em) 50% !important;
+        inline-size: max-content !important;
+        max-inline-size: none !important;
+        transform: translateX(-50%) !important;
+        pointer-events: none !important;
       }
     `;
     (document.head || document.documentElement).append(style);

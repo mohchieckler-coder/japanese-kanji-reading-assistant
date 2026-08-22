@@ -63,6 +63,11 @@ SITES = [
         "url": "https://www.asahi.com/articles/DA3S16528387.html",
     },
     {
+        "category": "news",
+        "name": "Asahi Takaichi Thatcher Layout Regression",
+        "url": "https://www.asahi.com/sp/articles/ASV8P3V62V8PUTFK00HM.html",
+    },
+    {
         "category": "sports",
         "name": "Yahoo Sports Article",
         "url": "https://news.yahoo.co.jp/articles/23331cd5c79e0ef5f9e014f7dbe5604d50443ffa",
@@ -318,6 +323,7 @@ def audit_page(context, bundle, site):
         "annotations": [],
         "loanword_annotations": [],
         "katakana_candidates": [],
+        "eligible_katakana_candidates": [],
         "error": None,
     }
 
@@ -334,6 +340,41 @@ def audit_page(context, bundle, site):
         if not re.search(r"[\u3040-\u30ff\u3400-\u9fff]", body_text):
             raise RuntimeError("page did not expose Japanese body text")
         result["katakana_candidates"] = compact_katakana_candidates(body_text)
+        eligible_loanword_text = page.evaluate(
+            """() => {
+              const skippedSelector = [
+                'script', 'style', 'noscript', 'textarea', 'input', 'select', 'option',
+                'button', 'code', 'pre', 'kbd', 'samp', 'ruby', 'rt', 'rp', 'svg', 'math',
+                '[hidden]', '[aria-hidden="true"]',
+                '[contenteditable]:not([contenteditable="false"])'
+              ].join(',');
+              const chunks = [];
+              const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+              while (walker.nextNode()) {
+                const node = walker.currentNode;
+                const parent = node.parentElement;
+                if (!parent || !/[\u30A1-\u30FA\u30FD\u30FE\u30FC]/u.test(node.nodeValue || '')) continue;
+                if (parent.closest(skippedSelector)) continue;
+                if (!parent.closest('main, article, [role="main"]')
+                    && parent.closest('header, nav, [role="navigation"]')) continue;
+                let hidden = false;
+                for (let current = parent; current; current = current.parentElement) {
+                  const style = getComputedStyle(current);
+                  if (current.hidden || current.getAttribute('aria-hidden') === 'true'
+                      || style.display === 'none' || style.visibility === 'hidden'
+                      || style.visibility === 'collapse' || style.contentVisibility === 'hidden') {
+                    hidden = true;
+                    break;
+                  }
+                }
+                if (!hidden) chunks.push(node.nodeValue || '');
+              }
+              return chunks.join('\\n');
+            }"""
+        )
+        result["eligible_katakana_candidates"] = compact_katakana_candidates(
+            eligible_loanword_text
+        )
 
         page.add_script_tag(content=bundle)
         page.wait_for_function(
@@ -388,7 +429,7 @@ def audit_page(context, bundle, site):
         )
         validated_loanword_target_count = validate_loanword_annotations(
             raw_loanword_annotations,
-            {item["surface"] for item in result["katakana_candidates"]},
+            {item["surface"] for item in result["eligible_katakana_candidates"]},
         )
         result["status"] = "passed"
         result["annotation_count"] = len(raw_annotations)

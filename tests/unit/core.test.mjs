@@ -462,12 +462,15 @@ test("requires person context for ambiguous short foreign names and blocks place
   }
 });
 
-test("prefers explicit page readings and coordinates names split across inline nodes", async () => {
+test("prefers verified names over page text and coordinates names split across inline nodes", async () => {
   const provided = await annotateWithRealDictionary("中国の張偉（チャン・ウェイ）氏が出席");
   assertReading(provided, "張偉", "チャン・ウェイ", "page-provided unknown person reading");
 
   const knownOverride = await annotateWithRealDictionary("習近平（しゅうきんぺい）主席");
-  assertReading(knownOverride, "習近平", "しゅうきんぺい", "page-provided known person reading");
+  assertReading(knownOverride, "習近平", "シージンピン", "verified known person reading");
+
+  const japaneseProvided = await annotateWithRealDictionary("山田太郎（やまだたろう）氏が出席");
+  assertReading(japaneseProvided, "山田太郎", "やまだたろう", "page-provided Japanese person reading");
 
   const untrusted = await annotateWithRealDictionary("用語（ヨウゴ）を説明");
   assert.equal(untrusted.some((segment) => segment.text === "用語" && segment.reading === "ヨウゴ"), false);
@@ -497,6 +500,37 @@ test("prefers explicit page readings and coordinates names split across inline n
       assert.deepEqual(segments, [{ text: parts[index], reading: readings[index] }], fullName);
     }
   }
+});
+
+test("uses verified Japanese public-name readings before tokenizer guesses", async () => {
+  for (const [surface, reading] of [
+    ["高市早苗", "たかいちさなえ"],
+    ["大谷翔平", "おおたにしょうへい"],
+    ["鈴木誠也", "すずきせいや"],
+    ["羽生結弦", "はにゅうゆづる"],
+    ["藤井聡太", "ふじいそうた"],
+    ["久保建英", "くぼたけふさ"],
+    ["三笘薫", "みとまかおる"],
+    ["森保一", "もりやすはじめ"],
+    ["宮﨑駿", "みやざきはやお"]
+  ]) {
+    assertReading(await annotateWithRealDictionary(`${surface}氏`), surface, reading, surface);
+  }
+
+  assertReading(
+    await annotateWithRealDictionary("藤井聡太棋士"),
+    "藤井聡太",
+    "ふじいそうた",
+    "public-name profession suffix"
+  );
+
+  const wrongPageReading = await annotateWithRealDictionary("大谷翔平（おおやしょうたいら）選手");
+  assertReading(wrongPageReading, "大谷翔平", "おおたにしょうへい", "verified public name wins");
+
+  const splitFamily = await annotateWithRealDictionary("羽生", { suffix: "結弦選手" });
+  assert.deepEqual(splitFamily, [{ text: "羽生", reading: "はにゅう" }]);
+  const splitGiven = await annotateWithRealDictionary("結弦", { prefix: "羽生", suffix: "選手" });
+  assert.deepEqual(splitGiven, [{ text: "結弦", reading: "ゆづる" }]);
 });
 
 test("uses conservative community and food contexts", async () => {

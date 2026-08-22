@@ -1,4 +1,12 @@
-const VERIFIED_AT = "2026-08-20";
+import {
+  JAPANESE_PUBLIC_NAMES,
+  JAPANESE_PUBLIC_NAME_SOURCES,
+  getJapanesePublicNameParts
+} from "./japanese-public-name-readings.mjs";
+
+const VERIFIED_AT = "2026-08-22";
+
+export { JAPANESE_PUBLIC_NAMES, JAPANESE_PUBLIC_NAME_SOURCES };
 
 export const PERSON_NAME_SOURCES = Object.freeze({
   "mofa-heads-2026-08-20": Object.freeze({
@@ -32,7 +40,7 @@ export const PERSON_ROLE_HINTS = Object.freeze([
   "氏", "さん", "大統領", "国家主席", "主席", "首相", "総理", "外相", "外務大臣",
   "外交部長", "総書記", "書記長", "国務委員長", "最高指導者", "副首相", "長官",
   "元書記長", "元国家主席", "元大統領", "元首相", "前大統領", "前首相", "前主席", "前外相",
-  "議長", "議員", "候補", "代表", "会長", "監督", "選手", "教授", "博士", "政権"
+  "議長", "議員", "候補", "代表", "会長", "監督", "選手", "棋士", "教授", "博士", "政権"
 ]);
 
 function defineName(definition) {
@@ -271,4 +279,16 @@ export function getForeignPersonNameParts(entry, surface) {
     start += entry.components[first].length;
   }
   return parts;
+}
+
+export const VERIFIED_PERSON_NAMES = Object.freeze([
+  ...FOREIGN_PERSON_NAMES,
+  ...JAPANESE_PUBLIC_NAMES
+]);
+
+export function getVerifiedPersonNameParts(entry, surface) {
+  if (entry?.country === "japan") {
+    return getJapanesePublicNameParts(entry, surface);
+  }
+  return Object.freeze(getForeignPersonNameParts(entry, surface));
 }

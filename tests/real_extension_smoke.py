@@ -105,7 +105,7 @@ def run_browser(base_url, extension_path):
                 worker.on("close", lambda: worker_errors.append("service worker closed"))
                 worker.on("console", lambda message: worker_console.append(f"{message.type}: {message.text}"))
                 manifest = worker.evaluate("chrome.runtime.getManifest()")
-                assert manifest.get("version") == "2.5.1", manifest
+                assert manifest.get("version") == "2.6.0", manifest
                 options = context.new_page()
                 page_errors = []
                 console_errors = []
@@ -200,9 +200,9 @@ def run_browser(base_url, extension_path):
                     target_tab_id,
                 )
                 assert controller_versions == {
-                    "translation": "2.5.1",
-                    "loanword": "2.5.1",
-                    "furigana": "2.5.1",
+                    "translation": "2.6.0",
+                    "loanword": "2.6.0",
+                    "furigana": "2.6.0",
                 }, controller_versions
                 foreign_name_annotations = target.eval_on_selector_all(
                     "#foreign-names ruby[data-jp-furigana]",

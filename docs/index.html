@@ -7,7 +7,7 @@
     <meta name="color-scheme" content="light">
     <meta
       name="description"
-      content="日语汉字 AI 读音助手：一键为日语网页标注读音与高置信外来语原词，并支持使用自定义 OpenAI 兼容接口进行划词、句子和段落翻译。"
+      content="日语汉字 AI 读音助手：一键为日语网页标注读音、外来语及外国专名原文，并支持使用自定义 OpenAI 兼容接口进行划词、句子和段落翻译。"
     >
     <title>日语汉字 AI 读音助手｜读懂日语网页，从每一个汉字开始</title>
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
@@ -21,8 +21,8 @@
         "alternateName": "Japanese Kanji Reading Assistant",
         "applicationCategory": "BrowserApplication",
         "operatingSystem": "Chrome 120+",
-    "softwareVersion": "2.5.1",
-        "description": "为日语网页汉字添加日语读音，在本地显示高置信片假名外来语原词，并使用用户配置的 OpenAI 兼容接口翻译主动选中的词、句子或段落。"
+        "softwareVersion": "2.6.0",
+        "description": "为日语网页汉字添加日语读音，在本地显示高置信片假名外来语及外国专名原文，并使用用户配置的 OpenAI 兼容接口翻译主动选中的词、句子或段落。"
       }
     </script>
   </head>
@@ -66,14 +66,14 @@
         <div class="hero-orb hero-orb-two" aria-hidden="true"></div>
         <div class="container hero-grid">
           <div class="hero-copy">
-            <p class="eyebrow"><span>Chrome Extension</span> v2.5.1</p>
+            <p class="eyebrow"><span>Chrome Extension</span> v2.6.0</p>
             <h1>读懂日语网页，<br><em><span>从每一个汉字</span><span>开始。</span></em></h1>
             <p class="hero-lead">
-              打开新闻、论坛、论文或体育资讯，一键在汉字上方显示读音，也可独立显示片假名外来语的原词；选中词语、句子或段落，即可调用你自己的翻译接口。
+              打开新闻、论坛、论文或体育资讯，一键在汉字上方显示读音，也可独立显示片假名外来语、常见外国政要、名人与地名的原文；选中词语、句子或段落，即可调用你自己的翻译接口。
             </p>
             <div class="hero-actions">
-              <a class="button" href="downloads/japanese-furigana-ai-2.5.1.zip" download>
-                下载 v2.5.1
+              <a class="button" href="downloads/japanese-furigana-ai-2.6.0.zip" download>
+                下载 v2.6.0
                 <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7 4 6 6-6 6"/></svg>
               </a>
               <a class="button button-secondary" href="#install">查看安装步骤</a>
@@ -197,7 +197,7 @@
                   <li>跳过代码、表单和已有 ruby</li>
                   <li>日期、外来词与常见语境的保守消歧</li>
                   <li>只给汉字注音，送り仮名保持原文</li>
-                  <li>较长读音居中显示，不撑大汉字间距</li>
+                  <li>正文长读音自适应缩小，页头／导航注音不改变项目宽度</li>
                   <li>不重排元素层级，尽量保留样式与交互</li>
                 </ul>
               </div>
@@ -221,12 +221,13 @@
               <div class="feature-copy">
                 <span class="feature-tag">02 · 外来语原词</span>
                 <h3>片假名上方，看见外语原词</h3>
-                <p>弹窗提供独立的“外来语原词标注”按钮。点击后，插件会用随包的 3,275 项本地词源记录匹配高置信外来语，覆盖新闻、论坛、学术和体育常用词；不调用 API，也不会上传网页正文。</p>
+                <p>弹窗提供独立的“外来语原词标注”按钮。点击后，插件会用随包的 3,353 项本地词源记录匹配高置信外来语，并显示常见外国政要、名人与地名的原文；不调用 API，也不会上传网页正文。</p>
                 <ul class="check-list">
                   <li>英语只显示原词，不附加国家标记</li>
                   <li>其他语言使用日语汉字国名简称：仏、独、西等</li>
                   <li>长标注按片假名基底宽度折叠，点击后在限宽浮层完整显示</li>
-                  <li>同形异义、和制英语、地名、人名上下文与未知词保守跳过</li>
+                  <li>完整专名可直接匹配，简称须有职务、国家或人物上下文</li>
+                  <li>同形异义、和制英语与未知词保守跳过</li>
                 </ul>
                 <p>词源数据派生自 <a href="https://www.edrdg.org/jmdict/jmdict_dtd_h.html">JMdict</a>，遵循 <a href="https://www.edrdg.org/edrdg/licence.html">EDRDG General Dictionary Licence Statement</a> 与 <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>。</p>
               </div>
@@ -260,13 +261,13 @@
             </article>
 
             <article class="feature-card context-card">
-              <span class="feature-tag">04 · 保守消歧</span>
-              <h3>读对上下文，也尊重不确定性</h3>
-              <p>对新闻日期、人数、学术词和高置信外国人物姓名进行受限匹配；无法确认时保留原词，不盲目猜读音。</p>
+              <span class="feature-tag">04 · 姓名与上下文</span>
+              <h3>公众姓名查证，普通姓名不猜</h3>
+              <p>已登记的日本公众人物整名读音优先于网页或分词器的错误猜测；外国姓名、新闻日期、人数与学术词采用受限匹配，无法确认时保留原文。</p>
               <div class="context-list" lang="ja">
                 <div><span>24日（月）</span><b>にじゅうよっか・げつ</b></div>
-                <div><span>博士課程</span><b>はくしかてい</b></div>
-                <div><span>李在明</span><b>イ・ジェミョン</b></div>
+                <div><span>大谷翔平</span><b>おおたに・しょうへい</b></div>
+                <div><span>羽生結弦</span><b>はにゅう・ゆづる</b></div>
               </div>
             </article>
           </div>
@@ -339,10 +340,10 @@
           <div class="download-panel">
             <div class="download-product">
               <img src="assets/icon.svg" width="54" height="54" alt="">
-              <p><small>官方解压安装包</small><strong>日语汉字 AI 读音助手</strong><span>v2.5.1 · ZIP · 14.9 MiB · Chrome 120+</span></p>
+              <p><small>官方解压安装包</small><strong>日语汉字 AI 读音助手</strong><span>v2.6.0 · ZIP · 14.9 MiB · Chrome 120+</span></p>
             </div>
-              <a class="button button-light" href="downloads/japanese-furigana-ai-2.5.1.zip" download>下载 ZIP</a>
-            <p class="download-hash"><span>SHA-256</span><code>CD24D17B4E38CEA1531BAC39874D2B67F7E6143C87B509BF30AD4C3D1EDBB2F0</code></p>
+              <a class="button button-light" href="downloads/japanese-furigana-ai-2.6.0.zip" download>下载 ZIP</a>
+            <p class="download-hash"><span>SHA-256</span><code>D9F1D1D8F6A7B98AEC19DB91B562FA7A5B1589681CFB07C670C66C17AD755CD4</code></p>
           </div>
 
           <ol class="install-grid">
@@ -401,7 +402,7 @@
             </details>
             <details>
               <summary>为什么有些片假名没有显示外语原词？<span aria-hidden="true">＋</span></summary>
-              <p>片假名也可能是和制英语、拟声词、人名或地名。插件使用 2026-08-17 固定的 JMdict 高置信子集和人工复核常用词层，只标注完整、来源唯一且非和制英语的已核实词；跨词条同形异义、未知词及不满足安全上下文的缩略词会保留原文。英语只显示原词，其他语言使用仏、独、西等日语国名简称。</p>
+              <p>片假名也可能是和制英语、拟声词或专名。插件使用 2026-08-17 固定的 JMdict 高置信子集、人工复核常用词层和选择性核对的国立国语研究所词表，只标注来源明确的已核实词；跨词条同形异义、未知词及不满足安全上下文的简称会保留原文。英语只显示原词，其他语言与外国专名使用仏、独、西等日语国名简称。</p>
             </details>
             <details>
               <summary>哪些页面暂时无法处理？<span aria-hidden="true">＋</span></summary>
@@ -430,7 +431,7 @@
           <img src="assets/icon.svg" width="38" height="38" alt="">
           <div><strong>日语汉字 AI 读音助手</strong><small>本地优先的日语网页阅读工具</small></div>
         </div>
-          <p>© <span data-year>2026</span> Japanese Kanji Reading Assistant · v2.5.1</p>
+          <p>© <span data-year>2026</span> Japanese Kanji Reading Assistant · v2.6.0</p>
         <a href="#top">返回顶部 <span aria-hidden="true">↑</span></a>
       </div>
     </footer>

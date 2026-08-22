@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   JMDICT_LOANWORD_ORIGIN_METADATA,
+  NINJAL_LOANWORD_SOURCE,
   LOANWORD_LANGUAGE_MARKS,
   LOANWORD_ORIGINS,
   findLoanwordMatches,
@@ -58,6 +59,49 @@ test("pins and exposes auditable JMdict generation metadata", () => {
   assert.equal(generated.source, "jmdict");
   assert.equal(generated.confidence, "dictionary");
   assert.equal(formatLoanwordAnnotation(generated), "（仏）aïoli");
+});
+
+test("adds a selective, source-audited NINJAL public-media layer", () => {
+  assert.equal(Object.isFrozen(NINJAL_LOANWORD_SOURCE), true);
+  assert.equal(NINJAL_LOANWORD_SOURCE.id, "ninjal-gairaigo-1-4");
+  assert.match(NINJAL_LOANWORD_SOURCE.url, /^https:\/\/www2\.ninjal\.ac\.jp\//u);
+
+  const sourcedEntries = LOANWORD_ORIGINS.filter(
+    (entry) => entry.sourceId === NINJAL_LOANWORD_SOURCE.id
+  );
+  assert.ok(sourcedEntries.length >= 70, sourcedEntries.length);
+  assert.equal(sourcedEntries.every((entry) => entry.source === "curated"), true);
+
+  const cases = [
+    ["アカウンタビリティー", "en", null, "accountability"],
+    ["タスクフォース", "en", null, "task force"],
+    ["インフォームドコンセント", "en", null, "informed consent"],
+    ["コミュニケ", "fr", "仏", "communiqué"],
+    ["トラウマ", "de", "独", "Trauma"],
+    ["ユニバーサルデザイン", "en", null, "universal design"]
+  ];
+  for (const [surface, language, countryMark, origin] of cases) {
+    const entry = getLoanwordOrigin(surface);
+    assert.deepEqual(
+      {
+        language: entry?.language,
+        countryMark: entry?.countryMark,
+        origin: entry?.origin,
+        sourceId: entry?.sourceId
+      },
+      { language, countryMark, origin, sourceId: NINJAL_LOANWORD_SOURCE.id },
+      surface
+    );
+  }
+
+  // The source explicitly identifies these as wasei-eigo; they are not
+  // direct foreign-word origins and must stay outside the automatic layer.
+  for (const wasei of [
+    "アイドリングストップ", "デイサービス", "ノンステップバス",
+    "スケールメリット", "メディカルチェック"
+  ]) {
+    assert.equal(getLoanwordOrigin(wasei), null, wasei);
+  }
 });
 
 test("formats English without a country mark and non-English with Japanese country marks", () => {
