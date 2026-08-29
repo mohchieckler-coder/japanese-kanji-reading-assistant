@@ -260,6 +260,13 @@ def assert_seo_metadata(page, locale, page_type):
     assert matching_nodes[0]["inLanguage"] == locale
 
 
+def assert_local_language_link_target(resolved_href, expected_path, name):
+    parsed = urlparse(resolved_href)
+    assert parsed.scheme == "file", f"{name}: language link must resolve to a local file URI"
+    resolved_path = Path(unquote(parsed.path.lstrip("/")))
+    assert resolved_path == expected_path, f"{name}: language link points to the wrong local page"
+
+
 def assert_language_links(page, locale, page_type):
     language_links = page.locator('a[hreflang]')
     assert language_links.count() == 5, f"{locale} {page_type}: locale selector must expose five language links"
@@ -278,9 +285,8 @@ def assert_language_links(page, locale, page_type):
         href = link.get_attribute("href")
         assert href and not href.startswith("/"), f"{locale} {page_type}: language links must be relative, not origin-root"
         resolved_href = link.evaluate("(element) => new URL(element.href).href")
-        resolved_path = Path(unquote(urlparse(resolved_href).path.lstrip("/")))
         expected_path = LOCALES[language]["directory"] if page_type == "home" else page_file(language, page_type)
-        assert resolved_path == expected_path, f"{locale} {page_type}: {language} points to the wrong local page"
+        assert_local_language_link_target(resolved_href, expected_path, f"{locale} {page_type}: {language}")
         assert (link.get_attribute("aria-current") == "page") == (language == locale)
     assert seen_languages == set(LOCALES)
 
