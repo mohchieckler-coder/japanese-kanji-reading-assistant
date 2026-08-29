@@ -155,7 +155,7 @@ Each localized homepage and privacy page will provide:
 - Alternate `hreflang` links for all five locales
 - An `x-default` alternate pointing to the equivalent Simplified Chinese page: the Chinese homepage for homepages and `privacy.html` for privacy pages
 - Localized Open Graph metadata where the existing page provides it; `og:url` matches canonical, and `og:locale` plus its alternates match the HTML locale set
-- Localized structured data that retains the existing schema type and factual product fields while setting the page URL and `inLanguage` consistently
+- Localized structured data: homepages retain `SoftwareApplication` with consistent factual product fields plus locale-specific `url` and `inLanguage`; privacy pages use `WebPage` with their own canonical URL and language
 
 `sitemap.xml` will list the exact canonical URL set for all ten public HTML pages. `robots.txt` will allow normal indexing and point to the sitemap with an absolute URL. No external runtime resource will be introduced.
 
