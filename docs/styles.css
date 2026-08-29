@@ -2284,11 +2284,16 @@ rt {
     width: min(calc(100% - 32px), var(--container));
   }
 
-  .policy-header .brand-copy small {
+  .policy-header .brand-copy {
     display: none;
   }
 
+  .policy-header .header-inner {
+    gap: 12px;
+  }
+
   .policy-actions {
+    flex: 0 0 auto;
     gap: 8px;
   }
 
@@ -2297,7 +2302,7 @@ rt {
   }
 
   .policy-actions .button {
-    min-height: 40px;
+    min-height: 44px;
     padding-inline: 14px;
   }
 
