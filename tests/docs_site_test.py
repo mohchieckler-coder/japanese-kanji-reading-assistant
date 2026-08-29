@@ -64,6 +64,29 @@ OPEN_GRAPH_LOCALES = {
     "vi": "vi_VN",
 }
 
+NATIVE_LANGUAGE_LABELS = {
+    "zh-CN": "简体中文",
+    "en": "English",
+    "ja": "日本語",
+    "ko": "한국어",
+    "vi": "Tiếng Việt",
+}
+
+PRIVACY_PAGE_EXPECTATIONS = {
+    "zh-CN": ("隐私政策｜日语汉字 AI 读音助手", "隐私政策"),
+    "en": ("Privacy Policy | Japanese Kanji Reading Assistant", "Privacy Policy"),
+    "ja": ("プライバシーポリシー｜日本語漢字読み方アシスタント", "プライバシーポリシー"),
+    "ko": ("개인정보 처리방침｜일본어 한자 읽기 도우미", "개인정보 처리방침"),
+    "vi": ("Chính sách quyền riêng tư｜Trợ lý đọc Kanji tiếng Nhật", "Chính sách quyền riêng tư"),
+}
+
+ALLOWED_EXTERNAL_LINK_PREFIXES = (
+    "https://github.com/mohchieckler-coder/japanese-kanji-reading-assistant/issues",
+    "https://www.edrdg.org/",
+    "https://creativecommons.org/",
+)
+DISALLOWED_EXTENSION_UI_LANGUAGE_LABELS = ("vietnamese", "tiếng việt", "越南语")
+
 VIEWPORTS = {
     "desktop": {"width": 1440, "height": 900},
     "ipad": {"width": 820, "height": 1180},
@@ -163,6 +186,52 @@ def assert_ids_and_hash_links(page, name):
     assert missing_anchor_targets == [], f"{name}: missing hash targets {missing_anchor_targets}"
 
 
+def assert_internal_links_resolve(page, name):
+    links = page.locator("a[href]")
+    for index in range(links.count()):
+        link = links.nth(index)
+        href = link.get_attribute("href")
+        assert href, f"{name}: anchor {index} has an empty href"
+        if href.startswith("#"):
+            continue
+        resolved_href = link.evaluate("(element) => new URL(element.href).href")
+        parsed = urlparse(resolved_href)
+        if parsed.scheme == "file":
+            target = Path(unquote(parsed.path.lstrip("/")))
+            assert target.is_relative_to(DOCS_ROOT), f"{name}: local link leaves docs: {href}"
+            assert target.is_file(), f"{name}: local link does not resolve: {href}"
+        elif parsed.netloc == urlparse(PUBLIC_BASE).netloc:
+            assert resolved_href.startswith(PUBLIC_BASE), f"{name}: public link leaves public base: {href}"
+        else:
+            assert any(resolved_href.startswith(prefix) for prefix in ALLOWED_EXTERNAL_LINK_PREFIXES), (
+                f"{name}: unapproved external link: {href}"
+            )
+
+
+def assert_extension_ui_language_contract(page, locale):
+    language_blocks = page.locator("[data-extension-ui-languages]")
+    assert language_blocks.count() >= 1, f"{locale}: mark extension UI language copy with data-extension-ui-languages"
+    for index in range(language_blocks.count()):
+        language_copy = language_blocks.nth(index).inner_text().casefold()
+        assert not any(label in language_copy for label in DISALLOWED_EXTENSION_UI_LANGUAGE_LABELS), (
+            f"{locale}: extension UI languages must not claim Vietnamese support"
+        )
+
+
+def assert_no_browser_language_redirect(browser, locale):
+    browser_locale = "ja-JP" if locale == "en" else "en-US"
+    context = browser.new_context(locale=browser_locale)
+    page = context.new_page()
+    for page_type in ("home", "privacy"):
+        requested_url = page_file(locale, page_type).as_uri()
+        page.goto(requested_url, wait_until="load")
+        page.wait_for_timeout(100)
+        assert page.url == requested_url, (
+            f"{locale} {page_type}: browser locale {browser_locale} redirected from the requested static page"
+        )
+    context.close()
+
+
 def assert_seo_metadata(page, locale, page_type):
     expected_url = canonical_url(locale, page_type)
     canonical_links = page.locator('head link[rel="canonical"]')
@@ -203,7 +272,9 @@ def assert_language_links(page, locale, page_type):
         assert language in LOCALES
         assert language not in seen_languages
         seen_languages.add(language)
-        assert link.inner_text().strip(), f"{locale} {page_type}: {language} needs a native label"
+        assert link.inner_text().strip() == NATIVE_LANGUAGE_LABELS[language], (
+            f"{locale} {page_type}: {language} needs its exact native label"
+        )
         href = link.get_attribute("href")
         assert href and not href.startswith("/"), f"{locale} {page_type}: language links must be relative, not origin-root"
         resolved_href = link.evaluate("(element) => new URL(element.href).href")
@@ -219,13 +290,17 @@ def assert_page_foundation(page, locale, page_type, actual_download_hash):
     page.wait_for_function("() => [...document.images].every((image) => image.complete && image.naturalWidth > 0)")
 
     assert page.locator("html").get_attribute("lang") == locale
-    assert LOCALES[locale]["title_fragment"] in page.title()
     assert page.locator("h1").count() == 1
     h1_text = page.locator("h1").inner_text().strip()
-    assert h1_text, f"{locale} {page_type}: localized h1 must not be empty"
-    if page_type == "home":
-        assert LOCALES[locale]["h1_fragment"] in h1_text
     assert_language_links(page, locale, page_type)
+    if page_type == "home":
+        assert LOCALES[locale]["title_fragment"] in page.title()
+        assert LOCALES[locale]["h1_fragment"] in h1_text
+        assert_extension_ui_language_contract(page, locale)
+    else:
+        expected_title, expected_h1 = PRIVACY_PAGE_EXPECTATIONS[locale]
+        assert page.title() == expected_title
+        assert h1_text == expected_h1
 
     if page_type == "home":
         actual_ids = {element_id for element_id in REQUIRED_HOME_IDS if page.locator(f"#{element_id}").count() == 1}
@@ -248,6 +323,7 @@ def assert_page_foundation(page, locale, page_type, actual_download_hash):
     assert_seo_metadata(page, locale, page_type)
     assert_local_assets_resolve(page, f"{locale}-{page_type}")
     assert_ids_and_hash_links(page, f"{locale}-{page_type}")
+    assert_internal_links_resolve(page, f"{locale}-{page_type}")
 
 
 def open_locale_selector(page, selector_name):
@@ -270,7 +346,6 @@ def assert_touch_target(locator, name):
 
 def assert_homepage_interactions(page, locale, viewport_name, viewport):
     assert_no_horizontal_overflow(page, f"{locale}-{viewport_name}-before-interaction")
-    open_locale_selector(page, f"{locale}-{viewport_name}")
 
     if viewport["width"] <= 800:
         menu = page.locator("[data-menu-toggle]")
@@ -282,8 +357,7 @@ def assert_homepage_interactions(page, locale, viewport_name, viewport):
         mobile_selector = page.locator('[data-nav] details:has(a[hreflang])')
         assert mobile_selector.count() == 1, f"{locale}-{viewport_name}: mobile menu needs its locale selector"
         assert_touch_target(mobile_selector.locator("summary"), f"{locale}-{viewport_name}-locale-selector")
-        mobile_selector.locator("summary").click()
-        assert mobile_selector.get_attribute("open") is not None
+        open_locale_selector(page, f"{locale}-{viewport_name}")
         assert_no_horizontal_overflow(page, f"{locale}-{viewport_name}-menu-open")
         page.keyboard.press("Escape")
         assert menu.get_attribute("aria-expanded") == "false"
@@ -291,19 +365,22 @@ def assert_homepage_interactions(page, locale, viewport_name, viewport):
     else:
         assert page.locator("[data-menu-toggle]").is_hidden()
         assert page.locator("[data-nav]").is_visible()
+        open_locale_selector(page, f"{locale}-{viewport_name}")
 
 
 def assert_privacy_interactions(page, locale, viewport_name, viewport):
     assert_no_horizontal_overflow(page, f"{locale}-privacy-{viewport_name}-before-interaction")
-    open_locale_selector(page, f"{locale}-privacy-{viewport_name}")
     if viewport["width"] <= 800 and page.locator("[data-menu-toggle]").count():
         menu = page.locator("[data-menu-toggle]")
         assert_touch_target(menu, f"{locale}-privacy-{viewport_name}-menu")
         menu.click()
         assert menu.get_attribute("aria-expanded") == "true"
+        open_locale_selector(page, f"{locale}-privacy-{viewport_name}")
         page.keyboard.press("Escape")
         assert menu.get_attribute("aria-expanded") == "false"
         assert menu.evaluate("(element) => document.activeElement === element")
+    else:
+        open_locale_selector(page, f"{locale}-privacy-{viewport_name}")
 
 
 def assert_javascript_disabled(playwright, locale):
@@ -378,6 +455,7 @@ def main():
                 page.close()
 
             assert_javascript_disabled(playwright, locale)
+            assert_no_browser_language_redirect(browser, locale)
         browser.close()
 
     assert console_errors == [], f"Console errors: {console_errors}"
