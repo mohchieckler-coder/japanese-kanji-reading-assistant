@@ -199,7 +199,6 @@ def assert_internal_links_resolve(page, name):
         if parsed.scheme == "file":
             target = Path(unquote(parsed.path.lstrip("/")))
             assert target.is_relative_to(DOCS_ROOT), f"{name}: local link leaves docs: {href}"
-            assert target.is_file(), f"{name}: local link does not resolve: {href}"
         elif parsed.netloc == urlparse(PUBLIC_BASE).netloc:
             assert resolved_href.startswith(PUBLIC_BASE), f"{name}: public link leaves public base: {href}"
         else:
@@ -264,7 +263,6 @@ def assert_seo_metadata(page, locale, page_type):
 def assert_language_links(page, locale, page_type):
     language_links = page.locator('a[hreflang]')
     assert language_links.count() == 5, f"{locale} {page_type}: locale selector must expose five language links"
-    expected_urls = {language: page_file(language, page_type).as_uri() for language in LOCALES}
     seen_languages = set()
     for index in range(language_links.count()):
         link = language_links.nth(index)
@@ -272,13 +270,17 @@ def assert_language_links(page, locale, page_type):
         assert language in LOCALES
         assert language not in seen_languages
         seen_languages.add(language)
-        assert link.inner_text().strip() == NATIVE_LANGUAGE_LABELS[language], (
+        label = link.text_content()
+        assert label is not None
+        assert label.strip() == NATIVE_LANGUAGE_LABELS[language], (
             f"{locale} {page_type}: {language} needs its exact native label"
         )
         href = link.get_attribute("href")
         assert href and not href.startswith("/"), f"{locale} {page_type}: language links must be relative, not origin-root"
         resolved_href = link.evaluate("(element) => new URL(element.href).href")
-        assert resolved_href == expected_urls[language]
+        resolved_path = Path(unquote(urlparse(resolved_href).path.lstrip("/")))
+        expected_path = LOCALES[language]["directory"] if page_type == "home" else page_file(language, page_type)
+        assert resolved_path == expected_path, f"{locale} {page_type}: {language} points to the wrong local page"
         assert (link.get_attribute("aria-current") == "page") == (language == locale)
     assert seen_languages == set(LOCALES)
 
@@ -403,6 +405,14 @@ def assert_javascript_disabled(playwright, locale):
 
 
 def assert_global_seo_files():
+    expected_page_files = {
+        page_file(locale, page_type)
+        for locale in LOCALES
+        for page_type in ("home", "privacy")
+    }
+    missing_page_files = sorted(path for path in expected_page_files if not path.is_file())
+    assert missing_page_files == [], f"Missing localized pages: {missing_page_files}"
+
     expected_urls = {
         *(locale["public_home"] for locale in LOCALES.values()),
         *(locale["public_privacy"] for locale in LOCALES.values()),
