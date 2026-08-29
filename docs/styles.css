@@ -187,6 +187,103 @@ code {
   gap: 30px;
 }
 
+.site-nav .language-switcher {
+  flex: 0 0 auto;
+}
+
+.language-switcher {
+  position: relative;
+  color: var(--ink);
+}
+
+.language-switcher summary {
+  min-width: 132px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #3c4b48;
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+  transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+}
+
+.language-switcher summary::-webkit-details-marker {
+  display: none;
+}
+
+.language-switcher summary::after {
+  content: "⌄";
+  font-size: 13px;
+  line-height: 1;
+  transition: transform 180ms ease;
+}
+
+.language-switcher[open] summary::after {
+  transform: rotate(180deg);
+}
+
+.language-switcher summary:hover,
+.language-switcher summary:focus-visible {
+  border-color: var(--red);
+  background: #fff;
+}
+
+.language-switcher summary:focus-visible,
+.language-switcher a:focus-visible {
+  outline: 3px solid rgba(217, 45, 32, 0.3);
+  outline-offset: 2px;
+}
+
+.language-switcher ul {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 120;
+  width: max-content;
+  min-width: 180px;
+  max-width: calc(100vw - 32px);
+  margin: 0;
+  padding: 7px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  display: grid;
+  gap: 2px;
+  background: #fff;
+  box-shadow: var(--shadow-md);
+  list-style: none;
+}
+
+.language-switcher a {
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  color: var(--ink-soft);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.language-switcher a:hover,
+.language-switcher a:focus-visible {
+  color: var(--ink);
+  background: var(--paper-deep);
+}
+
+.language-switcher a[aria-current="page"] {
+  color: var(--red-dark);
+  background: var(--red-pale);
+}
+
 .site-nav > a:not(.button) {
   position: relative;
   color: #3c4b48;
@@ -1751,7 +1848,14 @@ rt {
   background: var(--paper);
 }
 
-.policy-header .button {
+.policy-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.policy-actions .button {
   flex: 0 0 auto;
 }
 
@@ -2002,7 +2106,7 @@ rt {
     overflow-y: auto;
     pointer-events: none;
     visibility: hidden;
-    transform: translateY(-12px) scale(0.98);
+    transform: translateY(-12px);
     transform-origin: top;
     transition: opacity 160ms ease, transform 160ms ease;
   }
@@ -2011,7 +2115,7 @@ rt {
     opacity: 1;
     pointer-events: auto;
     visibility: visible;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 
   .js .site-nav > a:not(.button) {
@@ -2035,13 +2139,80 @@ rt {
     margin-top: 8px;
   }
 
+  .js .site-nav .language-switcher {
+    width: 100%;
+    margin-top: 4px;
+  }
+
+  .js .site-nav .language-switcher summary {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .js .site-nav .language-switcher summary::after {
+    margin-left: auto;
+  }
+
+  .js .site-nav .language-switcher ul {
+    position: static;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    margin-top: 6px;
+    box-shadow: none;
+  }
+
   .no-js .site-nav {
-    flex-wrap: wrap;
-    justify-content: flex-end;
+    width: 100%;
+    display: grid;
+    align-items: stretch;
+    gap: 6px;
   }
 
   .no-js .site-nav > a:not(.button) {
-    display: none;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+  }
+
+  .no-js .site-header {
+    position: static;
+    height: auto;
+  }
+
+  .no-js .header-inner {
+    height: auto;
+    padding-block: 12px;
+    flex-wrap: wrap;
+  }
+
+  .no-js .site-nav .button,
+  .no-js .site-nav .language-switcher {
+    width: 100%;
+  }
+
+  .no-js .site-nav .language-switcher summary {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .no-js .site-nav .language-switcher summary::after {
+    margin-left: auto;
+  }
+
+  .no-js .site-nav .language-switcher ul {
+    position: static;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    margin-top: 6px;
+    box-shadow: none;
+  }
+
+  .no-js .hero {
+    padding-top: 72px;
   }
 
   .journey-grid {
@@ -2117,7 +2288,15 @@ rt {
     display: none;
   }
 
-  .policy-header .button {
+  .policy-actions {
+    gap: 8px;
+  }
+
+  .policy-actions .language-switcher summary {
+    min-width: 118px;
+  }
+
+  .policy-actions .button {
     min-height: 40px;
     padding-inline: 14px;
   }
@@ -2505,6 +2684,8 @@ rt {
 
 @media (forced-colors: active) {
   .button,
+  .language-switcher summary,
+  .language-switcher ul,
   .journey-card,
   .feature-card,
   .dashboard-mock,
@@ -2517,5 +2698,9 @@ rt {
   .hero-points span,
   .annotation-status span {
     forced-color-adjust: none;
+  }
+
+  .language-switcher a[aria-current="page"] {
+    outline: 2px solid CanvasText;
   }
 }
