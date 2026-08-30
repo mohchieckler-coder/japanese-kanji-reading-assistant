@@ -8,7 +8,10 @@ function setMenuOpen(open) {
     return;
   }
   menuButton.setAttribute("aria-expanded", String(open));
-  menuButton.setAttribute("aria-label", open ? "关闭导航菜单" : "打开导航菜单");
+  const label = open ? menuButton.dataset.menuCloseLabel : menuButton.dataset.menuOpenLabel;
+  if (label) {
+    menuButton.setAttribute("aria-label", label);
+  }
   navigation.classList.toggle("is-open", open);
   document.body.classList.toggle("menu-open", open);
 }
@@ -38,12 +41,32 @@ document.addEventListener("click", (event) => {
   }
 });
 
-const desktopNavigation = window.matchMedia("(min-width: 801px)");
+const compactNavMaxWidth = document.documentElement.lang === "zh-CN" ? 900 : 1160;
+const desktopNavigation = window.matchMedia(`(min-width: ${compactNavMaxWidth + 1}px)`);
 desktopNavigation.addEventListener("change", (event) => {
   if (event.matches) {
     setMenuOpen(false);
   }
 });
+
+document.documentElement.classList.replace("no-js", "js");
+
+const sharedHomepageHashes = new Set(["top", "product", "features", "privacy", "install", "faq"]);
+const homepageLocaleLinks = [...document.querySelectorAll("[data-nav] [data-locale-link]")];
+const homepageLocaleHrefs = new Map(
+  homepageLocaleLinks.map((link) => [link, link.getAttribute("href")])
+);
+
+function preserveHomepageHash() {
+  const sectionId = window.location.hash.slice(1);
+  const suffix = sharedHomepageHashes.has(sectionId) ? `#${sectionId}` : "";
+  homepageLocaleLinks.forEach((link) => {
+    link.setAttribute("href", `${homepageLocaleHrefs.get(link)}${suffix}`);
+  });
+}
+
+window.addEventListener("hashchange", preserveHomepageHash);
+preserveHomepageHash();
 
 let scrollFrame = 0;
 function updateHeader() {

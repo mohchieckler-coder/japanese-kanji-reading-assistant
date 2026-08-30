@@ -1,0 +1,208 @@
+<!doctype html>
+<html class="no-js" lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#fbfaf7">
+    <meta name="color-scheme" content="light">
+    <meta name="description" content="日本語漢字読み方アシスタントは、日本語ウェブページに読み仮名、外来語の語源、外国固有名詞の原表記を追加し、ご自身の OpenAI 互換 API による選択範囲の翻訳にも対応します。">
+    <title>日本語漢字読み方アシスタント｜日本語のウェブページを、漢字一つひとつから読み解く。</title>
+    <link rel="canonical" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/ja/">
+    <link rel="alternate" hreflang="zh-CN" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/">
+    <link rel="alternate" hreflang="en" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/en/">
+    <link rel="alternate" hreflang="ja" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/ja/">
+    <link rel="alternate" hreflang="ko" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/ko/">
+    <link rel="alternate" hreflang="vi" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/vi/">
+    <link rel="alternate" hreflang="x-default" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/">
+    <meta property="og:title" content="日本語漢字読み方アシスタント｜日本語のウェブページを、漢字一つひとつから読み解く。">
+    <meta property="og:description" content="日本語ウェブページに読み仮名、外来語の語源、外国固有名詞の原表記を追加。ご自身の OpenAI 互換 API による選択範囲の翻訳にも対応します。">
+    <meta property="og:url" content="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/ja/">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="ja_JP">
+    <meta property="og:locale:alternate" content="zh_CN">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:locale:alternate" content="ko_KR">
+    <meta property="og:locale:alternate" content="vi_VN">
+    <link rel="icon" href="../assets/icon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="../styles.css">
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "日本語漢字読み方アシスタント",
+        "alternateName": "Japanese Kanji Reading Assistant",
+        "applicationCategory": "BrowserApplication",
+        "operatingSystem": "Chrome 120+",
+        "softwareVersion": "2.6.0",
+        "description": "漢字に日本語の読みを追加し、高信頼度の外来語の語源と外国固有名詞の原表記をローカルで表示します。選択した語句・文・段落は、ユーザー設定の OpenAI 互換 API で翻訳できます。",
+        "url": "https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/ja/",
+        "inLanguage": "ja"
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">本文へ移動</a>
+
+    <header class="site-header" data-header>
+      <div class="container header-inner">
+        <a class="brand" href="#top" aria-label="日本語漢字読み方アシスタントのホーム">
+          <img src="../assets/icon.svg" width="44" height="44" alt="">
+          <span class="brand-copy"><strong>日本語漢字読み方アシスタント</strong><small>ページ上で日本語を読み解く</small></span>
+        </a>
+
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="ナビゲーションを開く" data-menu-toggle data-menu-open-label="ナビゲーションを開く" data-menu-close-label="ナビゲーションを閉じる">
+          <span></span><span></span><span></span>
+        </button>
+
+        <nav class="site-nav" id="site-nav" aria-label="メインナビゲーション" data-nav>
+          <a href="#product">概要</a>
+          <a href="#features">機能</a>
+          <a href="#privacy">プライバシー</a>
+          <a href="#faq">よくある質問</a>
+          <a class="button button-small" href="#install">拡張機能をインストール</a>
+          <details class="language-switcher" data-language-switcher>
+            <summary aria-label="ウェブサイトの言語を選択"><span aria-hidden="true">文</span><span>日本語</span></summary>
+            <ul>
+              <li><a href="../" hreflang="zh-CN" lang="zh-CN" data-locale-link>简体中文</a></li>
+              <li><a href="../en/" hreflang="en" lang="en" data-locale-link>English</a></li>
+              <li><a href="./" hreflang="ja" lang="ja" aria-current="page" data-locale-link>日本語</a></li>
+              <li><a href="../ko/" hreflang="ko" lang="ko" data-locale-link>한국어</a></li>
+              <li><a href="../vi/" hreflang="vi" lang="vi" data-locale-link>Tiếng Việt</a></li>
+            </ul>
+          </details>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main-content">
+      <section class="hero" id="top">
+        <div class="hero-orb hero-orb-one" aria-hidden="true"></div>
+        <div class="hero-orb hero-orb-two" aria-hidden="true"></div>
+        <div class="container hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow"><span>Chrome 拡張機能</span> v2.6.0</p>
+            <h1>日本語のウェブページを、<br><em><span>漢字一つひとつから</span> <span>読み解く。</span></em></h1>
+            <p class="hero-lead">ニュース、掲示板、論文、スポーツ記事を開き、ワンクリックで漢字の上に読みを表示します。カタカナ外来語の語源や、対応する外国人名・地名の原表記を別々に表示でき、選択した語・文・段落はご自身の API で翻訳できます。</p>
+            <div class="hero-actions">
+              <a class="button" href="../downloads/japanese-furigana-ai-2.6.0.zip" download>v2.6.0 をダウンロード<svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7 4 6 6-6 6"/></svg></a>
+              <a class="button button-secondary" href="#install">インストール手順を見る</a>
+            </div>
+            <ul class="hero-points" aria-label="製品の特長">
+              <li><span aria-hidden="true">✓</span> 読みはローカルで処理</li>
+              <li><span aria-hidden="true">✓</span> 外来語の語源はローカルで照合</li>
+              <li><span aria-hidden="true">✓</span> 選択したテキストだけを翻訳</li>
+              <li><span aria-hidden="true">✓</span> 広告・トラッキングスクリプトなし</li>
+            </ul>
+          </div>
+
+          <div class="hero-visual" role="img" aria-label="日本語ニュースページで漢字の読みと選択範囲翻訳カードを表示する拡張機能のイメージ">
+            <div class="browser-shell">
+              <div class="browser-bar" aria-hidden="true"><div class="browser-dots"><i></i><i></i><i></i></div><div class="address-bar"><span>●</span> news.example.jp</div><img src="../assets/icon.svg" width="28" height="28" alt=""></div>
+              <div class="browser-content" lang="ja">
+                <div class="article-topline"><span>テクノロジー</span><time datetime="2026-08-20">2026.08.20</time></div>
+                <h2><ruby>日本<rp>（</rp><rt>にほん</rt><rp>）</rp></ruby>の <ruby>研究<rp>（</rp><rt>けんきゅう</rt><rp>）</rp></ruby>チーム、 <ruby>新技術<rp>（</rp><rt>しんぎじゅつ</rt><rp>）</rp></ruby>を <ruby>発表<rp>（</rp><rt>はっぴょう</rt><rp>）</rp></ruby></h2>
+                <p class="article-body"><ruby>最新<rp>（</rp><rt>さいしん</rt><rp>）</rp></ruby>の <mark><ruby>衛星<rp>（</rp><rt>えいせい</rt><rp>）</rp></ruby><ruby>画像<rp>（</rp><rt>がぞう</rt><rp>）</rp></ruby>から、 <ruby>台風<rp>（</rp><rt>たいふう</rt><rp>）</rp></ruby>の <ruby>進路<rp>（</rp><rt>しんろ</rt><rp>）</rp></ruby>を <ruby>分析<rp>（</rp><rt>ぶんせき</rt><rp>）</rp></ruby>しました。</mark></p>
+                <div class="translation-popover"><div class="translation-title"><span>選択範囲の翻訳</span><b>文</b></div><p lang="en">We analyzed the typhoon's projected path using the latest satellite images.</p><div class="translation-meta">英語 · 18 Token</div></div>
+                <div class="annotation-status"><span></span> このページでは読みが有効です</div>
+              </div>
+            </div>
+            <div class="floating-note note-local"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.6 2.8 8.6 7 10 4.2-1.4 7-5.4 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg><span><strong>ローカルの読み</strong><small>ページ本文全体のアップロードは不要です</small></span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="trust-strip" aria-label="製品概要">
+        <div class="container trust-grid">
+          <div><strong>ローカル</strong><span>日本語の読みを解析</span></div>
+          <div data-extension-ui-languages><strong>4言語</strong><span>中国語・英語・日本語・韓国語のUI</span></div>
+          <div><strong>動的</strong><span>後から読み込まれる内容にも対応</span></div>
+          <div><strong>Chrome 120+</strong><span>Manifest V3</span></div>
+        </div>
+      </section>
+
+      <section class="section product-section" id="product">
+        <div class="container">
+          <div class="section-heading centered"><p class="section-kicker">概要</p><h2>調べものによる中断を減らし、読書の流れを保つ</h2><p>これはページを置き換えるリーダーではありません。今見ているページにいつでも追加・削除できる軽量な日本語読解支援です。</p></div>
+          <div class="journey-grid">
+            <article class="journey-card"><span class="journey-number">01</span><div class="journey-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M7 9h4M7 13h10M14 5v4M17 5v4"/></svg></div><h3>日本語ウェブページを開く</h3><p>ニュース、掲示板、学術、スポーツなどの通常のページで使えます。ページ全体の本文やリンクを置き換えることなく、現在のページに直接支援情報を追加します。</p></article>
+            <article class="journey-card journey-card-active"><span class="journey-number">02</span><div class="journey-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19h14M7 16l4-11h2l4 11M8.5 12h7"/></svg></div><h3>読みを有効にする</h3><p>拡張機能はブラウザー内で本文をローカル解析し、標準の ruby マークアップで漢字の上に読みを表示します。</p></article>
+            <article class="journey-card"><span class="journey-number">03</span><div class="journey-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v10H9l-4 4V5Z"/><path d="M8 9h8M8 12h5"/></svg></div><h3>必要なときだけ翻訳する</h3><p>語、文、段落を選択し、タブを何度も切り替えることなく同じページで翻訳を確認できます。</p></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section feature-section" id="features">
+        <div class="container">
+          <div class="section-heading split-heading"><div><p class="section-kicker">機能</p><h2>実際のウェブページを読むために設計</h2></div><p>一般的な漢字や外来語の語源から、ニュースの日付、人名、長文の翻訳まで、すべての機能は元のページ構造を保つように作られています。</p></div>
+          <div class="feature-grid">
+            <article class="feature-card feature-large local-reading">
+              <div class="feature-copy"><span class="feature-tag">01 · スマートな読み</span><h3>漢字ごとの読みを上に表示</h3><p>Kuromoji がブラウザー内で形態素解析をローカル実行します。後から読み込まれた内容も処理し、もう一度クリックすると拡張機能が追加した読みを取り除きます。</p><ul class="check-list"><li>コード、フォーム、既存の ruby マークアップは処理しません</li><li>日付、外来語、一般的な文脈では、慎重に曖昧性を解消します</li><li>漢字だけに読みを付け、送り仮名はそのまま保ちます</li><li>本文中の長い読みは自動的に縮小し、ヘッダーやナビゲーション項目の幅を変えません</li><li>スタイルと操作性を保つため、要素階層を組み替えません</li></ul></div>
+              <div class="reading-demo" lang="ja"><p class="demo-label">読みを付けた後</p><p class="reading-line"><ruby>東京<rp>（</rp><rt>とうきょう</rt><rp>）</rp></ruby>で <ruby>新<rp>（</rp><rt>あたら</rt><rp>）</rp></ruby>しい <ruby>技術<rp>（</rp><rt>ぎじゅつ</rt><rp>）</rp></ruby>を <ruby>発表<rp>（</rp><rt>はっぴょう</rt><rp>）</rp></ruby></p><div class="demo-divider"></div><div class="smart-examples"><span><ruby>麻辣湯<rp>（</rp><rt>マーラータン</rt><rp>）</rp></ruby></span><span><ruby>読<rp>（</rp><rt>よ</rt><rp>）</rp></ruby>みます</span></div></div>
+            </article>
+
+            <article class="feature-card feature-large local-reading">
+              <div class="feature-copy"><span class="feature-tag">02 · 外来語の語源</span><h3>カタカナの上に外国語の原語を表示</h3><p>ポップアップには「外来語の語源を表示」ボタンがあります。有効にすると、拡張機能は同梱された3,353件のローカル語源記録で高信頼度の外来語を照合し、著名な外国の指導者・公的人物・地名の原表記を表示します。API は呼び出さず、ページ本文もアップロードしません。</p><ul class="check-list"><li>英語の項目は国名表示を付けず、原語だけを示します</li><li>他言語は仏・独・西など、日本語の漢字による国名略称を使います</li><li>長い注釈はカタカナ表記の幅に合わせて折り畳まれ、幅を制限したポップオーバーで展開します</li><li>省略されていない固有名詞は直接照合できますが、略称には役職・国・人物の文脈が必要です</li><li>同形語、和製英語、未知の語は慎重に処理対象から外します</li></ul><p>語源データは <a href="https://www.edrdg.org/jmdict/jmdict_dtd_h.html">JMdict</a> に由来し、<a href="https://www.edrdg.org/edrdg/licence.html" lang="en">EDRDG General Dictionary Licence Statement</a> および <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> に従います。</p></div>
+              <div class="reading-demo loanword-demo" lang="ja"><p class="demo-label">外来語の語源を有効にした場合</p><div class="loanword-showcase"><div class="loanword-sample" data-origin-language="en"><span class="loanword-origin" lang="en">computer</span><strong class="loanword-base">コンピューター</strong></div><div class="loanword-sample" data-origin-language="fr"><span class="loanword-origin"><span class="loanword-country" aria-label="フランス語">仏</span><span lang="fr">coup d'État</span></span><strong class="loanword-base">クーデター</strong></div><div class="loanword-sample" data-origin-language="de"><span class="loanword-origin"><span class="loanword-country" aria-label="ドイツ語">独</span><span lang="de">Arbeit</span></span><strong class="loanword-base">アルバイト</strong></div><div class="loanword-sample" data-origin-language="es"><span class="loanword-origin"><span class="loanword-country" aria-label="スペイン語">西</span><span lang="es">paella</span></span><strong class="loanword-base">パエリア</strong></div></div><p class="loanword-note">長い原表記は、折り畳んだ要約として表示されます。行間を広げずに原表記の全文をポップオーバーで確認するには、クリックするか、Enter または Space キーを押します。</p></div>
+            </article>
+
+            <article class="feature-card translation-card-demo"><span class="feature-tag">03 · 選択範囲の翻訳</span><h3>語・文・段落を翻訳</h3><p>必要な箇所を選択すると、元のページ上にコピーと再試行の操作を備えた翻訳カードが開きます。API から使用量データが返された場合、そのリクエストで使用した Token 数もカードに表示します。</p><div class="mini-selection" lang="ja"><span>新しい研究成果が発表されました。</span></div><div class="mini-result"><div><strong>選択範囲の翻訳</strong><span>文</span></div><p lang="en">New research findings have been announced.</p><small>英語 · 12 Token</small></div></article>
+
+            <article class="feature-card context-card"><span class="feature-tag">04 · 名前と文脈</span><h3>一般の人名を推測せず、公的人物名を確認</h3><p>日本の公的人物について登録済みの氏名の読みは、ウェブページや形態素解析器による誤った推測より優先されます。外国人名、ニュースの日付、人数、学術用語には制約付き照合を使い、確信できないテキストは変更しません。</p><div class="context-list" lang="ja"><div><span>24日（月）</span><b>にじゅうよっか・げつ</b></div><div><span>大谷翔平</span><b>おおたに・しょうへい</b></div><div><span>羽生結弦</span><b>はにゅう・ゆづる</b></div></div></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section management-section">
+        <div class="container management-grid">
+          <div class="management-copy"><p class="section-kicker">翻訳ダッシュボード</p><h2>API、言語、履歴、使用量を一か所で管理</h2><p>ご自身の OpenAI 互換サービスに接続できます。表示言語と翻訳先言語は別々に設定できるため、各設定を明確に管理できます。</p><div class="management-points"><div><span>API</span><p><strong>カスタム接続</strong><small>API Key、BaseURL、モデル</small></p></div><div><span>A</span><p><strong>翻訳先言語</strong><small>よく使う8つの翻訳先言語</small></p></div><div><span>H</span><p><strong>翻訳履歴</strong><small>ローカルで検索・削除・全消去</small></p></div><div><span>Σ</span><p><strong>Token 記録</strong><small>入力・出力・1日ごとの合計</small></p></div></div></div>
+          <div class="dashboard-mock" role="img" aria-label="API 設定、翻訳先言語、翻訳履歴、Token 使用量を表示するダッシュボードのイメージ">
+            <aside class="dashboard-sidebar"><div class="dashboard-brand"><img src="../assets/icon.svg" alt="" width="34" height="34"><b>読み方アシスタント</b></div><span class="dashboard-nav active">⚙ <b>API 設定</b></span><span class="dashboard-nav">A <b>翻訳先言語</b></span><span class="dashboard-nav">◷ <b>翻訳履歴</b></span><span class="dashboard-nav">Σ <b>Token 使用量</b></span></aside>
+            <div class="dashboard-main"><div class="dashboard-heading"><small>日本語漢字読み方アシスタント</small><h3>API 設定</h3></div><div class="dashboard-form"><div class="dashboard-field"><b>API Key</b><span>••••••••••••</span></div><div class="dashboard-field"><b>Base URL</b><span lang="en">https://api.example.com/v1</span></div><div class="dashboard-field"><b>モデル名</b><span lang="en">your-model-name</span></div><div class="permission-note"><b>権限に関する注意</b><small>この API ホストへのネットワークアクセスだけを要求します</small></div><div class="dashboard-buttons"><i>設定を保存</i><i>接続をテスト</i></div></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section privacy-section" id="privacy">
+        <div class="container privacy-card">
+          <div class="privacy-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.6 2.8 8.6 7 10 4.2-1.4 7-5.4 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg></div>
+          <div class="privacy-copy"><p class="section-kicker">プライバシー</p><h2>ページ本文はローカルに留まり、翻訳する内容は自分で決められます</h2><p>日本語の読みと外来語の語源照合は、常にブラウザー内でローカル処理されます。ページ内容のうち、ユーザーが能動的に選択したテキストだけを、設定した翻訳サービスへ送信します。接続テストでは固定のテスト文「こんにちは」を送信します。</p><p><a class="privacy-policy-link" href="privacy.html">プライバシーポリシー全文を読む</a></p></div>
+          <ul class="privacy-list"><li><span>01</span><p><strong>API Key は端末内に保存</strong><small>信頼できる拡張機能コンテキストに保存し、完全な形では表示しません</small></p></li><li><span>02</span><p><strong>API 権限は必要時に要求</strong><small>すべてのウェブサイトに恒久的にアクセスする権限は取得しません</small></p></li><li><span>03</span><p><strong>履歴は自分で管理</strong><small>翻訳履歴と Token 記録はいつでも消去できます</small></p></li></ul>
+        </div>
+      </section>
+
+      <section class="section install-section" id="install">
+        <div class="container">
+          <div class="section-heading centered light-heading"><p class="section-kicker">インストール</p><h2>数分で日本語ウェブページの読解を始める</h2><p>このバージョンは Chrome の「パッケージ化されていない拡張機能を読み込む」手順でインストールし、Chrome 120 以降が必要です。</p></div>
+          <div class="download-panel"><div class="download-product"><img src="../assets/icon.svg" width="54" height="54" alt=""><p><small>公式インストール用 ZIP パッケージ</small><strong>日本語漢字読み方アシスタント</strong><span>v2.6.0 · ZIP · 14.9 MiB · Chrome 120+</span></p></div><a class="button button-light" href="../downloads/japanese-furigana-ai-2.6.0.zip" download>ZIP をダウンロード</a><p class="download-hash"><span>SHA-256</span><code>D9F1D1D8F6A7B98AEC19DB91B562FA7A5B1589681CFB07C670C66C17AD755CD4</code></p></div>
+          <ol class="install-grid">
+            <li><span class="step-number">01</span><div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 20h14"/></svg></div><h3>ダウンロードして展開</h3><p>上の ZIP をダウンロードして展開します。展開後のフォルダーに <code>manifest.json</code> が含まれていることを確認してください。</p></li>
+            <li><span class="step-number">02</span><div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg></div><h3>拡張機能ページを開く</h3><p>Chrome のアドレスバーに <code>chrome://extensions</code> と入力し、「デベロッパー モード」を有効にします。</p></li>
+            <li><span class="step-number">03</span><div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg></div><h3>展開済み拡張機能を読み込む</h3><p>「パッケージ化されていない拡張機能を読み込む」をクリックし、先ほど展開した拡張機能フォルダーを選択します。</p></li>
+            <li><span class="step-number">04</span><div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></div><h3>ページを開いて有効にする</h3><p>日本語ウェブページを開き、ツールバーの「漢」アイコンをクリックして、必要に応じて読み、外来語の語源、選択範囲の翻訳を有効にします。</p></li>
+          </ol>
+          <div class="install-note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></svg><p><strong>読み機能に API Key は必要ありません。</strong> 選択範囲を翻訳するには、ご自身の互換 API の API Key、BaseURL、モデルを入力します。更新時は拡張機能ページで「再読み込み」をクリックしてからウェブページを再読み込みしてください。先に拡張機能を削除しないでください。</p></div>
+        </div>
+      </section>
+
+      <section class="section faq-section" id="faq">
+        <div class="container faq-grid">
+          <div class="faq-heading"><p class="section-kicker">よくある質問</p><h2>始める前に知っておきたいこと</h2><p>本拡張機能はローカル処理を優先し、必要な場合にだけ接続するため、読み機能と翻訳機能をそれぞれ独立して利用できます。</p></div>
+          <div class="faq-list">
+            <details><summary>読み機能に API は必要ですか？<span aria-hidden="true">＋</span></summary><p>いいえ。漢字の読みはブラウザー内でローカル解析されます。ご自身の互換 API が必要なのは選択範囲の翻訳だけです。</p></details>
+            <details><summary>ウェブページ全体をアップロードしますか？<span aria-hidden="true">＋</span></summary><p>いいえ。読みの注釈にネットワークは使用しません。ページ内容のうち、ユーザーが能動的に選択したテキストだけを、設定した翻訳サービスへ送信します。「接続をテスト」をクリックすると、固定のテスト文「こんにちは」を送信します。提供者は自身のプライバシーポリシーに基づいてデータを処理します。</p></details>
+            <details><summary>現在のページから読みを削除するには？<span aria-hidden="true">＋</span></summary><p>拡張機能のポップアップをもう一度開き、「読みを削除」をクリックします。拡張機能が生成した ruby マークアップを削除して元のテキストを復元しますが、選択範囲の翻訳は引き続き利用できます。動的な変化が特に多い一部のページでは、再読み込みが必要になる場合があります。</p></details>
+            <details><summary>原語が表示されないカタカナ語があるのはなぜですか？<span aria-hidden="true">＋</span></summary><p>カタカナは和製英語、擬音語、固有名詞にも使われます。本拡張機能が注釈を付けるのは、2026-08-17 時点で固定された信頼度の高い JMdict サブセット、手作業で確認した一般語レイヤー、選択的に確認した国立国語研究所の語彙表に基づく、語源が明確で検証済みの語だけです。複数の項目にまたがる同形異義語、未知語、確実に判別できる文脈のない人名の略称は変更しません。英語は原語だけを表示し、その他の言語と外国固有名詞には「仏」「独」「西」など日本語の国名略称を使います。</p></details>
+            <details><summary>現在処理できないページや要素は？<span aria-hidden="true">＋</span></summary><p>Chrome のシステムページには拡張機能を挿入できません。閉じた Shadow DOM、クロスオリジンの iframe、まれな文字、未知の固有名詞は変更されない場合があります。コードブロック、フォーム、既存の ruby マークアップ、編集可能な領域は意図的に処理しません。</p></details>
+            <details><summary>翻訳 API には何が必要ですか？<span aria-hidden="true">＋</span></summary><p>API は <code>POST /chat/completions</code> に対応している必要があります。通常のサービスでは HTTPS を使用し、HTTP を使用できるのは localhost と 127.0.0.1 だけです。各リクエストは12,000文字までで、ご自身の Key、ネットワーク、クォータ、モデルへのアクセス状況に依存します。ローカルの Token 記録は推定値であり、提供者の請求額を示すものではありません。</p></details>
+          </div>
+        </div>
+      </section>
+
+      <section class="final-cta"><div class="container final-cta-inner"><img src="../assets/icon.svg" width="76" height="76" alt=""><div><p>日本語ウェブページを、もっと自然に読める。</p><h2>必要なときだけ、読みを表示する。</h2></div><a class="button button-light" href="#install">インストール手順を見る</a></div></section>
+    </main>
+
+    <footer class="site-footer"><div class="container footer-grid"><div class="footer-brand"><img src="../assets/icon.svg" width="38" height="38" alt=""><div><strong>日本語漢字読み方アシスタント</strong><small>ローカル優先の日本語ウェブ読解ツール</small></div></div><p>© <span data-year>2026</span> 日本語漢字読み方アシスタント · v2.6.0</p><a href="#top">ページ上部へ戻る <span aria-hidden="true">↑</span></a></div></footer>
+
+    <script src="../script.js"></script>
+  </body>
+</html>

@@ -1,0 +1,208 @@
+<!doctype html>
+<html class="no-js" lang="vi">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#fbfaf7">
+    <meta name="color-scheme" content="light">
+    <meta name="description" content="Trợ lý đọc Kanji tiếng Nhật thêm cách đọc, nguồn gốc từ vay mượn và dạng nguyên gốc của tên riêng nước ngoài vào trang web tiếng Nhật, đồng thời cho phép dịch phần văn bản được chọn qua API tương thích OpenAI của riêng bạn.">
+    <title>Trợ lý đọc Kanji tiếng Nhật | Đọc hiểu trang web tiếng Nhật, bắt đầu từ từng chữ Kanji</title>
+    <link rel="canonical" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/vi/">
+    <link rel="alternate" hreflang="zh-CN" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/">
+    <link rel="alternate" hreflang="en" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/en/">
+    <link rel="alternate" hreflang="ja" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/ja/">
+    <link rel="alternate" hreflang="ko" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/ko/">
+    <link rel="alternate" hreflang="vi" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/vi/">
+    <link rel="alternate" hreflang="x-default" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/">
+    <meta property="og:title" content="Trợ lý đọc Kanji tiếng Nhật | Đọc hiểu trang web tiếng Nhật, bắt đầu từ từng chữ Kanji">
+    <meta property="og:description" content="Thêm cách đọc, nguồn gốc từ vay mượn và dạng nguyên gốc của tên riêng nước ngoài vào trang web tiếng Nhật, đồng thời cho phép dịch phần văn bản được chọn qua API tương thích OpenAI của riêng bạn.">
+    <meta property="og:url" content="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/vi/">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="vi_VN">
+    <meta property="og:locale:alternate" content="zh_CN">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:locale:alternate" content="ja_JP">
+    <meta property="og:locale:alternate" content="ko_KR">
+    <link rel="icon" href="../assets/icon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="../styles.css">
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Trợ lý đọc Kanji tiếng Nhật",
+        "alternateName": "Japanese Kanji Reading Assistant",
+        "applicationCategory": "BrowserApplication",
+        "operatingSystem": "Chrome 120+",
+        "softwareVersion": "2.6.0",
+        "description": "Thêm cách đọc tiếng Nhật cho chữ Kanji, hiển thị cục bộ nguồn gốc có độ tin cậy cao của từ vay mượn và dạng nguyên gốc của tên riêng nước ngoài, đồng thời dịch từ, câu hoặc đoạn văn được chọn qua API tương thích OpenAI do người dùng cấu hình.",
+        "url": "https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/vi/",
+        "inLanguage": "vi"
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Chuyển đến nội dung chính</a>
+
+    <header class="site-header" data-header>
+      <div class="container header-inner">
+        <a class="brand" href="#top" aria-label="Trang chủ Trợ lý đọc Kanji tiếng Nhật">
+          <img src="../assets/icon.svg" width="44" height="44" alt="">
+          <span class="brand-copy"><strong>Trợ lý đọc Kanji tiếng Nhật</strong><small>Cách đọc tiếng Nhật, ngay trên trang</small></span>
+        </a>
+
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Mở trình đơn điều hướng" data-menu-toggle data-menu-open-label="Mở trình đơn điều hướng" data-menu-close-label="Đóng trình đơn điều hướng">
+          <span></span><span></span><span></span>
+        </button>
+
+        <nav class="site-nav" id="site-nav" aria-label="Điều hướng chính" data-nav>
+          <a href="#product">Tổng quan</a>
+          <a href="#features">Tính năng</a>
+          <a href="#privacy">Quyền riêng tư</a>
+          <a href="#faq">Câu hỏi thường gặp</a>
+          <a class="button button-small" href="#install">Cài tiện ích</a>
+          <details class="language-switcher" data-language-switcher>
+            <summary aria-label="Chọn ngôn ngữ trang web"><span aria-hidden="true">文</span><span>Tiếng Việt</span></summary>
+            <ul>
+              <li><a href="../" hreflang="zh-CN" lang="zh-CN" data-locale-link>简体中文</a></li>
+              <li><a href="../en/" hreflang="en" lang="en" data-locale-link>English</a></li>
+              <li><a href="../ja/" hreflang="ja" lang="ja" data-locale-link>日本語</a></li>
+              <li><a href="../ko/" hreflang="ko" lang="ko" data-locale-link>한국어</a></li>
+              <li><a href="./" hreflang="vi" lang="vi" aria-current="page" data-locale-link>Tiếng Việt</a></li>
+            </ul>
+          </details>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main-content">
+      <section class="hero" id="top">
+        <div class="hero-orb hero-orb-one" aria-hidden="true"></div>
+        <div class="hero-orb hero-orb-two" aria-hidden="true"></div>
+        <div class="container hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow"><span>Tiện ích Chrome</span> v2.6.0</p>
+            <h1>Đọc hiểu trang web tiếng Nhật,<br><em><span>bắt đầu từ</span> <span>từng chữ Kanji.</span></em></h1>
+            <p class="hero-lead">Mở tin tức, diễn đàn, bài nghiên cứu hoặc tin thể thao và thêm cách đọc phía trên chữ Kanji chỉ bằng một cú nhấp. Bạn có thể bật riêng nguồn gốc của từ Katakana vay mượn, hiển thị tên người và địa danh nước ngoài được hỗ trợ bằng chữ viết nguyên gốc, rồi dịch từ, câu hoặc đoạn văn đã chọn qua API của riêng mình.</p>
+            <div class="hero-actions">
+              <a class="button" href="../downloads/japanese-furigana-ai-2.6.0.zip" download>Tải xuống v2.6.0<svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7 4 6 6-6 6"/></svg></a>
+              <a class="button button-secondary" href="#install">Xem các bước cài đặt</a>
+            </div>
+            <ul class="hero-points" aria-label="Điểm nổi bật của sản phẩm">
+              <li><span aria-hidden="true">✓</span> Xử lý cách đọc ngay trên thiết bị</li>
+              <li><span aria-hidden="true">✓</span> Đối chiếu nguồn gốc từ vay mượn ngay trên thiết bị</li>
+              <li><span aria-hidden="true">✓</span> Chỉ dịch văn bản bạn chọn</li>
+              <li><span aria-hidden="true">✓</span> Không quảng cáo, không mã theo dõi</li>
+            </ul>
+          </div>
+
+          <div class="hero-visual" role="img" aria-label="Minh họa tiện ích hiển thị cách đọc chữ Kanji và thẻ dịch phần văn bản được chọn trên một trang tin tiếng Nhật">
+            <div class="browser-shell">
+              <div class="browser-bar" aria-hidden="true"><div class="browser-dots"><i></i><i></i><i></i></div><div class="address-bar"><span>●</span> news.example.jp</div><img src="../assets/icon.svg" width="28" height="28" alt=""></div>
+              <div class="browser-content" lang="ja">
+                <div class="article-topline"><span>テクノロジー</span><time datetime="2026-08-20">2026.08.20</time></div>
+                <h2><ruby>日本<rp>（</rp><rt>にほん</rt><rp>）</rp></ruby>の <ruby>研究<rp>（</rp><rt>けんきゅう</rt><rp>）</rp></ruby>チーム、 <ruby>新技術<rp>（</rp><rt>しんぎじゅつ</rt><rp>）</rp></ruby>を <ruby>発表<rp>（</rp><rt>はっぴょう</rt><rp>）</rp></ruby></h2>
+                <p class="article-body"><ruby>最新<rp>（</rp><rt>さいしん</rt><rp>）</rp></ruby>の <mark><ruby>衛星<rp>（</rp><rt>えいせい</rt><rp>）</rp></ruby><ruby>画像<rp>（</rp><rt>がぞう</rt><rp>）</rp></ruby>から、 <ruby>台風<rp>（</rp><rt>たいふう</rt><rp>）</rp></ruby>の <ruby>進路<rp>（</rp><rt>しんろ</rt><rp>）</rp></ruby>を <ruby>分析<rp>（</rp><rt>ぶんせき</rt><rp>）</rp></ruby>しました。</mark></p>
+                <div class="translation-popover" lang="vi"><div class="translation-title"><span>Bản dịch phần đã chọn</span><b>Câu</b></div><p lang="en">We analyzed the typhoon's projected path using the latest satellite images.</p><div class="translation-meta">Tiếng Anh · 18 token</div></div>
+                <div class="annotation-status" lang="vi"><span></span> Cách đọc đang được bật trên trang này</div>
+              </div>
+            </div>
+            <div class="floating-note note-local"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.6 2.8 8.6 7 10 4.2-1.4 7-5.4 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg><span><strong>Cách đọc được xử lý cục bộ</strong><small>Không cần tải toàn bộ nội dung trang lên để xử lý cách đọc</small></span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="trust-strip" aria-label="Tổng quan sản phẩm">
+        <div class="container trust-grid">
+          <div><strong>Cục bộ</strong><span>Phân tích cách đọc tiếng Nhật</span></div>
+          <div data-extension-ui-languages><strong>4 ngôn ngữ</strong><span>Giao diện tiếng Trung, Anh, Nhật và Hàn</span></div>
+          <div><strong>Linh hoạt</strong><span>Xử lý cả nội dung được tải sau</span></div>
+          <div><strong>Chrome 120+</strong><span>Manifest V3</span></div>
+        </div>
+      </section>
+
+      <section class="section product-section" id="product">
+        <div class="container">
+          <div class="section-heading centered"><p class="section-kicker">Tổng quan</p><h2>Ít phải ngắt mạch đọc để tra cứu hơn</h2><p>Đây không phải là một trình đọc thay thế. Đây là công cụ hỗ trợ tiếng Nhật gọn nhẹ mà bạn có thể thêm vào hoặc gỡ khỏi trang hiện tại bất cứ lúc nào.</p></div>
+          <div class="journey-grid">
+            <article class="journey-card"><span class="journey-number">01</span><div class="journey-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M7 9h4M7 13h10M14 5v4M17 5v4"/></svg></div><h3>Mở một trang web tiếng Nhật</h3><p>Dùng tiện ích trên các trang tin tức, diễn đàn, học thuật hoặc thể thao thông thường. Tiện ích bổ sung trợ giúp ngay vào trang hiện tại mà không thay thế toàn bộ nội dung trang hay các liên kết trên trang.</p></article>
+            <article class="journey-card journey-card-active"><span class="journey-number">02</span><div class="journey-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19h14M7 16l4-11h2l4 11M8.5 12h7"/></svg></div><h3>Bật cách đọc</h3><p>Tiện ích phân tích văn bản cục bộ trong trình duyệt và hiển thị cách đọc phía trên chữ Kanji bằng thẻ ruby tiêu chuẩn.</p></article>
+            <article class="journey-card"><span class="journey-number">03</span><div class="journey-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v10H9l-4 4V5Z"/><path d="M8 9h8M8 12h5"/></svg></div><h3>Chỉ dịch khi cần</h3><p>Chọn một từ, câu hoặc đoạn văn rồi xem bản dịch ngay trên trang đó, không cần liên tục chuyển qua lại giữa các thẻ.</p></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section feature-section" id="features">
+        <div class="container">
+          <div class="section-heading split-heading"><div><p class="section-kicker">Tính năng</p><h2>Được thiết kế để đọc các trang web thực tế</h2></div><p>Từ chữ Kanji thông thường và nguồn gốc từ vay mượn đến ngày tháng trong tin tức, tên riêng và bản dịch câu dài, mọi tính năng đều được xây dựng để giữ nguyên cấu trúc trang gốc.</p></div>
+          <div class="feature-grid">
+            <article class="feature-card feature-large local-reading">
+              <div class="feature-copy"><span class="feature-tag">01 · Cách đọc thông minh</span><h3>Xem cách đọc phía trên từng chữ Kanji</h3><p>Kuromoji thực hiện phân tích hình thái học cục bộ trong trình duyệt. Nội dung được tải sau cũng được xử lý; nhấp lại sẽ gỡ các cách đọc do tiện ích thêm vào.</p><ul class="check-list"><li>Bỏ qua mã, biểu mẫu và thẻ ruby có sẵn</li><li>Phân biệt nghĩa thận trọng đối với ngày tháng, từ vay mượn và ngữ cảnh thông dụng</li><li>Chỉ thêm cách đọc cho chữ Kanji và giữ nguyên okurigana</li><li>Thu nhỏ cách đọc dài trong nội dung chính nhưng giữ ổn định chiều rộng phần đầu trang và điều hướng</li><li>Không sắp xếp lại hệ thống phân cấp phần tử, nhờ đó giữ nguyên kiểu dáng và tương tác</li></ul></div>
+              <div class="reading-demo" lang="ja"><p class="demo-label" lang="vi">Sau khi chú thích</p><p class="reading-line"><ruby>東京<rp>（</rp><rt>とうきょう</rt><rp>）</rp></ruby>で <ruby>新<rp>（</rp><rt>あたら</rt><rp>）</rp></ruby>しい <ruby>技術<rp>（</rp><rt>ぎじゅつ</rt><rp>）</rp></ruby>を <ruby>発表<rp>（</rp><rt>はっぴょう</rt><rp>）</rp></ruby></p><div class="demo-divider"></div><div class="smart-examples"><span><ruby>麻辣湯<rp>（</rp><rt>マーラータン</rt><rp>）</rp></ruby></span><span><ruby>読<rp>（</rp><rt>よ</rt><rp>）</rp></ruby>みます</span></div></div>
+            </article>
+
+            <article class="feature-card feature-large local-reading">
+              <div class="feature-copy"><span class="feature-tag">02 · Nguồn gốc từ vay mượn</span><h3>Xem từ nước ngoài nguyên gốc phía trên Katakana</h3><p>Cửa sổ bật lên có nút “Hiển thị nguồn gốc từ vay mượn” riêng. Khi được bật, tiện ích dùng 3.353 bản ghi từ nguyên tích hợp sẵn trên thiết bị để đối chiếu các từ vay mượn có độ tin cậy cao, đồng thời hiển thị dạng nguyên gốc của tên những nhà lãnh đạo, nhân vật công chúng và địa danh nước ngoài nổi tiếng. Tính năng này không gọi API và không tải văn bản trang web lên mạng.</p><ul class="check-list"><li>Mục từ tiếng Anh chỉ hiển thị từ nguyên gốc, không có ký hiệu quốc gia</li><li>Các ngôn ngữ khác dùng chữ Kanji viết tắt tên quốc gia của Nhật Bản như <span lang="ja">仏</span>, <span lang="ja">独</span> và <span lang="ja">西</span></li><li>Chú thích dài thu gọn theo chiều rộng của từ Katakana gốc và mở rộng trong cửa sổ nổi có giới hạn chiều rộng</li><li>Tên riêng đầy đủ có thể được đối chiếu trực tiếp; tên rút gọn cần ngữ cảnh về chức vụ, quốc gia hoặc con người</li><li>Từ đồng hình, từ tiếng Anh do người Nhật tạo ra và từ chưa biết được bỏ qua một cách thận trọng</li></ul><p>Dữ liệu từ nguyên được xây dựng từ <a href="https://www.edrdg.org/jmdict/jmdict_dtd_h.html">JMdict</a> theo <a href="https://www.edrdg.org/edrdg/licence.html" lang="en">EDRDG General Dictionary Licence Statement</a> và <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.</p></div>
+              <div class="reading-demo loanword-demo" lang="ja"><p class="demo-label" lang="vi">Khi đã bật nguồn gốc từ vay mượn</p><div class="loanword-showcase"><div class="loanword-sample" data-origin-language="en"><span class="loanword-origin" lang="en">computer</span><strong class="loanword-base">コンピューター</strong></div><div class="loanword-sample" data-origin-language="fr"><span class="loanword-origin"><span class="loanword-country" aria-label="tiếng Pháp">仏</span><span lang="fr">coup d'État</span></span><strong class="loanword-base">クーデター</strong></div><div class="loanword-sample" data-origin-language="de"><span class="loanword-origin"><span class="loanword-country" aria-label="tiếng Đức">独</span><span lang="de">Arbeit</span></span><strong class="loanword-base">アルバイト</strong></div><div class="loanword-sample" data-origin-language="es"><span class="loanword-origin"><span class="loanword-country" aria-label="tiếng Tây Ban Nha">西</span><span lang="es">paella</span></span><strong class="loanword-base">パエリア</strong></div></div><p class="loanword-note" lang="vi">Dạng nguyên gốc dài được hiển thị dưới dạng bản tóm tắt thu gọn. Nhấp hoặc nhấn Enter hay Space để xem dạng đầy đủ trong cửa sổ nổi mà không làm tăng khoảng cách dòng.</p></div>
+            </article>
+
+            <article class="feature-card translation-card-demo"><span class="feature-tag">03 · Dịch phần văn bản được chọn</span><h3>Dịch từ, câu hoặc đoạn văn</h3><p>Chọn phần bạn cần trợ giúp và mở thẻ dịch ngay trên trang gốc, kèm nút sao chép và thử lại. Khi API trả về dữ liệu sử dụng, thẻ sẽ hiển thị số token của yêu cầu đó.</p><div class="mini-selection" lang="ja"><span>新しい研究成果が発表されました。</span></div><div class="mini-result"><div><strong>Bản dịch phần đã chọn</strong><span>Câu</span></div><p lang="en">New research findings have been announced.</p><small>Tiếng Anh · 12 token</small></div></article>
+
+            <article class="feature-card context-card"><span class="feature-tag">04 · Tên riêng và ngữ cảnh</span><h3>Xác minh tên nhân vật công chúng mà không đoán tên thông thường</h3><p>Cách đọc họ tên đầy đủ đã đăng ký của các nhân vật công chúng Nhật Bản được ưu tiên hơn những phỏng đoán sai từ trang web hoặc trình tách từ. Tên nước ngoài, ngày tháng trong tin tức, số người và thuật ngữ học thuật được đối chiếu có ràng buộc; văn bản không chắc chắn được giữ nguyên.</p><div class="context-list" lang="ja"><div><span>24日（月）</span><b>にじゅうよっか・げつ</b></div><div><span>大谷翔平</span><b>おおたに・しょうへい</b></div><div><span>羽生結弦</span><b>はにゅう・ゆづる</b></div></div></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section management-section">
+        <div class="container management-grid">
+          <div class="management-copy"><p class="section-kicker">Bảng điều khiển dịch thuật</p><h2>Quản lý API, ngôn ngữ, lịch sử và mức sử dụng tại một nơi</h2><p>Kết nối dịch vụ tương thích OpenAI của riêng bạn. Ngôn ngữ giao diện của tiện ích—tiếng Trung, Anh, Nhật hoặc Hàn—độc lập với ngôn ngữ đích của bản dịch, nhờ đó mọi cài đặt luôn rõ ràng và dễ kiểm soát.</p><div class="management-points"><div><span>API</span><p><strong>Kết nối tùy chỉnh</strong><small>API Key, BaseURL và mô hình</small></p></div><div><span>A</span><p><strong>Ngôn ngữ đích</strong><small>8 ngôn ngữ dịch phổ biến</small></p></div><div><span>H</span><p><strong>Lịch sử dịch</strong><small>Tìm kiếm, xóa từng mục và xóa toàn bộ trên thiết bị</small></p></div><div><span>Σ</span><p><strong>Bản ghi token</strong><small>Token đầu vào, token đầu ra và tổng số theo ngày</small></p></div></div></div>
+          <div class="dashboard-mock" role="img" aria-label="Mô hình bảng điều khiển gồm cấu hình API, ngôn ngữ đích, lịch sử dịch và các mục sử dụng token">
+            <aside class="dashboard-sidebar" lang="en"><div class="dashboard-brand"><img src="../assets/icon.svg" alt="" width="34" height="34"><b>Reading Assistant</b></div><span class="dashboard-nav active">⚙ <b>API settings</b></span><span class="dashboard-nav">A <b>Target language</b></span><span class="dashboard-nav">◷ <b>Translation history</b></span><span class="dashboard-nav">Σ <b>Token usage</b></span></aside>
+            <div class="dashboard-main" lang="en"><div class="dashboard-heading"><small>JAPANESE READING ASSISTANT</small><h3>API settings</h3></div><div class="dashboard-form"><div class="dashboard-field"><b>API Key</b><span>••••••••••••</span></div><div class="dashboard-field"><b>Base URL</b><span>https://api.example.com/v1</span></div><div class="dashboard-field"><b>Model name</b><span>your-model-name</span></div><div class="permission-note"><b>Permission notice</b><small>Network access is requested only for this API host</small></div><div class="dashboard-buttons"><i>Save settings</i><i>Test connection</i></div></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section privacy-section" id="privacy">
+        <div class="container privacy-card">
+          <div class="privacy-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.6 2.8 8.6 7 10 4.2-1.4 7-5.4 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg></div>
+          <div class="privacy-copy"><p class="section-kicker">Quyền riêng tư</p><h2>Văn bản trang web được giữ cục bộ; bạn quyết định nội dung nào sẽ được dịch</h2><p>Cách đọc tiếng Nhật và việc đối chiếu nguồn gốc từ vay mượn luôn diễn ra cục bộ trong trình duyệt. Trong nội dung trang web, chỉ văn bản bạn chủ động chọn mới được gửi đến dịch vụ dịch đã cấu hình. Khi kiểm tra kết nối, tiện ích gửi văn bản kiểm tra cố định “<span lang="ja">こんにちは</span>”.</p><p><a class="privacy-policy-link" href="privacy.html">Đọc toàn bộ chính sách quyền riêng tư</a></p></div>
+          <ul class="privacy-list"><li><span>01</span><p><strong>API Key được lưu trên thiết bị của bạn</strong><small>Được lưu trong ngữ cảnh tiện ích đáng tin cậy và không bao giờ hiển thị đầy đủ</small></p></li><li><span>02</span><p><strong>Quyền truy cập API chỉ được yêu cầu khi cần</strong><small>Không có quyền truy cập thường trực vào mọi trang web</small></p></li><li><span>03</span><p><strong>Bạn kiểm soát lịch sử của mình</strong><small>Có thể xóa lịch sử dịch và bản ghi token bất cứ lúc nào</small></p></li></ul>
+        </div>
+      </section>
+
+      <section class="section install-section" id="install">
+        <div class="container">
+          <div class="section-heading centered light-heading"><p class="section-kicker">Cài đặt</p><h2>Bắt đầu đọc trang web tiếng Nhật chỉ trong vài phút</h2><p>Phiên bản này được cài đặt bằng quy trình “Tải tiện ích đã giải nén” của Chrome và yêu cầu Chrome 120 trở lên.</p></div>
+          <div class="download-panel"><div class="download-product"><img src="../assets/icon.svg" width="54" height="54" alt=""><p><small>Gói cài đặt chính thức dạng giải nén</small><strong>Trợ lý đọc Kanji tiếng Nhật</strong><span>v2.6.0 · ZIP · 14,9 MiB · Chrome 120+</span></p></div><a class="button button-light" href="../downloads/japanese-furigana-ai-2.6.0.zip" download>Tải tệp ZIP</a><p class="download-hash"><span>SHA-256</span><code>D9F1D1D8F6A7B98AEC19DB91B562FA7A5B1589681CFB07C670C66C17AD755CD4</code></p></div>
+          <ol class="install-grid">
+            <li><span class="step-number">01</span><div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 20h14"/></svg></div><h3>Tải xuống và giải nén</h3><p>Tải tệp ZIP ở trên rồi giải nén. Xác nhận thư mục thu được có chứa <code>manifest.json</code>.</p></li>
+            <li><span class="step-number">02</span><div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg></div><h3>Mở trang tiện ích</h3><p>Nhập <code>chrome://extensions</code> vào thanh địa chỉ của Chrome và bật “Chế độ dành cho nhà phát triển”.</p></li>
+            <li><span class="step-number">03</span><div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg></div><h3>Tải tiện ích đã giải nén</h3><p>Nhấp vào “Tải tiện ích đã giải nén” và chọn thư mục tiện ích bạn vừa giải nén.</p></li>
+            <li><span class="step-number">04</span><div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></div><h3>Mở một trang và bật tiện ích</h3><p>Mở một trang web tiếng Nhật, nhấp vào biểu tượng “漢” trên thanh công cụ, rồi bật cách đọc, nguồn gốc từ vay mượn hoặc dịch phần văn bản được chọn tùy nhu cầu.</p></li>
+          </ol>
+          <div class="install-note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></svg><p><strong>Bạn không cần API Key để dùng cách đọc.</strong> Để dịch phần văn bản được chọn, hãy nhập API Key, BaseURL và mô hình tương thích của riêng bạn. Khi cập nhật, nhấp vào “Tải lại” trên trang tiện ích rồi làm mới trang web; đừng gỡ tiện ích trước.</p></div>
+        </div>
+      </section>
+
+      <section class="section faq-section" id="faq">
+        <div class="container faq-grid">
+          <div class="faq-heading"><p class="section-kicker">Câu hỏi thường gặp</p><h2>Những điều bạn có thể muốn biết trước khi bắt đầu</h2><p>Tiện ích ưu tiên xử lý cục bộ và chỉ kết nối khi cần, vì vậy cách đọc và bản dịch có thể được dùng độc lập.</p></div>
+          <div class="faq-list">
+            <details><summary>Cách đọc có cần API không?<span aria-hidden="true">＋</span></summary><p>Không. Cách đọc chữ Kanji được phân tích cục bộ trong trình duyệt. Chỉ tính năng dịch phần văn bản được chọn mới cần API tương thích của riêng bạn.</p></details>
+            <details><summary>Tiện ích có tải toàn bộ trang web lên mạng không?<span aria-hidden="true">＋</span></summary><p>Không. Chú thích cách đọc không dùng mạng. Trong nội dung trang web, chỉ văn bản bạn chủ động chọn mới được gửi đến dịch vụ dịch đã cấu hình. Khi nhấp vào “Kiểm tra kết nối”, tiện ích gửi văn bản cố định “<span lang="ja">こんにちは</span>”. Nhà cung cấp xử lý dữ liệu theo chính sách quyền riêng tư riêng của họ.</p></details>
+            <details><summary>Làm thế nào để gỡ cách đọc khỏi trang hiện tại?<span aria-hidden="true">＋</span></summary><p>Mở lại cửa sổ bật lên của tiện ích và nhấp vào “Gỡ cách đọc”. Tiện ích sẽ xóa thẻ ruby do mình tạo và khôi phục văn bản gốc, trong khi tính năng dịch phần văn bản được chọn vẫn dùng được. Một số ít trang có nội dung thay đổi liên tục có thể cần được làm mới.</p></details>
+            <details><summary>Vì sao một số từ Katakana không có dạng nguyên gốc?<span aria-hidden="true">＋</span></summary><p>Katakana cũng có thể biểu thị từ tiếng Anh do người Nhật tạo ra, từ tượng thanh hoặc tên riêng. Tiện ích chỉ chú thích các từ đã được xác minh có nguồn gốc rõ ràng, dựa trên một tập con JMdict cố định có độ tin cậy cao ngày 2026-08-17, một lớp từ thông dụng được rà soát thủ công và các danh sách từ vựng được kiểm tra có chọn lọc của Viện Ngôn ngữ và Ngôn ngữ học Nhật Bản. Từ đồng hình giữa nhiều mục từ, từ chưa biết và tên rút gọn không có ngữ cảnh an toàn được giữ nguyên. Tiếng Anh chỉ hiển thị từ nguyên gốc; các ngôn ngữ khác và tên riêng nước ngoài dùng chữ Kanji viết tắt tên quốc gia của Nhật Bản như <span lang="ja">仏</span>, <span lang="ja">独</span> và <span lang="ja">西</span>.</p></details>
+            <details><summary>Những trang nào hiện chưa thể xử lý?<span aria-hidden="true">＋</span></summary><p>Không thể chèn tiện ích vào các trang hệ thống của Chrome. Shadow DOM đóng, iframe khác nguồn, ký tự hiếm và tên riêng chưa biết có thể được giữ nguyên. Khối mã, biểu mẫu, thẻ ruby có sẵn và vùng có thể chỉnh sửa được chủ động bỏ qua.</p></details>
+            <details><summary>API dịch cần hỗ trợ những gì?<span aria-hidden="true">＋</span></summary><p>API phải hỗ trợ <code>POST /chat/completions</code>. Các dịch vụ thông thường phải dùng HTTPS; chỉ localhost và 127.0.0.1 mới được dùng HTTP. Mỗi yêu cầu giới hạn ở 12.000 ký tự và phụ thuộc vào khóa, mạng, hạn mức cùng quyền truy cập mô hình của riêng bạn. Bản ghi token cục bộ chỉ mang tính tham khảo, không phải hóa đơn của nhà cung cấp.</p></details>
+          </div>
+        </div>
+      </section>
+
+      <section class="final-cta"><div class="container final-cta-inner"><img src="../assets/icon.svg" width="76" height="76" alt=""><div><p>Việc đọc trang web tiếng Nhật có thể trở nên tự nhiên hơn.</p><h2>Chỉ đưa cách đọc vào tầm mắt khi bạn cần.</h2></div><a class="button button-light" href="#install">Xem các bước cài đặt</a></div></section>
+    </main>
+
+    <footer class="site-footer"><div class="container footer-grid"><div class="footer-brand"><img src="../assets/icon.svg" width="38" height="38" alt=""><div><strong>Trợ lý đọc Kanji tiếng Nhật</strong><small>Công cụ ưu tiên xử lý cục bộ để đọc trang web tiếng Nhật</small></div></div><p>© <span data-year>2026</span> Trợ lý đọc Kanji tiếng Nhật · v2.6.0</p><a href="#top">Về đầu trang <span aria-hidden="true">↑</span></a></div></footer>
+
+    <script src="../script.js"></script>
+  </body>
+</html>

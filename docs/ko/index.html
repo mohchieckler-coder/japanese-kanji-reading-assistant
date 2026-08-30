@@ -1,0 +1,208 @@
+<!doctype html>
+<html class="no-js" lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#fbfaf7">
+    <meta name="color-scheme" content="light">
+    <meta name="description" content="일본어 한자 읽기 도우미는 일본어 웹페이지의 한자에 읽는 법을 달고, 외래어 및 외국 인명·지명의 원어 표기를 보여 주며, 사용자가 설정한 OpenAI 호환 API로 선택한 부분을 번역합니다.">
+    <title>일본어 한자 읽기 도우미｜일본어 웹페이지 읽기, 한자 하나하나에서 시작하세요</title>
+    <link rel="canonical" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/ko/">
+    <link rel="alternate" hreflang="zh-CN" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/">
+    <link rel="alternate" hreflang="en" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/en/">
+    <link rel="alternate" hreflang="ja" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/ja/">
+    <link rel="alternate" hreflang="ko" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/ko/">
+    <link rel="alternate" hreflang="vi" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/vi/">
+    <link rel="alternate" hreflang="x-default" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/">
+    <meta property="og:title" content="일본어 한자 읽기 도우미｜일본어 웹페이지 읽기, 한자 하나하나에서 시작하세요">
+    <meta property="og:description" content="일본어 웹페이지의 한자에 읽는 법을 달고, 외래어 및 외국 인명·지명의 원어 표기를 보여 주며, 사용자가 설정한 OpenAI 호환 API로 선택한 부분을 번역합니다.">
+    <meta property="og:url" content="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/ko/">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="ko_KR">
+    <meta property="og:locale:alternate" content="zh_CN">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:locale:alternate" content="ja_JP">
+    <meta property="og:locale:alternate" content="vi_VN">
+    <link rel="icon" href="../assets/icon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="../styles.css">
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "일본어 한자 읽기 도우미",
+        "alternateName": "Japanese Kanji Reading Assistant",
+        "applicationCategory": "BrowserApplication",
+        "operatingSystem": "Chrome 120+",
+        "softwareVersion": "2.6.0",
+        "description": "한자에 일본어 읽는 법을 달고, 신뢰도 높은 외래어와 외국 인명·지명의 원어 표기를 로컬에서 보여 주며, 사용자가 설정한 OpenAI 호환 API로 선택한 단어·문장·문단을 번역합니다.",
+        "url": "https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/ko/",
+        "inLanguage": "ko"
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">본문으로 건너뛰기</a>
+
+    <header class="site-header" data-header>
+      <div class="container header-inner">
+        <a class="brand" href="#top" aria-label="일본어 한자 읽기 도우미 홈">
+          <img src="../assets/icon.svg" width="44" height="44" alt="">
+          <span class="brand-copy"><strong>일본어 한자 읽기 도우미</strong><small>웹페이지에서 바로 보는 일본어 읽는 법</small></span>
+        </a>
+
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="탐색 메뉴 열기" data-menu-toggle data-menu-open-label="탐색 메뉴 열기" data-menu-close-label="탐색 메뉴 닫기">
+          <span></span><span></span><span></span>
+        </button>
+
+        <nav class="site-nav" id="site-nav" aria-label="주요 탐색" data-nav>
+          <a href="#product">제품 소개</a>
+          <a href="#features">기능</a>
+          <a href="#privacy">개인정보 보호</a>
+          <a href="#faq">자주 묻는 질문</a>
+          <a class="button button-small" href="#install">확장 프로그램 설치</a>
+          <details class="language-switcher" data-language-switcher>
+            <summary aria-label="웹사이트 언어 선택"><span aria-hidden="true">文</span><span>한국어</span></summary>
+            <ul>
+              <li><a href="../" hreflang="zh-CN" lang="zh-CN" data-locale-link>简体中文</a></li>
+              <li><a href="../en/" hreflang="en" lang="en" data-locale-link>English</a></li>
+              <li><a href="../ja/" hreflang="ja" lang="ja" data-locale-link>日本語</a></li>
+              <li><a href="./" hreflang="ko" lang="ko" aria-current="page" data-locale-link>한국어</a></li>
+              <li><a href="../vi/" hreflang="vi" lang="vi" data-locale-link>Tiếng Việt</a></li>
+            </ul>
+          </details>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main-content">
+      <section class="hero" id="top">
+        <div class="hero-orb hero-orb-one" aria-hidden="true"></div>
+        <div class="hero-orb hero-orb-two" aria-hidden="true"></div>
+        <div class="container hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow"><span>Chrome 확장 프로그램</span> v2.6.0</p>
+            <h1>일본어 웹페이지 읽기,<br><em><span>한자 하나하나에서</span> <span>시작하세요.</span></em></h1>
+            <p class="hero-lead">뉴스, 포럼, 논문, 스포츠 기사를 열고 한 번의 클릭으로 한자 위에 읽는 법을 표시하세요. 가타카나 외래어의 원어를 따로 표시하고, 지원되는 외국 인명과 지명을 원어 표기로 확인한 뒤, 선택한 단어·문장·문단을 자신의 API로 번역할 수도 있습니다.</p>
+            <div class="hero-actions">
+              <a class="button" href="../downloads/japanese-furigana-ai-2.6.0.zip" download>v2.6.0 다운로드<svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7 4 6 6-6 6"/></svg></a>
+              <a class="button button-secondary" href="#install">설치 방법 보기</a>
+            </div>
+            <ul class="hero-points" aria-label="제품 주요 특징">
+              <li><span aria-hidden="true">✓</span> 읽는 법을 로컬에서 처리</li>
+              <li><span aria-hidden="true">✓</span> 외래어 어원을 로컬에서 대조</li>
+              <li><span aria-hidden="true">✓</span> 직접 선택한 텍스트만 번역</li>
+              <li><span aria-hidden="true">✓</span> 광고와 추적 스크립트 없음</li>
+            </ul>
+          </div>
+
+          <div class="hero-visual" role="img" aria-label="일본어 뉴스 페이지에서 한자 읽는 법과 선택 번역 카드를 표시하는 확장 프로그램 예시">
+            <div class="browser-shell">
+              <div class="browser-bar" aria-hidden="true"><div class="browser-dots"><i></i><i></i><i></i></div><div class="address-bar"><span>●</span> news.example.jp</div><img src="../assets/icon.svg" width="28" height="28" alt=""></div>
+              <div class="browser-content" lang="ja">
+                <div class="article-topline"><span>テクノロジー</span><time datetime="2026-08-20">2026.08.20</time></div>
+                <h2><ruby>日本<rp>（</rp><rt>にほん</rt><rp>）</rp></ruby>の <ruby>研究<rp>（</rp><rt>けんきゅう</rt><rp>）</rp></ruby>チーム、 <ruby>新技術<rp>（</rp><rt>しんぎじゅつ</rt><rp>）</rp></ruby>を <ruby>発表<rp>（</rp><rt>はっぴょう</rt><rp>）</rp></ruby></h2>
+                <p class="article-body"><ruby>最新<rp>（</rp><rt>さいしん</rt><rp>）</rp></ruby>の <mark><ruby>衛星<rp>（</rp><rt>えいせい</rt><rp>）</rp></ruby><ruby>画像<rp>（</rp><rt>がぞう</rt><rp>）</rp></ruby>から、 <ruby>台風<rp>（</rp><rt>たいふう</rt><rp>）</rp></ruby>の <ruby>進路<rp>（</rp><rt>しんろ</rt><rp>）</rp></ruby>を <ruby>分析<rp>（</rp><rt>ぶんせき</rt><rp>）</rp></ruby>しました。</mark></p>
+                <div class="translation-popover" lang="ko"><div class="translation-title"><span>선택 영역 번역</span><b>문장</b></div><p>최신 위성 영상으로 태풍의 예상 진로를 분석했습니다.</p><div class="translation-meta">한국어 · 18토큰</div></div>
+                <div class="annotation-status" lang="ko"><span></span> 이 페이지에서 읽는 법이 활성화되었습니다</div>
+              </div>
+            </div>
+            <div class="floating-note note-local"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.6 2.8 8.6 7 10 4.2-1.4 7-5.4 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg><span><strong>로컬 읽기 처리</strong><small>읽는 법 처리에는 본문 업로드가 필요하지 않습니다</small></span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="trust-strip" aria-label="제품 개요">
+        <div class="container trust-grid">
+          <div><strong>로컬</strong><span>일본어 읽는 법 분석</span></div>
+          <div data-extension-ui-languages><strong>4개 언어</strong><span>중국어, 영어, 일본어, 한국어 UI</span></div>
+          <div><strong>동적 처리</strong><span>나중에 불러온 콘텐츠도 처리</span></div>
+          <div><strong>Chrome 120+</strong><span>Manifest V3</span></div>
+        </div>
+      </section>
+
+      <section class="section product-section" id="product">
+        <div class="container">
+          <div class="section-heading centered"><p class="section-kicker">제품 소개</p><h2>읽던 흐름을 끊고 검색하는 시간을 줄이세요</h2><p>기존 리더를 대체하는 도구가 아닙니다. 현재 페이지에서 언제든 추가하거나 제거할 수 있는 가벼운 일본어 읽기 보조 도구입니다.</p></div>
+          <div class="journey-grid">
+            <article class="journey-card"><span class="journey-number">01</span><div class="journey-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M7 9h4M7 13h10M14 5v4M17 5v4"/></svg></div><h3>일본어 웹페이지 열기</h3><p>일반적인 뉴스, 포럼, 학술, 스포츠 페이지에서 사용하세요. 페이지의 원문 전체나 링크를 대체하지 않고 현재 페이지에 읽기 도움을 바로 더합니다.</p></article>
+            <article class="journey-card journey-card-active"><span class="journey-number">02</span><div class="journey-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19h14M7 16l4-11h2l4 11M8.5 12h7"/></svg></div><h3>읽는 법 켜기</h3><p>브라우저에서 텍스트를 로컬로 분석하고 표준 ruby 마크업으로 한자 위에 읽는 법을 표시합니다.</p></article>
+            <article class="journey-card"><span class="journey-number">03</span><div class="journey-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v10H9l-4 4V5Z"/><path d="M8 9h8M8 12h5"/></svg></div><h3>필요할 때만 번역하기</h3><p>단어, 문장, 문단을 선택하면 탭을 계속 오가지 않고 같은 페이지에서 번역을 확인할 수 있습니다.</p></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section feature-section" id="features">
+        <div class="container">
+          <div class="section-heading split-heading"><div><p class="section-kicker">기능</p><h2>실제 웹페이지를 읽는 데 맞춘 설계</h2></div><p>일반 한자부터 외래어 원어, 뉴스 날짜, 이름, 긴 문장 번역까지 모든 기능이 원래 페이지 구조를 보존하도록 설계되었습니다.</p></div>
+          <div class="feature-grid">
+            <article class="feature-card feature-large local-reading">
+              <div class="feature-copy"><span class="feature-tag">01 · 스마트 읽기</span><h3>한자마다 읽는 법을 위에 표시</h3><p>Kuromoji가 브라우저에서 형태소 분석을 로컬로 수행합니다. 나중에 불러온 콘텐츠도 처리하며, 다시 클릭하면 확장 프로그램이 추가한 읽는 법을 제거합니다.</p><ul class="check-list"><li>코드, 양식, 기존 ruby 마크업은 건너뜁니다</li><li>날짜, 외래어, 일반적인 문맥을 보수적으로 구분합니다</li><li>한자에만 읽는 법을 달고 오쿠리가나는 그대로 유지합니다</li><li>본문의 긴 읽기 표시는 크기를 자동으로 줄이고, 머리글과 탐색 영역의 읽기 표시는 항목 너비를 바꾸지 않습니다</li><li>스타일과 상호작용을 보존하도록 요소 계층을 재배치하지 않습니다</li></ul></div>
+              <div class="reading-demo" lang="ja"><p class="demo-label" lang="ko">읽는 법 표시 후</p><p class="reading-line"><ruby>東京<rp>（</rp><rt>とうきょう</rt><rp>）</rp></ruby>で <ruby>新<rp>（</rp><rt>あたら</rt><rp>）</rp></ruby>しい <ruby>技術<rp>（</rp><rt>ぎじゅつ</rt><rp>）</rp></ruby>を <ruby>発表<rp>（</rp><rt>はっぴょう</rt><rp>）</rp></ruby></p><div class="demo-divider"></div><div class="smart-examples"><span><ruby>麻辣湯<rp>（</rp><rt>マーラータン</rt><rp>）</rp></ruby></span><span><ruby>読<rp>（</rp><rt>よ</rt><rp>）</rp></ruby>みます</span></div></div>
+            </article>
+
+            <article class="feature-card feature-large local-reading">
+              <div class="feature-copy"><span class="feature-tag">02 · 외래어 원어</span><h3>가타카나 위에 외국어 원어 표시</h3><p>팝업에는 별도의 ‘외래어 원어 표시’ 버튼이 있습니다. 활성화하면 확장 프로그램에 포함된 3,353개의 로컬 어원 기록으로 신뢰도 높은 외래어를 대조하고, 잘 알려진 외국 정치 지도자·유명 인사·지명의 원어 표기를 보여 줍니다. API를 호출하거나 페이지 텍스트를 업로드하지 않습니다.</p><ul class="check-list"><li>영어 항목은 국가 표시 없이 원어만 보여 줍니다</li><li>다른 언어는 <span lang="ja">仏</span>, <span lang="ja">独</span>, <span lang="ja">西</span> 같은 일본어 한자 국가 약칭을 사용합니다</li><li>긴 주석은 가타카나 본문의 너비로 접히며 너비가 제한된 팝오버에서 펼쳐집니다</li><li>전체 고유명사는 직접 대조할 수 있지만 줄인 이름에는 직책·국가·인물 문맥이 필요합니다</li><li>동형어, 와세이에이고, 알 수 없는 단어는 보수적으로 건너뜁니다</li></ul><p>어원 데이터는 <a href="https://www.edrdg.org/jmdict/jmdict_dtd_h.html">JMdict</a>에서 가져왔으며 <a href="https://www.edrdg.org/edrdg/licence.html" lang="en">EDRDG General Dictionary Licence Statement</a>와 <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>을 따릅니다.</p></div>
+              <div class="reading-demo loanword-demo" lang="ja"><p class="demo-label" lang="ko">외래어 원어 표시를 켠 경우</p><div class="loanword-showcase"><div class="loanword-sample" data-origin-language="en"><span class="loanword-origin" lang="en">computer</span><strong class="loanword-base">コンピューター</strong></div><div class="loanword-sample" data-origin-language="fr"><span class="loanword-origin"><span class="loanword-country" aria-label="프랑스어">仏</span><span lang="fr">coup d'État</span></span><strong class="loanword-base">クーデター</strong></div><div class="loanword-sample" data-origin-language="de"><span class="loanword-origin"><span class="loanword-country" aria-label="독일어">独</span><span lang="de">Arbeit</span></span><strong class="loanword-base">アルバイト</strong></div><div class="loanword-sample" data-origin-language="es"><span class="loanword-origin"><span class="loanword-country" aria-label="스페인어">西</span><span lang="es">paella</span></span><strong class="loanword-base">パエリア</strong></div></div><p class="loanword-note" lang="ko">긴 원어 표기는 접힌 요약으로 표시됩니다. 줄 간격을 넓히지 않고 팝오버에서 전체 원어 표기를 보려면 클릭하거나 Enter 또는 Space 키를 누르세요.</p></div>
+            </article>
+
+            <article class="feature-card translation-card-demo"><span class="feature-tag">03 · 선택 영역 번역</span><h3>단어, 문장, 문단 번역</h3><p>도움이 필요한 부분을 선택하면 원래 페이지에 복사와 재시도 기능이 있는 번역 카드가 열립니다. API가 사용량 데이터를 반환하면 해당 요청에 사용된 토큰 수도 카드에 표시합니다.</p><div class="mini-selection" lang="ja"><span>新しい研究成果が発表されました。</span></div><div class="mini-result"><div><strong>선택 영역 번역</strong><span>문장</span></div><p>새로운 연구 성과가 발표되었습니다.</p><small>한국어 · 12토큰</small></div></article>
+
+            <article class="feature-card context-card"><span class="feature-tag">04 · 이름과 문맥</span><h3>공인의 이름은 확인하고 일반 이름은 추측하지 않습니다</h3><p>등록된 일본 공인의 전체 이름 읽기가 웹페이지나 형태소 분석기의 잘못된 추측보다 우선합니다. 외국 이름, 뉴스 날짜, 인원수, 학술 용어에는 제한된 대조 규칙을 적용하며, 확실하지 않은 텍스트는 바꾸지 않습니다.</p><div class="context-list" lang="ja"><div><span>24日（月）</span><b>にじゅうよっか・げつ</b></div><div><span>大谷翔平</span><b>おおたに・しょうへい</b></div><div><span>羽生結弦</span><b>はにゅう・ゆづる</b></div></div></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section management-section">
+        <div class="container management-grid">
+          <div class="management-copy"><p class="section-kicker">번역 대시보드</p><h2>API, 언어, 기록, 사용량을 한곳에서 관리</h2><p>자신의 OpenAI 호환 서비스에 연결하세요. 인터페이스 언어와 번역 대상 언어를 따로 설정할 수 있어 모든 설정을 명확하게 관리할 수 있습니다.</p><div class="management-points"><div><span>API</span><p><strong>사용자 지정 연결</strong><small>API Key, BaseURL, 모델</small></p></div><div><span>A</span><p><strong>번역 대상 언어</strong><small>자주 쓰는 번역 대상 8개 언어</small></p></div><div><span>H</span><p><strong>번역 기록</strong><small>로컬에서 검색, 삭제, 전체 삭제</small></p></div><div><span>Σ</span><p><strong>토큰 기록</strong><small>입력, 출력, 일일 합계</small></p></div></div></div>
+          <div class="dashboard-mock" role="img" aria-label="API 설정, 번역 대상 언어, 번역 기록, 토큰 사용량 항목이 있는 대시보드 예시">
+            <aside class="dashboard-sidebar"><div class="dashboard-brand"><img src="../assets/icon.svg" alt="" width="34" height="34"><b>읽기 도우미</b></div><span class="dashboard-nav active">⚙ <b>API 설정</b></span><span class="dashboard-nav">A <b>번역 대상 언어</b></span><span class="dashboard-nav">◷ <b>번역 기록</b></span><span class="dashboard-nav">Σ <b>토큰 사용량</b></span></aside>
+            <div class="dashboard-main"><div class="dashboard-heading"><small>일본어 한자 읽기 도우미</small><h3>API 설정</h3></div><div class="dashboard-form"><div class="dashboard-field"><b>API Key</b><span>••••••••••••</span></div><div class="dashboard-field"><b>Base URL</b><span lang="en">https://api.example.com/v1</span></div><div class="dashboard-field"><b>모델 이름</b><span lang="en">your-model-name</span></div><div class="permission-note"><b>권한 안내</b><small>이 API 호스트에 대한 네트워크 접근만 요청합니다</small></div><div class="dashboard-buttons"><i>설정 저장</i><i>연결 테스트</i></div></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section privacy-section" id="privacy">
+        <div class="container privacy-card">
+          <div class="privacy-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.6 2.8 8.6 7 10 4.2-1.4 7-5.4 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg></div>
+          <div class="privacy-copy"><p class="section-kicker">개인정보 보호</p><h2>페이지 텍스트는 로컬에 남고, 번역할 내용은 사용자가 정합니다</h2><p>일본어 읽는 법 분석과 외래어 원어 대조는 항상 브라우저에서 로컬로 이루어집니다. 페이지 콘텐츠 중 사용자가 직접 선택한 텍스트만 설정한 번역 서비스로 전송됩니다. 연결 테스트에서는 고정된 테스트 문구 ‘<span lang="ja">こんにちは</span>’를 전송합니다.</p><p><a class="privacy-policy-link" href="privacy.html">개인정보 처리방침 전문 보기</a></p></div>
+          <ul class="privacy-list"><li><span>01</span><p><strong>API Key는 기기에 저장됩니다</strong><small>신뢰할 수 있는 확장 프로그램 컨텍스트에 저장되며 전체가 표시되지 않습니다</small></p></li><li><span>02</span><p><strong>API 권한은 필요할 때 요청합니다</strong><small>모든 웹사이트에 접근하는 영구 권한이 없습니다</small></p></li><li><span>03</span><p><strong>기록은 사용자가 관리합니다</strong><small>번역 기록과 토큰 기록을 언제든 삭제할 수 있습니다</small></p></li></ul>
+        </div>
+      </section>
+
+      <section class="section install-section" id="install">
+        <div class="container">
+          <div class="section-heading centered light-heading"><p class="section-kicker">설치</p><h2>몇 분 만에 일본어 웹페이지 읽기를 시작하세요</h2><p>이 버전은 Chrome의 ‘압축해제된 확장 프로그램을 로드합니다’ 절차로 설치하며 Chrome 120 이상이 필요합니다.</p></div>
+          <div class="download-panel"><div class="download-product"><img src="../assets/icon.svg" width="54" height="54" alt=""><p><small>공식 설치용 ZIP 패키지</small><strong>일본어 한자 읽기 도우미</strong><span>v2.6.0 · ZIP · 14.9 MiB · Chrome 120+</span></p></div><a class="button button-light" href="../downloads/japanese-furigana-ai-2.6.0.zip" download>ZIP 다운로드</a><p class="download-hash"><span>SHA-256</span><code>D9F1D1D8F6A7B98AEC19DB91B562FA7A5B1589681CFB07C670C66C17AD755CD4</code></p></div>
+          <ol class="install-grid">
+            <li><span class="step-number">01</span><div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 20h14"/></svg></div><h3>다운로드하고 압축 풀기</h3><p>위의 ZIP을 다운로드해 압축을 풉니다. 생성된 폴더에 <code>manifest.json</code>이 있는지 확인하세요.</p></li>
+            <li><span class="step-number">02</span><div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg></div><h3>확장 프로그램 페이지 열기</h3><p>Chrome 주소 표시줄에 <code>chrome://extensions</code>를 입력하고 ‘개발자 모드’를 켜세요.</p></li>
+            <li><span class="step-number">03</span><div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg></div><h3>압축해제된 확장 프로그램 로드</h3><p>‘압축해제된 확장 프로그램을 로드합니다’를 클릭하고 방금 압축을 푼 확장 프로그램 폴더를 선택하세요.</p></li>
+            <li><span class="step-number">04</span><div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></div><h3>페이지를 열고 기능 켜기</h3><p>일본어 웹페이지를 열고 도구 모음의 ‘漢’ 아이콘을 클릭한 다음 필요에 따라 읽는 법, 외래어 원어 표시, 선택 영역 번역을 켜세요.</p></li>
+          </ol>
+          <div class="install-note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></svg><p><strong>읽는 법 기능에는 API Key가 필요하지 않습니다.</strong> 선택 영역 번역에는 자신의 호환 API Key, BaseURL, 모델을 입력하세요. 업데이트할 때는 확장 프로그램을 먼저 삭제하지 말고 확장 프로그램 페이지에서 ‘새로고침’을 클릭한 다음 웹페이지를 새로 고치세요.</p></div>
+        </div>
+      </section>
+
+      <section class="section faq-section" id="faq">
+        <div class="container faq-grid">
+          <div class="faq-heading"><p class="section-kicker">자주 묻는 질문</p><h2>시작하기 전에 궁금할 만한 내용</h2><p>이 확장 프로그램은 로컬 우선 방식이며 필요할 때만 연결하므로 읽는 법과 번역 기능을 서로 독립적으로 사용할 수 있습니다.</p></div>
+          <div class="faq-list">
+            <details><summary>읽는 법 기능에 API가 필요한가요?<span aria-hidden="true">＋</span></summary><p>아니요. 한자 읽는 법은 브라우저에서 로컬로 분석됩니다. 선택 영역 번역에만 자신의 호환 API가 필요합니다.</p></details>
+            <details><summary>확장 프로그램이 웹페이지 전체를 업로드하나요?<span aria-hidden="true">＋</span></summary><p>아니요. 읽는 법 주석은 네트워크를 사용하지 않습니다. 페이지 콘텐츠 중 사용자가 직접 선택한 텍스트만 설정한 번역 서비스로 전송됩니다. ‘연결 테스트’를 클릭하면 고정 문구 ‘<span lang="ja">こんにちは</span>’가 전송됩니다. 제공업체는 자체 개인정보 처리방침에 따라 데이터를 처리합니다.</p></details>
+            <details><summary>현재 페이지에서 읽는 법을 어떻게 제거하나요?<span aria-hidden="true">＋</span></summary><p>확장 프로그램 팝업을 다시 열고 ‘읽는 법 제거’를 클릭하세요. 확장 프로그램이 생성한 ruby 마크업을 제거하고 원래 텍스트를 복원하며 선택 영역 번역은 계속 사용할 수 있습니다. 매우 동적인 일부 페이지는 새로 고침이 필요할 수 있습니다.</p></details>
+            <details><summary>일부 가타카나 단어에는 왜 원어가 표시되지 않나요?<span aria-hidden="true">＋</span></summary><p>가타카나는 와세이에이고, 의성어·의태어, 고유명사를 나타낼 수도 있습니다. 확장 프로그램은 2026-08-17 기준의 고정된 신뢰도 높은 JMdict 하위 집합, 수동 검토한 일반 단어 계층, 선별 검토한 일본 국립국어연구소 어휘 목록을 사용해 어원이 분명하고 검증된 단어에만 주석을 답니다. 항목 간 동형어, 알 수 없는 단어, 안전한 문맥이 없는 줄인 이름은 바꾸지 않습니다. 영어는 원어만 표시하고, 다른 언어와 외국 고유명사는 <span lang="ja">仏</span>, <span lang="ja">独</span>, <span lang="ja">西</span> 같은 일본어 국가 약칭을 사용합니다.</p></details>
+            <details><summary>아직 처리할 수 없는 페이지가 있나요?<span aria-hidden="true">＋</span></summary><p>Chrome 시스템 페이지에는 확장 프로그램을 삽입할 수 없습니다. 닫힌 shadow DOM, 교차 출처 iframe, 희귀 문자, 알 수 없는 고유명사는 바뀌지 않을 수 있습니다. 코드 블록, 양식, 기존 ruby 마크업, 편집 가능한 영역은 의도적으로 건너뜁니다.</p></details>
+            <details><summary>번역 API는 무엇을 지원해야 하나요?<span aria-hidden="true">＋</span></summary><p>API가 <code>POST /chat/completions</code>를 지원해야 합니다. 일반 서비스는 HTTPS를 사용해야 하며 localhost와 127.0.0.1만 HTTP를 사용할 수 있습니다. 각 요청은 12,000자로 제한되며 사용자의 키, 네트워크, 할당량, 모델 접근 권한에 따라 작동합니다. 로컬 토큰 기록은 추정치이며 제공업체 청구 금액이 아닙니다.</p></details>
+          </div>
+        </div>
+      </section>
+
+      <section class="final-cta"><div class="container final-cta-inner"><img src="../assets/icon.svg" width="76" height="76" alt=""><div><p>일본어 웹페이지 읽기가 더 자연스러워집니다.</p><h2>필요할 때만 읽는 법을 눈앞에 펼치세요.</h2></div><a class="button button-light" href="#install">설치 방법 보기</a></div></section>
+    </main>
+
+    <footer class="site-footer"><div class="container footer-grid"><div class="footer-brand"><img src="../assets/icon.svg" width="38" height="38" alt=""><div><strong>일본어 한자 읽기 도우미</strong><small>일본어 웹페이지를 위한 로컬 우선 읽기 도구</small></div></div><p>© <span data-year>2026</span> 일본어 한자 읽기 도우미 · v2.6.0</p><a href="#top">맨 위로 <span aria-hidden="true">↑</span></a></div></footer>
+
+    <script src="../script.js"></script>
+  </body>
+</html>

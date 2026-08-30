@@ -3,6 +3,7 @@ dist/
 artifacts/
 releases/
 .firecrawl/
+.worktrees/
 *.log
 *.pem
 *.crx

@@ -10,9 +10,24 @@
       content="日语汉字 AI 读音助手：一键为日语网页标注读音、外来语及外国专名原文，并支持使用自定义 OpenAI 兼容接口进行划词、句子和段落翻译。"
     >
     <title>日语汉字 AI 读音助手｜读懂日语网页，从每一个汉字开始</title>
+    <link rel="canonical" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/">
+    <link rel="alternate" hreflang="zh-CN" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/">
+    <link rel="alternate" hreflang="en" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/en/">
+    <link rel="alternate" hreflang="ja" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/ja/">
+    <link rel="alternate" hreflang="ko" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/ko/">
+    <link rel="alternate" hreflang="vi" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/vi/">
+    <link rel="alternate" hreflang="x-default" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/">
+    <meta property="og:title" content="日语汉字 AI 读音助手｜读懂日语网页，从每一个汉字开始">
+    <meta property="og:description" content="一键为日语网页标注读音、外来语及外国专名原文，并支持使用自定义 OpenAI 兼容接口进行划词、句子和段落翻译。">
+    <meta property="og:url" content="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="zh_CN">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:locale:alternate" content="ja_JP">
+    <meta property="og:locale:alternate" content="ko_KR">
+    <meta property="og:locale:alternate" content="vi_VN">
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="styles.css">
-    <script>document.documentElement.classList.replace("no-js", "js");</script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -22,7 +37,9 @@
         "applicationCategory": "BrowserApplication",
         "operatingSystem": "Chrome 120+",
         "softwareVersion": "2.6.0",
-        "description": "为日语网页汉字添加日语读音，在本地显示高置信片假名外来语及外国专名原文，并使用用户配置的 OpenAI 兼容接口翻译主动选中的词、句子或段落。"
+        "description": "为日语网页汉字添加日语读音，在本地显示高置信片假名外来语及外国专名原文，并使用用户配置的 OpenAI 兼容接口翻译主动选中的词、句子或段落。",
+        "url": "https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/",
+        "inLanguage": "zh-CN"
       }
     </script>
   </head>
@@ -46,6 +63,8 @@
           aria-controls="site-nav"
           aria-label="打开导航菜单"
           data-menu-toggle
+          data-menu-open-label="打开导航菜单"
+          data-menu-close-label="关闭导航菜单"
         >
           <span></span><span></span><span></span>
         </button>
@@ -56,6 +75,19 @@
           <a href="#privacy">隐私保护</a>
           <a href="#faq">常见问题</a>
           <a class="button button-small" href="#install">安装插件</a>
+          <details class="language-switcher" data-language-switcher>
+            <summary aria-label="选择网站语言">
+              <span aria-hidden="true">文</span>
+              <span>简体中文</span>
+            </summary>
+            <ul>
+              <li><a href="./" hreflang="zh-CN" lang="zh-CN" aria-current="page" data-locale-link>简体中文</a></li>
+              <li><a href="en/" hreflang="en" lang="en" data-locale-link>English</a></li>
+              <li><a href="ja/" hreflang="ja" lang="ja" data-locale-link>日本語</a></li>
+              <li><a href="ko/" hreflang="ko" lang="ko" data-locale-link>한국어</a></li>
+              <li><a href="vi/" hreflang="vi" lang="vi" data-locale-link>Tiếng Việt</a></li>
+            </ul>
+          </details>
         </nav>
       </div>
     </header>
@@ -134,7 +166,7 @@
       <section class="trust-strip" aria-label="产品概览">
         <div class="container trust-grid">
           <div><strong>本地</strong><span>日语读音分析</span></div>
-          <div><strong>4 种</strong><span>中英日韩界面</span></div>
+          <div data-extension-ui-languages><strong>4 种</strong><span>中英日韩界面</span></div>
           <div><strong>动态</strong><span>适配后加载正文</span></div>
           <div><strong>Chrome 120+</strong><span>Manifest V3</span></div>
         </div>
@@ -231,18 +263,15 @@
                 </ul>
                 <p>词源数据派生自 <a href="https://www.edrdg.org/jmdict/jmdict_dtd_h.html">JMdict</a>，遵循 <a href="https://www.edrdg.org/edrdg/licence.html">EDRDG General Dictionary Licence Statement</a> 与 <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>。</p>
               </div>
-              <div class="reading-demo" lang="ja">
+              <div class="reading-demo loanword-demo" lang="ja">
                 <p class="demo-label" lang="zh-CN">开启外来语原词标注后</p>
-                <p class="reading-line">
-                  <ruby>コンピューター<rp>（</rp><rt>computer</rt><rp>）</rp></ruby>
-                </p>
-                <div class="demo-divider"></div>
-                <div class="smart-examples">
-                  <span><ruby>クーデター<rp>（</rp><rt>（仏）coup d'État</rt><rp>）</rp></ruby></span>
-                  <span><ruby>アルバイト<rp>（</rp><rt>（独）Arbeit</rt><rp>）</rp></ruby></span>
-                  <span><ruby>パエリア<rp>（</rp><rt>（西）paella</rt><rp>）</rp></ruby></span>
+                <div class="loanword-showcase">
+                  <div class="loanword-sample" data-origin-language="en"><span class="loanword-origin" lang="en">computer</span><strong class="loanword-base">コンピューター</strong></div>
+                  <div class="loanword-sample" data-origin-language="fr"><span class="loanword-origin"><span class="loanword-country" lang="ja" aria-label="法语">仏</span><span lang="fr">coup d'État</span></span><strong class="loanword-base">クーデター</strong></div>
+                  <div class="loanword-sample" data-origin-language="de"><span class="loanword-origin"><span class="loanword-country" lang="ja" aria-label="德语">独</span><span lang="de">Arbeit</span></span><strong class="loanword-base">アルバイト</strong></div>
+                  <div class="loanword-sample" data-origin-language="es"><span class="loanword-origin"><span class="loanword-country" lang="ja" aria-label="西班牙语">西</span><span lang="es">paella</span></span><strong class="loanword-base">パエリア</strong></div>
                 </div>
-                <p lang="zh-CN">原词过长时显示折叠摘要；点击或按 Enter／Space 后在浮层展示完整内容，不撑开正文间距。</p>
+                <p class="loanword-note" lang="zh-CN">原词过长时显示折叠摘要；点击或按 Enter／Space 后在浮层展示完整内容，不撑开正文间距。</p>
               </div>
             </article>
 

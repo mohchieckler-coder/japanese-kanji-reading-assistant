@@ -1,0 +1,88 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <meta name="description" content="Privacy Policy for Japanese Kanji Reading Assistant, covering local reading and loanword processing, selection translation, API Keys, history, and data deletion.">
+    <title>Privacy Policy | Japanese Kanji Reading Assistant</title>
+    <link rel="canonical" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/en/privacy.html">
+    <link rel="alternate" hreflang="zh-CN" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/privacy.html">
+    <link rel="alternate" hreflang="en" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/en/privacy.html">
+    <link rel="alternate" hreflang="ja" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/ja/privacy.html">
+    <link rel="alternate" hreflang="ko" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/ko/privacy.html">
+    <link rel="alternate" hreflang="vi" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/vi/privacy.html">
+    <link rel="alternate" hreflang="x-default" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/privacy.html">
+    <meta property="og:title" content="Privacy Policy | Japanese Kanji Reading Assistant">
+    <meta property="og:description" content="Learn how Japanese Kanji Reading Assistant handles local readings and loanword origins, selection translation, API Keys, history, and data deletion.">
+    <meta property="og:url" content="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/en/privacy.html">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="zh_CN">
+    <meta property="og:locale:alternate" content="ja_JP">
+    <meta property="og:locale:alternate" content="ko_KR">
+    <meta property="og:locale:alternate" content="vi_VN">
+    <link rel="icon" href="../assets/icon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="../styles.css">
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Privacy Policy | Japanese Kanji Reading Assistant",
+        "description": "Explains local reading and loanword-origin processing, selection translation, API Keys, history, and data deletion.",
+        "url": "https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/en/privacy.html",
+        "inLanguage": "en"
+      }
+    </script>
+  </head>
+  <body class="policy-page">
+    <a class="skip-link" href="#main-content">Skip to policy content</a>
+
+    <header class="site-header policy-header" data-header>
+      <div class="container header-inner">
+        <a class="brand" href="index.html" aria-label="Back to the Japanese Kanji Reading Assistant homepage"><img src="../assets/icon.svg" width="54" height="54" alt=""><span class="brand-copy"><strong>Japanese Kanji Reading Assistant</strong><small>JAPANESE KANJI READING ASSISTANT</small></span></a>
+        <div class="policy-actions">
+          <details class="language-switcher" data-language-switcher>
+            <summary aria-label="Choose website language"><span aria-hidden="true">文</span><span>English</span></summary>
+            <ul>
+              <li><a href="../privacy.html" hreflang="zh-CN" lang="zh-CN" data-locale-link>简体中文</a></li>
+              <li><a href="privacy.html" hreflang="en" lang="en" aria-current="page" data-locale-link>English</a></li>
+              <li><a href="../ja/privacy.html" hreflang="ja" lang="ja" data-locale-link>日本語</a></li>
+              <li><a href="../ko/privacy.html" hreflang="ko" lang="ko" data-locale-link>한국어</a></li>
+              <li><a href="../vi/privacy.html" hreflang="vi" lang="vi" data-locale-link>Tiếng Việt</a></li>
+            </ul>
+          </details>
+          <a class="button button-small" href="index.html">Back to homepage</a>
+        </div>
+      </div>
+    </header>
+
+    <main id="main-content" class="policy-main">
+      <div class="container policy-container">
+        <header class="policy-title"><p class="section-kicker">PRIVACY POLICY</p><h1>Privacy Policy</h1><p>This policy explains what data Japanese Kanji Reading Assistant (the “Extension”) processes, why it processes that data, and how you can control or delete it.</p><p class="policy-updated">Effective and last updated: August 22, 2026</p></header>
+
+        <article class="policy-card">
+          <section><h2>1. Single purpose</h2><p>The Extension displays readings above kanji on Japanese webpages, shows original foreign words above high-confidence katakana loanwords, and translates text that you actively select through an OpenAI-compatible API you configure. It does not use these capabilities for advertising, profiling, selling data, or any purpose unrelated to reading assistance.</p></section>
+
+          <section><h2>2. Data processed locally</h2><ul><li>Webpage text undergoes Japanese morphological analysis in the browser to generate readings. This processing does not send the page text to a developer server.</li><li>Katakana loanwords are matched locally against a fixed etymology subset and manually curated common corrections bundled with the Extension. This feature does not query a remote dictionary or call a translation API.</li><li>Your API Key, BaseURL, model, target language, and interface language are stored locally in Chrome extension storage.</li><li>Translation history may include the selected source text, translation, page URL, page title, time, model, target language, and token usage. Token details include the page URL, page title, time, and usage. These records are stored locally.</li></ul></section>
+
+          <section><h2>3. Data sent to the user's chosen provider</h2><p>Only when you actively request a translation are the selected text, target language, and necessary request instructions sent to the API BaseURL you configured. Your API Key is sent to that provider as authentication information with API requests. Clicking “Test connection” sends the fixed test text “<span lang="ja">こんにちは</span>”. The Extension does not attach the page URL, page title, or local history to translation requests.</p><p>The remote provider processes received data under its own terms and privacy policy. Configure only a service you trust, and review its retention, training, and cross-border transfer practices. Remote endpoints must use HTTPS; only the localhost and 127.0.0.1 loopback addresses may use HTTP.</p></section>
+
+          <section><h2>4. The developer does not collect or sell data</h2><p>The Extension has no developer-operated data receiver, analytics SDK, or advertising SDK. The developer does not receive or sell your API Key, webpage text, selected text, browsing history, translation history, or token records, or disclose any of them to data brokers.</p></section>
+
+          <section><h2>5. Retention and deletion</h2><ul><li>Settings and records have no fixed cloud retention period because they are stored only in your local browser.</li><li>Translation history retains at most 500 entries and is limited to approximately 4 MiB in total. Token records retain at most 1,000 entries and are limited to approximately 512 KiB in total. Older records are removed first when a limit is exceeded.</li><li>In the dashboard, you can delete individual history entries, clear all history, clear token records, or remove your API Key.</li><li>Uninstalling the Extension will normally remove the local data Chrome stored for it. To ensure deletion, clear your records and key in the dashboard before uninstalling.</li></ul></section>
+
+          <section><h2>6. How permissions are used</h2><ul><li><strong>activeTab:</strong> accesses the current tab only when the user operates the Extension.</li><li><strong>scripting:</strong> injects local readings, loanword-origin annotations, and the selection translation interface into the current page.</li><li><strong>storage:</strong> stores settings, history, and token records locally.</li><li><strong>Optional host permissions:</strong> requests network access only to the user-specified API origin when saving or testing API settings. The Extension does not obtain permanent, predefined permission to access every website.</li></ul></section>
+
+          <section><h2>7. Security boundaries</h2><p>The API Key is never displayed in full in the dashboard or background responses, and extension storage is restricted to trusted extension contexts. These measures reduce accidental exposure, but local extension storage is not a hardware vault. Protect your browser profile and device account, and immediately revoke or rotate the key with your provider if you suspect it has been exposed.</p></section>
+
+          <section><h2>8. Children, changes, and contact</h2><p>The Extension is not a service designed specifically for children and does not actively create user accounts. If its features or data-processing practices materially change, this policy will be updated, including its date and explanation. Privacy questions may be submitted through the public project's GitHub Issues.</p><p><a href="https://github.com/mohchieckler-coder/japanese-kanji-reading-assistant/issues">Open GitHub Issues</a></p></section>
+        </article>
+      </div>
+    </main>
+
+    <footer class="site-footer"><div class="container footer-grid"><div class="footer-brand"><img src="../assets/icon.svg" width="38" height="38" alt=""><div><strong>Japanese Kanji Reading Assistant</strong><small>A local-first tool for reading Japanese webpages</small></div></div><p>© 2026 Japanese Kanji Reading Assistant · Privacy Policy</p><a href="index.html">Back to homepage <span aria-hidden="true">→</span></a></div></footer>
+
+    <script src="../script.js"></script>
+  </body>
+</html>
