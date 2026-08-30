@@ -41,7 +41,7 @@ document.addEventListener("click", (event) => {
   }
 });
 
-const desktopNavigation = window.matchMedia("(min-width: 801px)");
+const desktopNavigation = window.matchMedia("(min-width: 901px)");
 desktopNavigation.addEventListener("change", (event) => {
   if (event.matches) {
     setMenuOpen(false);

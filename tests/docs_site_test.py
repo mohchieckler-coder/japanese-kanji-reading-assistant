@@ -377,6 +377,42 @@ def assert_homepage_interactions(page, locale, viewport_name, viewport):
         open_locale_selector(page, f"{locale}-{viewport_name}")
 
 
+def assert_compact_to_desktop_resize_cleanup(page, locale, viewport):
+    menu = page.locator("[data-menu-toggle]")
+    navigation = page.locator("[data-nav]")
+    menu.click()
+    assert menu.get_attribute("aria-expanded") == "true"
+    assert navigation.evaluate("element => element.classList.contains('is-open')")
+    assert page.locator("body").evaluate("element => element.classList.contains('menu-open')")
+
+    page.set_viewport_size({"width": MOBILE_NAV_MAX_WIDTH + 1, "height": viewport["height"]})
+    page.wait_for_function(
+        "width => window.innerWidth === width && window.matchMedia(`(min-width: ${width}px)`).matches",
+        arg=MOBILE_NAV_MAX_WIDTH + 1,
+    )
+
+    assert menu.is_hidden(), f"{locale}-ipad-resize: desktop toggle must be hidden"
+    assert menu.get_attribute("aria-expanded") == "false"
+    assert navigation.is_visible(), f"{locale}-ipad-resize: desktop navigation must be visible"
+    assert not navigation.evaluate("element => element.classList.contains('is-open')")
+    body_state = page.locator("body").evaluate(
+        """element => ({
+          menuOpen: element.classList.contains('menu-open'),
+          overflow: getComputedStyle(element).overflow,
+          overflowY: getComputedStyle(element).overflowY
+        })"""
+    )
+    assert not body_state["menuOpen"]
+    assert body_state["overflow"] != "hidden" and body_state["overflowY"] != "hidden", (
+        f"{locale}-ipad-resize: body remains scroll-locked {body_state}"
+    )
+
+    page.set_viewport_size(viewport)
+    page.wait_for_function("width => window.innerWidth === width", arg=viewport["width"])
+    assert menu.is_visible(), f"{locale}-ipad-resize: compact toggle must return at 820px"
+    assert menu.get_attribute("aria-expanded") == "false"
+
+
 def assert_privacy_interactions(page, locale, viewport_name, viewport):
     assert_no_horizontal_overflow(page, f"{locale}-privacy-{viewport_name}-before-interaction")
     if viewport["width"] <= MOBILE_NAV_MAX_WIDTH and page.locator("[data-menu-toggle]").count():
@@ -459,6 +495,8 @@ def main():
                 page.on("pageerror", lambda error, name=f"{locale}-{viewport_name}": page_errors.append(f"{name}: {error}"))
                 assert_page_foundation(page, locale, "home", actual_download_hash)
                 assert_homepage_interactions(page, locale, viewport_name, viewport)
+                if viewport_name == "ipad":
+                    assert_compact_to_desktop_resize_cleanup(page, locale, viewport)
                 page.screenshot(path=str(ARTIFACTS / f"docs-site-{locale}-{viewport_name}.png"), full_page=True)
                 page.close()
 
