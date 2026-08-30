@@ -27,7 +27,7 @@
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
         "name": "日本語漢字読み方アシスタント",
-        "alternateName": "Japanese Furigana AI",
+        "alternateName": "Japanese Kanji Reading Assistant",
         "applicationCategory": "BrowserApplication",
         "operatingSystem": "Chrome 120+",
         "softwareVersion": "2.6.0",
@@ -103,7 +103,7 @@
                 <div class="annotation-status"><span></span> このページでは読みが有効です</div>
               </div>
             </div>
-            <div class="floating-note note-local"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.6 2.8 8.6 7 10 4.2-1.4 7-5.4 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg><span><strong>ローカルの読み</strong><small>ページ本文は端末内に留まります</small></span></div>
+            <div class="floating-note note-local"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.6 2.8 8.6 7 10 4.2-1.4 7-5.4 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg><span><strong>ローカルの読み</strong><small>ページ本文全体のアップロードは不要です</small></span></div>
           </div>
         </div>
       </section>
@@ -121,7 +121,7 @@
         <div class="container">
           <div class="section-heading centered"><p class="section-kicker">概要</p><h2>調べものによる中断を減らし、読書の流れを保つ</h2><p>これはページを置き換えるリーダーではありません。今見ているページにいつでも追加・削除できる軽量な日本語読解支援です。</p></div>
           <div class="journey-grid">
-            <article class="journey-card"><span class="journey-number">01</span><div class="journey-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M7 9h4M7 13h10M14 5v4M17 5v4"/></svg></div><h3>日本語ウェブページを開く</h3><p>ニュース、掲示板、学術、スポーツなどの通常のページで使えます。本文やリンクを置き換えず、現在のページに直接支援情報を追加します。</p></article>
+            <article class="journey-card"><span class="journey-number">01</span><div class="journey-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M7 9h4M7 13h10M14 5v4M17 5v4"/></svg></div><h3>日本語ウェブページを開く</h3><p>ニュース、掲示板、学術、スポーツなどの通常のページで使えます。ページ全体の本文やリンクを置き換えることなく、現在のページに直接支援情報を追加します。</p></article>
             <article class="journey-card journey-card-active"><span class="journey-number">02</span><div class="journey-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19h14M7 16l4-11h2l4 11M8.5 12h7"/></svg></div><h3>読みを有効にする</h3><p>拡張機能はブラウザー内で本文をローカル解析し、標準の ruby マークアップで漢字の上に読みを表示します。</p></article>
             <article class="journey-card"><span class="journey-number">03</span><div class="journey-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v10H9l-4 4V5Z"/><path d="M8 9h8M8 12h5"/></svg></div><h3>必要なときだけ翻訳する</h3><p>語、文、段落を選択し、タブを何度も切り替えることなく同じページで翻訳を確認できます。</p></article>
           </div>
@@ -133,18 +133,18 @@
           <div class="section-heading split-heading"><div><p class="section-kicker">機能</p><h2>実際のウェブページを読むために設計</h2></div><p>一般的な漢字や外来語の語源から、ニュースの日付、人名、長文の翻訳まで、すべての機能は元のページ構造を保つように作られています。</p></div>
           <div class="feature-grid">
             <article class="feature-card feature-large local-reading">
-              <div class="feature-copy"><span class="feature-tag">01 · スマートな読み</span><h3>漢字ごとの読みを上に表示</h3><p>Kuromoji がブラウザー内で形態素解析をローカル実行します。後から読み込まれた内容も処理し、もう一度クリックすると拡張機能が追加した読みを取り除きます。</p><ul class="check-list"><li>コード、フォーム、既存の ruby マークアップは処理しません</li><li>日付、外来語、一般的な文脈は慎重に曖昧性を解消します</li><li>漢字だけに読みを付け、送り仮名はそのまま保ちます</li><li>本文の長い読みは縮小し、ヘッダーとナビゲーションの幅を安定させます</li><li>スタイルと操作性を保つため、要素階層を組み替えません</li></ul></div>
+              <div class="feature-copy"><span class="feature-tag">01 · スマートな読み</span><h3>漢字ごとの読みを上に表示</h3><p>Kuromoji がブラウザー内で形態素解析をローカル実行します。後から読み込まれた内容も処理し、もう一度クリックすると拡張機能が追加した読みを取り除きます。</p><ul class="check-list"><li>コード、フォーム、既存の ruby マークアップは処理しません</li><li>日付、外来語、一般的な文脈では、慎重に曖昧性を解消します</li><li>漢字だけに読みを付け、送り仮名はそのまま保ちます</li><li>本文中の長い読みは自動的に縮小し、ヘッダーやナビゲーション項目の幅を変えません</li><li>スタイルと操作性を保つため、要素階層を組み替えません</li></ul></div>
               <div class="reading-demo" lang="ja"><p class="demo-label">読みを付けた後</p><p class="reading-line"><ruby>東京<rp>（</rp><rt>とうきょう</rt><rp>）</rp></ruby>で <ruby>新<rp>（</rp><rt>あたら</rt><rp>）</rp></ruby>しい <ruby>技術<rp>（</rp><rt>ぎじゅつ</rt><rp>）</rp></ruby>を <ruby>発表<rp>（</rp><rt>はっぴょう</rt><rp>）</rp></ruby></p><div class="demo-divider"></div><div class="smart-examples"><span><ruby>麻辣湯<rp>（</rp><rt>マーラータン</rt><rp>）</rp></ruby></span><span><ruby>読<rp>（</rp><rt>よ</rt><rp>）</rp></ruby>みます</span></div></div>
             </article>
 
             <article class="feature-card feature-large local-reading">
-              <div class="feature-copy"><span class="feature-tag">02 · 外来語の語源</span><h3>カタカナの上に外国語の原語を表示</h3><p>ポップアップには「外来語の語源を表示」ボタンがあります。有効にすると、拡張機能は同梱された3,353件のローカル語源記録で高信頼度の外来語を照合し、著名な外国の指導者・公的人物・地名の原表記を表示します。API は呼び出さず、ページ本文もアップロードしません。</p><ul class="check-list"><li>英語の項目は国名表示を付けず、原語だけを示します</li><li>他言語は仏・独・西など、日本語の漢字による国名略称を使います</li><li>長い注釈はカタカナ本文の幅に折り畳まれ、幅を制限したポップオーバーで展開します</li><li>完全な固有名詞は直接照合できますが、略称には役職・国・人物の文脈が必要です</li><li>同形語、和製英語、未知の語は慎重に処理対象から外します</li></ul><p>語源データは <a href="https://www.edrdg.org/jmdict/jmdict_dtd_h.html">JMdict</a> に由来し、<a href="https://www.edrdg.org/edrdg/licence.html" lang="en">EDRDG General Dictionary Licence Statement</a> および <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> に従います。</p></div>
+              <div class="feature-copy"><span class="feature-tag">02 · 外来語の語源</span><h3>カタカナの上に外国語の原語を表示</h3><p>ポップアップには「外来語の語源を表示」ボタンがあります。有効にすると、拡張機能は同梱された3,353件のローカル語源記録で高信頼度の外来語を照合し、著名な外国の指導者・公的人物・地名の原表記を表示します。API は呼び出さず、ページ本文もアップロードしません。</p><ul class="check-list"><li>英語の項目は国名表示を付けず、原語だけを示します</li><li>他言語は仏・独・西など、日本語の漢字による国名略称を使います</li><li>長い注釈はカタカナ表記の幅に合わせて折り畳まれ、幅を制限したポップオーバーで展開します</li><li>省略されていない固有名詞は直接照合できますが、略称には役職・国・人物の文脈が必要です</li><li>同形語、和製英語、未知の語は慎重に処理対象から外します</li></ul><p>語源データは <a href="https://www.edrdg.org/jmdict/jmdict_dtd_h.html">JMdict</a> に由来し、<a href="https://www.edrdg.org/edrdg/licence.html" lang="en">EDRDG General Dictionary Licence Statement</a> および <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> に従います。</p></div>
               <div class="reading-demo" lang="ja"><p class="demo-label">外来語の語源を有効にした場合</p><p class="reading-line"><ruby>コンピューター<rp>（</rp><rt lang="en">computer</rt><rp>）</rp></ruby></p><div class="demo-divider"></div><div class="smart-examples"><span><ruby>クーデター<rp>（</rp><rt>（仏）<span lang="fr">coup d'État</span></rt><rp>）</rp></ruby></span><span><ruby>アルバイト<rp>（</rp><rt>（独）<span lang="de">Arbeit</span></rt><rp>）</rp></ruby></span><span><ruby>パエリア<rp>（</rp><rt>（西）<span lang="es">paella</span></rt><rp>）</rp></ruby></span></div><p>長い原表記は、折り畳んだ要約として表示されます。行間を広げずに原表記の全文をポップオーバーで確認するには、クリックするか、Enter または Space キーを押します。</p></div>
             </article>
 
             <article class="feature-card translation-card-demo"><span class="feature-tag">03 · 選択範囲の翻訳</span><h3>語・文・段落を翻訳</h3><p>必要な箇所を選択すると、元のページ上にコピーと再試行の操作を備えた翻訳カードが開きます。API から使用量データが返された場合、そのリクエストで使用した Token 数もカードに表示します。</p><div class="mini-selection" lang="ja"><span>新しい研究成果が発表されました。</span></div><div class="mini-result"><div><strong>選択範囲の翻訳</strong><span>文</span></div><p lang="en">New research findings have been announced.</p><small>英語 · 12 Token</small></div></article>
 
-            <article class="feature-card context-card"><span class="feature-tag">04 · 名前と文脈</span><h3>一般名を推測せず、公的人物名を確認</h3><p>日本の公的人物について登録済みの姓名読みは、ウェブページや形態素解析器による誤った推測より優先されます。外国人名、ニュースの日付、人数、学術用語には制約付き照合を使い、確信できないテキストは変更しません。</p><div class="context-list" lang="ja"><div><span>24日（月）</span><b>にじゅうよっか・げつ</b></div><div><span>大谷翔平</span><b>おおたに・しょうへい</b></div><div><span>羽生結弦</span><b>はにゅう・ゆづる</b></div></div></article>
+            <article class="feature-card context-card"><span class="feature-tag">04 · 名前と文脈</span><h3>一般の人名を推測せず、公的人物名を確認</h3><p>日本の公的人物について登録済みの氏名の読みは、ウェブページや形態素解析器による誤った推測より優先されます。外国人名、ニュースの日付、人数、学術用語には制約付き照合を使い、確信できないテキストは変更しません。</p><div class="context-list" lang="ja"><div><span>24日（月）</span><b>にじゅうよっか・げつ</b></div><div><span>大谷翔平</span><b>おおたに・しょうへい</b></div><div><span>羽生結弦</span><b>はにゅう・ゆづる</b></div></div></article>
           </div>
         </div>
       </section>
@@ -163,7 +163,7 @@
         <div class="container privacy-card">
           <div class="privacy-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.6 2.8 8.6 7 10 4.2-1.4 7-5.4 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg></div>
           <div class="privacy-copy"><p class="section-kicker">プライバシー</p><h2>ページ本文はローカルに留まり、翻訳する内容は自分で決められます</h2><p>日本語の読みと外来語の語源照合は、常にブラウザー内でローカル処理されます。ページ内容のうち、ユーザーが能動的に選択したテキストだけを、設定した翻訳サービスへ送信します。接続テストでは固定のテスト文「こんにちは」を送信します。</p><p><a class="privacy-policy-link" href="privacy.html">プライバシーポリシー全文を読む</a></p></div>
-          <ul class="privacy-list"><li><span>01</span><p><strong>API Key は端末内に保存</strong><small>信頼できる拡張機能コンテキストに保存し、完全な形では表示しません</small></p></li><li><span>02</span><p><strong>API 権限は必要時に要求</strong><small>すべてのウェブサイトの API に恒久的にアクセスする権限は取得しません</small></p></li><li><span>03</span><p><strong>履歴は自分で管理</strong><small>翻訳履歴と Token 記録はいつでも消去できます</small></p></li></ul>
+          <ul class="privacy-list"><li><span>01</span><p><strong>API Key は端末内に保存</strong><small>信頼できる拡張機能コンテキストに保存し、完全な形では表示しません</small></p></li><li><span>02</span><p><strong>API 権限は必要時に要求</strong><small>すべてのウェブサイトに恒久的にアクセスする権限は取得しません</small></p></li><li><span>03</span><p><strong>履歴は自分で管理</strong><small>翻訳履歴と Token 記録はいつでも消去できます</small></p></li></ul>
         </div>
       </section>
 
@@ -188,7 +188,7 @@
             <details><summary>読み機能に API は必要ですか？<span aria-hidden="true">＋</span></summary><p>いいえ。漢字の読みはブラウザー内でローカル解析されます。ご自身の互換 API が必要なのは選択範囲の翻訳だけです。</p></details>
             <details><summary>ウェブページ全体をアップロードしますか？<span aria-hidden="true">＋</span></summary><p>いいえ。読みの注釈にネットワークは使用しません。ページ内容のうち、ユーザーが能動的に選択したテキストだけを、設定した翻訳サービスへ送信します。「接続をテスト」をクリックすると、固定のテスト文「こんにちは」を送信します。提供者は自身のプライバシーポリシーに基づいてデータを処理します。</p></details>
             <details><summary>現在のページから読みを削除するには？<span aria-hidden="true">＋</span></summary><p>拡張機能のポップアップをもう一度開き、「読みを削除」をクリックします。拡張機能が生成した ruby マークアップを削除して元のテキストを復元しますが、選択範囲の翻訳は引き続き利用できます。動的な変化が特に多い一部のページでは、再読み込みが必要になる場合があります。</p></details>
-            <details><summary>原語が表示されないカタカナ語があるのはなぜですか？<span aria-hidden="true">＋</span></summary><p>カタカナは和製英語、擬音語、固有名詞にも使われます。本拡張機能が注釈を付けるのは、2026-08-17 版の高信頼度な固定 JMdict サブセット、手作業で確認した一般語レイヤー、選択的に確認した国立国語研究所の語彙表に基づく、語源が明確で検証済みの語だけです。項目をまたぐ同形語、未知語、安全な文脈のない人名の略称は変更しません。英語は原語だけを表示し、その他の言語と外国固有名詞には「仏」「独」「西」など日本語の国名略称を使います。</p></details>
+            <details><summary>原語が表示されないカタカナ語があるのはなぜですか？<span aria-hidden="true">＋</span></summary><p>カタカナは和製英語、擬音語、固有名詞にも使われます。本拡張機能が注釈を付けるのは、2026-08-17 時点で固定された信頼度の高い JMdict サブセット、手作業で確認した一般語レイヤー、選択的に確認した国立国語研究所の語彙表に基づく、語源が明確で検証済みの語だけです。複数の項目にまたがる同形異義語、未知語、確実に判別できる文脈のない人名の略称は変更しません。英語は原語だけを表示し、その他の言語と外国固有名詞には「仏」「独」「西」など日本語の国名略称を使います。</p></details>
             <details><summary>現在処理できないページや要素は？<span aria-hidden="true">＋</span></summary><p>Chrome のシステムページには拡張機能を挿入できません。閉じた Shadow DOM、クロスオリジンの iframe、まれな文字、未知の固有名詞は変更されない場合があります。コードブロック、フォーム、既存の ruby マークアップ、編集可能な領域は意図的に処理しません。</p></details>
             <details><summary>翻訳 API には何が必要ですか？<span aria-hidden="true">＋</span></summary><p>API は <code>POST /chat/completions</code> に対応している必要があります。通常のサービスでは HTTPS を使用し、HTTP を使用できるのは localhost と 127.0.0.1 だけです。各リクエストは12,000文字までで、ご自身の Key、ネットワーク、クォータ、モデルへのアクセス状況に依存します。ローカルの Token 記録は推定値であり、提供者の請求額を示すものではありません。</p></details>
           </div>
