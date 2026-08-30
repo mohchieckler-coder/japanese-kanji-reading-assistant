@@ -533,4 +533,3 @@ Report:
 - Any translation wording still requiring owner review.
 - The local branch and commit range.
 - That no remote push or GitHub Pages deployment was performed unless separately authorized.
-

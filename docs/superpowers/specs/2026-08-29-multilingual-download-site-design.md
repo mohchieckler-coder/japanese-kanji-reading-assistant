@@ -1,7 +1,7 @@
 # Multilingual Download Website Design
 
-**Date:** 2026-08-29  
-**Status:** Approved in conversation  
+**Date:** 2026-08-29
+**Status:** Approved in conversation
 **Project:** Japanese Kanji Reading Assistant
 
 ## 1. Goal
