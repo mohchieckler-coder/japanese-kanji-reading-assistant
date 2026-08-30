@@ -48,6 +48,8 @@ desktopNavigation.addEventListener("change", (event) => {
   }
 });
 
+document.documentElement.classList.replace("no-js", "js");
+
 const sharedHomepageHashes = new Set(["top", "product", "features", "privacy", "install", "faq"]);
 const homepageLocaleLinks = [...document.querySelectorAll("[data-nav] [data-locale-link]")];
 const homepageLocaleHrefs = new Map(

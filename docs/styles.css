@@ -281,7 +281,7 @@ code {
 
 .language-switcher a[aria-current="page"] {
   color: var(--red-dark);
-  background: var(--red-pale);
+  background: var(--red-soft);
 }
 
 .site-nav > a:not(.button) {

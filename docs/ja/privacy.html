@@ -18,9 +18,12 @@
     <meta property="og:url" content="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/ja/privacy.html">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="ja_JP">
+    <meta property="og:locale:alternate" content="zh_CN">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:locale:alternate" content="ko_KR">
+    <meta property="og:locale:alternate" content="vi_VN">
     <link rel="icon" href="../assets/icon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="../styles.css">
-    <script>document.documentElement.classList.replace("no-js", "js");</script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -63,7 +66,7 @@
 
           <section><h2>2. ローカルで処理するデータ</h2><ul><li>読みを生成するため、ウェブページ本文に対する日本語形態素解析をブラウザー内で行います。この処理でページ本文が開発者サーバーへ送信されることはありません。</li><li>カタカナ外来語は、拡張機能に同梱された固定の語源サブセットと手作業で整備した一般語の補正データに対してローカルで照合されます。リモート辞書の照会や翻訳 API の呼び出しは行いません。</li><li>API Key、BaseURL、モデル、翻訳先言語、表示言語は Chrome 拡張機能ストレージにローカル保存されます。</li><li>翻訳履歴には選択した原文、翻訳文、ページ URL、ページタイトル、時刻、モデル、翻訳先言語、Token 使用量を含む場合があります。Token 詳細にはページ URL、ページタイトル、時刻、使用量が含まれます。これらの記録はローカルに保存されます。</li></ul></section>
 
-          <section><h2>3. ユーザーが選んだ提供者へ送信するデータ</h2><p>ユーザーが翻訳を実行した場合に限り、選択テキスト、翻訳先言語、必要な指示が設定済みの API BaseURL へ送信されます。API Key は HTTPS リクエストの認証情報として提供者に送信されます。「接続をテスト」を押すと固定のテスト文「こんにちは」を送信します。ページ URL、ページタイトル、ローカル履歴は翻訳リクエストに付加しません。</p><p>リモート提供者は自身の規約とプライバシーポリシーに基づき受信データを処理します。信頼できるサービスだけを設定し、保存、学習、越境移転の扱いを確認してください。ローカル以外のエンドポイントは HTTPS を使用し、HTTP を使用できるのは localhost と 127.0.0.1 のみです。</p></section>
+          <section><h2>3. ユーザーが選んだ提供者へ送信するデータ</h2><p>ユーザーが翻訳を実行した場合に限り、選択テキスト、翻訳先言語、必要な指示が設定済みの API BaseURL へ送信されます。API Key は、API リクエストの認証情報としてそのプロバイダーへ送信されます。「接続をテスト」を押すと固定のテスト文「こんにちは」を送信します。ページ URL、ページタイトル、ローカル履歴は翻訳リクエストに付加しません。</p><p>リモート提供者は自身の規約とプライバシーポリシーに基づき受信データを処理します。信頼できるサービスだけを設定し、保存、学習、越境移転の扱いを確認してください。リモートエンドポイントでは HTTPS が必須です。HTTP を使用できるのは localhost と 127.0.0.1 のループバックアドレスだけです。</p></section>
 
           <section><h2>4. 開発者はデータを収集・販売しません</h2><p>本拡張機能には、開発者が運用するデータ受信サーバー、分析 SDK、広告 SDK はありません。開発者は、API Key、ページ本文、選択テキスト、閲覧履歴、翻訳履歴、Token 記録を受け取りません。また、これらを販売したり、データブローカーに提供したりすることもありません。</p></section>
 

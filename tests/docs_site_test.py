@@ -80,6 +80,29 @@ PRIVACY_PAGE_EXPECTATIONS = {
     "vi": ("Chính sách quyền riêng tư｜Trợ lý đọc Kanji tiếng Nhật", "Chính sách quyền riêng tư"),
 }
 
+PRIVACY_API_TRANSPORT_EXPECTATIONS = {
+    "zh-CN": (
+        "API Key 会作为认证信息随 API 请求发送给该服务商。",
+        "远程端点必须使用 HTTPS；仅 localhost 和 127.0.0.1 回环地址允许 HTTP。",
+    ),
+    "en": (
+        "Your API Key is sent to that provider as authentication information with API requests.",
+        "Remote endpoints must use HTTPS; only the localhost and 127.0.0.1 loopback addresses may use HTTP.",
+    ),
+    "ja": (
+        "API Key は、API リクエストの認証情報としてそのプロバイダーへ送信されます。",
+        "リモートエンドポイントでは HTTPS が必須です。HTTP を使用できるのは localhost と 127.0.0.1 のループバックアドレスだけです。",
+    ),
+    "ko": (
+        "API Key는 API 요청의 인증 정보로 해당 제공업체에 전송됩니다.",
+        "원격 엔드포인트는 HTTPS를 사용해야 하며 HTTP는 localhost와 127.0.0.1 루프백 주소에서만 사용할 수 있습니다.",
+    ),
+    "vi": (
+        "API Key của bạn được gửi đến nhà cung cấp đó dưới dạng thông tin xác thực cùng yêu cầu API.",
+        "Điểm cuối từ xa phải dùng HTTPS; chỉ các địa chỉ loopback localhost và 127.0.0.1 mới được dùng HTTP.",
+    ),
+}
+
 ALLOWED_EXTERNAL_LINK_PREFIXES = (
     "https://github.com/mohchieckler-coder/japanese-kanji-reading-assistant/issues",
     "https://www.edrdg.org/",
@@ -89,9 +112,15 @@ DISALLOWED_EXTENSION_UI_LANGUAGE_LABELS = ("vietnamese", "tiếng việt", "越�
 
 VIEWPORTS = {
     "desktop": {"width": 1440, "height": 900},
+    "desktop-boundary": {"width": 901, "height": 900},
+    "compact-boundary": {"width": 900, "height": 900},
     "ipad": {"width": 820, "height": 1180},
     "mobile": {"width": 390, "height": 844},
     "narrow": {"width": 320, "height": 700},
+}
+NO_SCRIPT_VIEWPORTS = {
+    name: VIEWPORTS[name]
+    for name in ("mobile", "ipad", "compact-boundary", "desktop-boundary", "desktop")
 }
 MOBILE_NAV_MAX_WIDTH = 900
 REQUIRED_HOME_IDS = {"top", "product", "features", "privacy", "install", "faq"}
@@ -251,6 +280,20 @@ def assert_seo_metadata(page, locale, page_type):
     open_graph_locale = page.locator('head meta[property="og:locale"]')
     assert open_graph_locale.count() == 1
     assert open_graph_locale.first.get_attribute("content") == OPEN_GRAPH_LOCALES[locale]
+    open_graph_alternates = page.locator('head meta[property="og:locale:alternate"]')
+    actual_open_graph_alternates = [
+        open_graph_alternates.nth(index).get_attribute("content")
+        for index in range(open_graph_alternates.count())
+    ]
+    expected_open_graph_alternates = [
+        open_graph_locale
+        for language, open_graph_locale in OPEN_GRAPH_LOCALES.items()
+        if language != locale
+    ]
+    assert actual_open_graph_alternates == expected_open_graph_alternates, (
+        f"{locale} {page_type}: require each of the other four OG locales exactly once"
+    )
+    assert len(actual_open_graph_alternates) == len(set(actual_open_graph_alternates)) == 4
 
     json_ld_nodes = page.locator('script[type="application/ld+json"]')
     json_ld = [json.loads(json_ld_nodes.nth(index).inner_text()) for index in range(json_ld_nodes.count())]
@@ -299,6 +342,8 @@ def assert_page_foundation(page, locale, page_type, actual_download_hash):
     page.wait_for_function("() => [...document.images].every((image) => image.complete && image.naturalWidth > 0)")
 
     assert page.locator("html").get_attribute("lang") == locale
+    assert page.locator("html").evaluate("element => element.classList.contains('js')")
+    assert not page.locator("html").evaluate("element => element.classList.contains('no-js')")
     assert page.locator("h1").count() == 1
     h1_text = page.locator("h1").inner_text().strip()
     assert_language_links(page, locale, page_type)
@@ -327,6 +372,11 @@ def assert_page_foundation(page, locale, page_type, actual_download_hash):
             assert displayed_hash == actual_download_hash
     else:
         assert page.locator(".policy-card section").count() == 8
+        policy_copy = " ".join(page.locator(".policy-card").inner_text().split())
+        for expected_sentence in PRIVACY_API_TRANSPORT_EXPECTATIONS[locale]:
+            assert expected_sentence in policy_copy, (
+                f"{locale}: privacy policy must describe authentication and the HTTPS/loopback exception accurately"
+            )
 
     assert page.locator("img:not([alt])").count() == 0
     assert_seo_metadata(page, locale, page_type)
@@ -338,13 +388,62 @@ def assert_page_foundation(page, locale, page_type, actual_download_hash):
 def open_locale_selector(page, selector_name):
     selector = page.locator("details:has(a[hreflang])")
     assert selector.count() == 1, f"{selector_name}: require one locale <details> selector"
-    selector.locator("summary").click()
+    summary = selector.locator("summary")
+    summary.focus()
+    page.keyboard.press("Enter")
     assert selector.get_attribute("open") is not None
+    summary.focus()
+    page.keyboard.press("Space")
+    assert selector.get_attribute("open") is None
+    page.keyboard.press("Space")
+    assert selector.get_attribute("open") is not None
+    page.keyboard.press("Tab")
+    first_language_link = selector.locator("a[hreflang]").first
+    assert first_language_link.evaluate("element => document.activeElement === element"), (
+        f"{selector_name}: Tab from the open native selector must reach the first language link"
+    )
     assert_no_horizontal_overflow(page, f"{selector_name}-locale-open")
     bounds = selector.bounding_box()
-    summary_bounds = selector.locator("summary").bounding_box()
+    summary_bounds = summary.bounding_box()
+    menu_bounds = selector.locator("ul").bounding_box()
     assert bounds and bounds["width"] > 0 and bounds["height"] > 0
     assert summary_bounds and summary_bounds["width"] > 0 and summary_bounds["height"] > 0
+    assert menu_bounds and menu_bounds["width"] > 0 and menu_bounds["height"] > 0
+    menu_containment = selector.locator("ul").evaluate(
+        """menu => {
+          const rect = menu.getBoundingClientRect();
+          const tolerance = 1;
+          const insideViewport = rect.left >= -tolerance
+            && rect.top >= -tolerance
+            && rect.right <= window.innerWidth + tolerance
+            && rect.bottom <= window.innerHeight + tolerance;
+          let ancestor = menu.parentElement;
+          while (ancestor) {
+            const style = getComputedStyle(ancestor);
+            const scrollable = /(auto|scroll)/.test(style.overflowY)
+              && ancestor.scrollHeight > ancestor.clientHeight;
+            if (scrollable) {
+              const ancestorRect = ancestor.getBoundingClientRect();
+              const horizontallyContained = rect.left >= ancestorRect.left - tolerance
+                && rect.right <= ancestorRect.right + tolerance;
+              const verticallyReachable = menu.offsetTop >= 0
+                && menu.offsetTop + menu.offsetHeight <= ancestor.scrollHeight + tolerance;
+              return { insideViewport, inScrollableContainer: horizontallyContained && verticallyReachable };
+            }
+            ancestor = ancestor.parentElement;
+          }
+          return { insideViewport, inScrollableContainer: false };
+        }"""
+    )
+    assert menu_containment["insideViewport"] or menu_containment["inScrollableContainer"], (
+        f"{selector_name}: expanded language menu leaves both viewport and any scrollable container: "
+        f"{menu_containment}"
+    )
+    current_language = selector.locator('a[aria-current="page"]')
+    assert current_language.count() == 1
+    assert current_language.evaluate("element => getComputedStyle(element).backgroundColor") == "rgb(255, 241, 239)", (
+        f"{selector_name}: current language must use the defined soft red background"
+    )
     return selector
 
 
@@ -430,21 +529,49 @@ def assert_privacy_interactions(page, locale, viewport_name, viewport):
 
 def assert_javascript_disabled(playwright, locale):
     disabled_browser = playwright.chromium.launch(headless=True)
-    context = disabled_browser.new_context(viewport=VIEWPORTS["mobile"], java_script_enabled=False)
+    context = disabled_browser.new_context(java_script_enabled=False)
     page = context.new_page()
-    page.goto(page_file(locale, "home").as_uri(), wait_until="load")
-    assert page.locator("h1").is_visible()
-    for section_id in REQUIRED_HOME_IDS:
-        assert page.locator(f"#{section_id}").is_visible(), f"{locale}: no-script cannot reach #{section_id}"
-    assert page.locator('a[href="privacy.html"], a[href$="/privacy.html"]').first.is_visible()
-    assert page.locator("a[download]").first.is_visible()
-    selector = page.locator("details:has(a[hreflang])")
-    selector.locator("summary").click()
-    assert page.locator("a[hreflang]").count() == 5
-    assert all(page.locator("a[hreflang]").nth(index).is_visible() for index in range(5))
-    assert_no_horizontal_overflow(page, f"{locale}-no-script")
+    for viewport_name, viewport in NO_SCRIPT_VIEWPORTS.items():
+        page.set_viewport_size(viewport)
+        page.goto(page_file(locale, "home").as_uri(), wait_until="load")
+        assert page.locator("html").get_attribute("class") == "no-js"
+        assert page.locator("h1").is_visible()
+        for section_id in REQUIRED_HOME_IDS:
+            assert page.locator(f"#{section_id}").is_visible(), (
+                f"{locale}-{viewport_name}: no-script cannot reach #{section_id}"
+            )
+        assert page.locator("[data-nav]").is_visible(), f"{locale}-{viewport_name}: no-script nav is hidden"
+        assert page.locator('a[href="privacy.html"], a[href$="/privacy.html"]').first.is_visible()
+        assert page.locator("a[download]").first.is_visible()
+        selector = page.locator("details:has(a[hreflang])")
+        selector.locator("summary").click()
+        assert page.locator("a[hreflang]").count() == 5
+        assert all(page.locator("a[hreflang]").nth(index).is_visible() for index in range(5))
+        assert_no_horizontal_overflow(page, f"{locale}-{viewport_name}-no-script")
     context.close()
     disabled_browser.close()
+
+
+def assert_shared_script_failure_fallback(browser, locale):
+    context = browser.new_context(viewport=VIEWPORTS["ipad"])
+    page = context.new_page()
+    page.route("**/script.js", lambda route: route.abort("blockedbyclient"))
+    for page_type in ("home", "privacy"):
+        page.goto(page_file(locale, page_type).as_uri(), wait_until="load")
+        assert page.locator("html").get_attribute("class") == "no-js", (
+            f"{locale}-{page_type}: blocked shared script must preserve the no-js fallback"
+        )
+        selector = page.locator("details:has(a[hreflang])")
+        assert selector.locator("summary").is_visible()
+        selector.locator("summary").click()
+        assert all(selector.locator("a[hreflang]").nth(index).is_visible() for index in range(5))
+        if page_type == "home":
+            assert page.locator("[data-nav]").is_visible(), f"{locale}: fallback navigation is hidden"
+            assert page.locator("a[download]").first.is_visible()
+        else:
+            assert page.locator(".policy-actions .button").is_visible()
+        assert_no_horizontal_overflow(page, f"{locale}-{page_type}-blocked-script")
+    context.close()
 
 
 def assert_global_seo_files():
@@ -500,7 +627,11 @@ def main():
                 page.screenshot(path=str(ARTIFACTS / f"docs-site-{locale}-{viewport_name}.png"), full_page=True)
                 page.close()
 
-            for viewport_name, viewport in {"desktop": VIEWPORTS["desktop"], "mobile": VIEWPORTS["mobile"]}.items():
+            privacy_viewports = {
+                name: VIEWPORTS[name]
+                for name in ("desktop", "desktop-boundary", "compact-boundary", "mobile")
+            }
+            for viewport_name, viewport in privacy_viewports.items():
                 page = browser.new_page(viewport=viewport)
                 page.on("console", lambda message, name=f"{locale}-privacy-{viewport_name}": console_errors.append(f"{name}: {message.text}") if message.type == "error" else None)
                 page.on("pageerror", lambda error, name=f"{locale}-privacy-{viewport_name}": page_errors.append(f"{name}: {error}"))
@@ -510,6 +641,7 @@ def main():
                 page.close()
 
             assert_javascript_disabled(playwright, locale)
+            assert_shared_script_failure_fallback(browser, locale)
             assert_no_browser_language_redirect(browser, locale)
         browser.close()
 

@@ -18,9 +18,12 @@
     <meta property="og:url" content="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/privacy.html">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="zh_CN">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:locale:alternate" content="ja_JP">
+    <meta property="og:locale:alternate" content="ko_KR">
+    <meta property="og:locale:alternate" content="vi_VN">
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="styles.css">
-    <script>document.documentElement.classList.replace("no-js", "js");</script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -90,8 +93,8 @@
 
           <section>
             <h2>3. 发送给用户所选服务商的数据</h2>
-            <p>只有在你主动发起翻译时，所选文字、目标语言和必要的请求指令才会发送到你配置的 API BaseURL。API Key 会作为认证信息随 HTTPS 请求发送给该服务商。点击“测试连接”时会发送固定测试文本“こんにちは”。本扩展不会把页面 URL、页面标题或本地历史附加到翻译请求中。</p>
-            <p>远程服务商会按其自身条款和隐私政策处理收到的数据。请只配置你信任的服务，并自行确认其保存、训练和跨境传输规则。非本机接口必须使用 HTTPS；仅 localhost 和 127.0.0.1 允许 HTTP。</p>
+          <p>只有在你主动发起翻译时，所选文字、目标语言和必要的请求指令才会发送到你配置的 API BaseURL。API Key 会作为认证信息随 API 请求发送给该服务商。点击“测试连接”时会发送固定测试文本“こんにちは”。本扩展不会把页面 URL、页面标题或本地历史附加到翻译请求中。</p>
+          <p>远程服务商会按其自身条款和隐私政策处理收到的数据。请只配置你信任的服务，并自行确认其保存、训练和跨境传输规则。远程端点必须使用 HTTPS；仅 localhost 和 127.0.0.1 回环地址允许 HTTP。</p>
           </section>
 
           <section>

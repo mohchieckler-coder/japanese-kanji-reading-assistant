@@ -18,9 +18,12 @@
     <meta property="og:url" content="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/vi/privacy.html">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="vi_VN">
+    <meta property="og:locale:alternate" content="zh_CN">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:locale:alternate" content="ja_JP">
+    <meta property="og:locale:alternate" content="ko_KR">
     <link rel="icon" href="../assets/icon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="../styles.css">
-    <script>document.documentElement.classList.replace("no-js", "js");</script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -63,7 +66,7 @@
 
           <section><h2>2. Dữ liệu được xử lý cục bộ</h2><ul><li>Văn bản trang web được phân tích hình thái học tiếng Nhật trong trình duyệt để tạo cách đọc. Quá trình này không gửi văn bản trang web đến máy chủ của nhà phát triển.</li><li>Từ Katakana vay mượn được đối chiếu cục bộ với một tập con từ nguyên cố định và các hiệu chỉnh thông dụng được tuyển chọn thủ công, tất cả đều được đóng gói cùng Tiện ích. Tính năng này không truy vấn từ điển từ xa hay gọi API dịch.</li><li>API Key, BaseURL, mô hình, ngôn ngữ đích và ngôn ngữ giao diện của bạn được lưu cục bộ trong bộ nhớ tiện ích Chrome.</li><li>Lịch sử dịch có thể bao gồm văn bản nguồn được chọn, bản dịch, URL trang, tiêu đề trang, thời gian, mô hình, ngôn ngữ đích và lượng token sử dụng. Chi tiết token gồm URL trang, tiêu đề trang, thời gian và lượng sử dụng. Các bản ghi này được lưu cục bộ.</li></ul></section>
 
-          <section><h2>3. Dữ liệu được gửi đến nhà cung cấp do người dùng chọn</h2><p>Chỉ khi bạn chủ động yêu cầu dịch, văn bản được chọn, ngôn ngữ đích và các chỉ dẫn cần thiết cho yêu cầu mới được gửi đến API BaseURL mà bạn đã cấu hình. API Key của bạn được gửi đến nhà cung cấp đó để xác thực trong yêu cầu HTTPS. Khi nhấp vào “Kiểm tra kết nối”, tiện ích gửi văn bản kiểm tra cố định “<span lang="ja">こんにちは</span>”. Tiện ích không đính kèm URL trang, tiêu đề trang hay lịch sử cục bộ vào yêu cầu dịch.</p><p>Nhà cung cấp từ xa xử lý dữ liệu nhận được theo điều khoản và chính sách quyền riêng tư riêng của họ. Chỉ cấu hình dịch vụ mà bạn tin cậy và xem xét cách họ lưu giữ, dùng dữ liệu để huấn luyện và chuyển dữ liệu xuyên biên giới. Điểm cuối không nằm trên máy cục bộ phải dùng HTTPS; chỉ localhost và 127.0.0.1 mới được dùng HTTP.</p></section>
+          <section><h2>3. Dữ liệu được gửi đến nhà cung cấp do người dùng chọn</h2><p>Chỉ khi bạn chủ động yêu cầu dịch, văn bản được chọn, ngôn ngữ đích và các chỉ dẫn cần thiết cho yêu cầu mới được gửi đến API BaseURL mà bạn đã cấu hình. API Key của bạn được gửi đến nhà cung cấp đó dưới dạng thông tin xác thực cùng yêu cầu API. Khi nhấp vào “Kiểm tra kết nối”, tiện ích gửi văn bản kiểm tra cố định “<span lang="ja">こんにちは</span>”. Tiện ích không đính kèm URL trang, tiêu đề trang hay lịch sử cục bộ vào yêu cầu dịch.</p><p>Nhà cung cấp từ xa xử lý dữ liệu nhận được theo điều khoản và chính sách quyền riêng tư riêng của họ. Chỉ cấu hình dịch vụ mà bạn tin cậy và xem xét cách họ lưu giữ, dùng dữ liệu để huấn luyện và chuyển dữ liệu xuyên biên giới. Điểm cuối từ xa phải dùng HTTPS; chỉ các địa chỉ loopback localhost và 127.0.0.1 mới được dùng HTTP.</p></section>
 
           <section><h2>4. Nhà phát triển không thu thập hoặc bán dữ liệu</h2><p>Tiện ích không có máy chủ tiếp nhận dữ liệu do nhà phát triển vận hành, SDK phân tích hay SDK quảng cáo. Nhà phát triển không nhận, bán hoặc cung cấp cho các nhà môi giới dữ liệu API Key, văn bản trang web, văn bản được chọn, lịch sử duyệt web, lịch sử dịch hay bản ghi token của bạn.</p></section>
 

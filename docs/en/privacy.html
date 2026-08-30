@@ -18,9 +18,12 @@
     <meta property="og:url" content="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/en/privacy.html">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="zh_CN">
+    <meta property="og:locale:alternate" content="ja_JP">
+    <meta property="og:locale:alternate" content="ko_KR">
+    <meta property="og:locale:alternate" content="vi_VN">
     <link rel="icon" href="../assets/icon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="../styles.css">
-    <script>document.documentElement.classList.replace("no-js", "js");</script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -63,7 +66,7 @@
 
           <section><h2>2. Data processed locally</h2><ul><li>Webpage text undergoes Japanese morphological analysis in the browser to generate readings. This processing does not send the page text to a developer server.</li><li>Katakana loanwords are matched locally against a fixed etymology subset and manually curated common corrections bundled with the Extension. This feature does not query a remote dictionary or call a translation API.</li><li>Your API Key, BaseURL, model, target language, and interface language are stored locally in Chrome extension storage.</li><li>Translation history may include the selected source text, translation, page URL, page title, time, model, target language, and token usage. Token details include the page URL, page title, time, and usage. These records are stored locally.</li></ul></section>
 
-          <section><h2>3. Data sent to the user's chosen provider</h2><p>Only when you actively request a translation are the selected text, target language, and necessary request instructions sent to the API BaseURL you configured. Your API Key is sent to that provider as authentication with the HTTPS request. Clicking “Test connection” sends the fixed test text “<span lang="ja">こんにちは</span>”. The Extension does not attach the page URL, page title, or local history to translation requests.</p><p>The remote provider processes received data under its own terms and privacy policy. Configure only a service you trust, and review its retention, training, and cross-border transfer practices. Non-local endpoints must use HTTPS; only localhost and 127.0.0.1 may use HTTP.</p></section>
+          <section><h2>3. Data sent to the user's chosen provider</h2><p>Only when you actively request a translation are the selected text, target language, and necessary request instructions sent to the API BaseURL you configured. Your API Key is sent to that provider as authentication information with API requests. Clicking “Test connection” sends the fixed test text “<span lang="ja">こんにちは</span>”. The Extension does not attach the page URL, page title, or local history to translation requests.</p><p>The remote provider processes received data under its own terms and privacy policy. Configure only a service you trust, and review its retention, training, and cross-border transfer practices. Remote endpoints must use HTTPS; only the localhost and 127.0.0.1 loopback addresses may use HTTP.</p></section>
 
           <section><h2>4. The developer does not collect or sell data</h2><p>The Extension has no developer-operated data receiver, analytics SDK, or advertising SDK. The developer does not receive or sell your API Key, webpage text, selected text, browsing history, translation history, or token records, or disclose any of them to data brokers.</p></section>
 
