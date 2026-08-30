@@ -2083,7 +2083,7 @@ rt {
   }
 }
 
-@media (max-width: 800px) {
+@media (max-width: 900px) {
   .js .menu-toggle {
     display: flex;
   }
@@ -2214,6 +2214,10 @@ rt {
   .no-js .hero {
     padding-top: 72px;
   }
+
+}
+
+@media (max-width: 800px) {
 
   .journey-grid {
     grid-template-columns: 1fr;

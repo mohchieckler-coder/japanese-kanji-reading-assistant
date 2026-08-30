@@ -93,6 +93,7 @@ VIEWPORTS = {
     "mobile": {"width": 390, "height": 844},
     "narrow": {"width": 320, "height": 700},
 }
+MOBILE_NAV_MAX_WIDTH = 900
 REQUIRED_HOME_IDS = {"top", "product", "features", "privacy", "install", "faq"}
 
 
@@ -355,7 +356,7 @@ def assert_touch_target(locator, name):
 def assert_homepage_interactions(page, locale, viewport_name, viewport):
     assert_no_horizontal_overflow(page, f"{locale}-{viewport_name}-before-interaction")
 
-    if viewport["width"] <= 800:
+    if viewport["width"] <= MOBILE_NAV_MAX_WIDTH:
         menu = page.locator("[data-menu-toggle]")
         assert menu.is_visible(), f"{locale}-{viewport_name}: mobile menu button is hidden"
         assert_touch_target(menu, f"{locale}-{viewport_name}-menu")
@@ -378,7 +379,7 @@ def assert_homepage_interactions(page, locale, viewport_name, viewport):
 
 def assert_privacy_interactions(page, locale, viewport_name, viewport):
     assert_no_horizontal_overflow(page, f"{locale}-privacy-{viewport_name}-before-interaction")
-    if viewport["width"] <= 800 and page.locator("[data-menu-toggle]").count():
+    if viewport["width"] <= MOBILE_NAV_MAX_WIDTH and page.locator("[data-menu-toggle]").count():
         menu = page.locator("[data-menu-toggle]")
         assert_touch_target(menu, f"{locale}-privacy-{viewport_name}-menu")
         menu.click()
