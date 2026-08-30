@@ -1,0 +1,85 @@
+<!doctype html>
+<html class="no-js" lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <meta name="description" content="日本語漢字読み方アシスタントのプライバシーポリシー：ローカルでの読み・外来語処理、選択範囲の翻訳、API Key、履歴、データ削除について説明します。">
+    <title>プライバシーポリシー｜日本語漢字読み方アシスタント</title>
+    <link rel="canonical" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/ja/privacy.html">
+    <link rel="alternate" hreflang="zh-CN" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/privacy.html">
+    <link rel="alternate" hreflang="en" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/en/privacy.html">
+    <link rel="alternate" hreflang="ja" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/ja/privacy.html">
+    <link rel="alternate" hreflang="ko" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/ko/privacy.html">
+    <link rel="alternate" hreflang="vi" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/vi/privacy.html">
+    <link rel="alternate" hreflang="x-default" href="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/privacy.html">
+    <meta property="og:title" content="プライバシーポリシー｜日本語漢字読み方アシスタント">
+    <meta property="og:description" content="読み・外来語の語源をローカルで処理する方法、選択範囲の翻訳、API Key、履歴、データ削除について説明します。">
+    <meta property="og:url" content="https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/ja/privacy.html">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="ja_JP">
+    <link rel="icon" href="../assets/icon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="../styles.css">
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "プライバシーポリシー｜日本語漢字読み方アシスタント",
+        "description": "ローカルでの読み・外来語の語源処理、選択範囲の翻訳、API Key、履歴、データ削除について説明します。",
+        "url": "https://mohchieckler-coder.github.io/japanese-kanji-reading-assistant/ja/privacy.html",
+        "inLanguage": "ja"
+      }
+    </script>
+  </head>
+  <body class="policy-page">
+    <a class="skip-link" href="#main-content">ポリシー本文へ移動</a>
+
+    <header class="site-header policy-header" data-header>
+      <div class="container header-inner">
+        <a class="brand" href="index.html" aria-label="日本語漢字読み方アシスタントのホームへ戻る"><img src="../assets/icon.svg" width="54" height="54" alt=""><span class="brand-copy"><strong>日本語漢字読み方アシスタント</strong><small>JAPANESE KANJI READING ASSISTANT</small></span></a>
+        <div class="policy-actions">
+          <details class="language-switcher" data-language-switcher>
+            <summary aria-label="ウェブサイトの言語を選択"><span aria-hidden="true">文</span><span>日本語</span></summary>
+            <ul>
+              <li><a href="../privacy.html" hreflang="zh-CN" lang="zh-CN" data-locale-link>简体中文</a></li>
+              <li><a href="../en/privacy.html" hreflang="en" lang="en" data-locale-link>English</a></li>
+              <li><a href="privacy.html" hreflang="ja" lang="ja" aria-current="page" data-locale-link>日本語</a></li>
+              <li><a href="../ko/privacy.html" hreflang="ko" lang="ko" data-locale-link>한국어</a></li>
+              <li><a href="../vi/privacy.html" hreflang="vi" lang="vi" data-locale-link>Tiếng Việt</a></li>
+            </ul>
+          </details>
+          <a class="button button-small" href="index.html">サイトへ戻る</a>
+        </div>
+      </div>
+    </header>
+
+    <main id="main-content" class="policy-main">
+      <div class="container policy-container">
+        <header class="policy-title"><p class="section-kicker">PRIVACY POLICY</p><h1>プライバシーポリシー</h1><p>本ポリシーでは、日本語漢字読み方アシスタント（以下「本拡張機能」）が処理するデータ、その目的、およびユーザーが管理・削除する方法を説明します。</p><p class="policy-updated">発効日および最終更新日：2026年8月22日</p></header>
+
+        <article class="policy-card">
+          <section><h2>1. 単一の目的</h2><p>本拡張機能は、日本語ウェブページの漢字に読みを表示し、高信頼度のカタカナ外来語に原語を表示します。また、ユーザーが能動的に選択したテキストを、ユーザーが設定した OpenAI 互換 API で翻訳します。広告、プロファイリング、データ販売、その他の読解支援と無関係な目的には使用しません。</p></section>
+
+          <section><h2>2. ローカルで処理するデータ</h2><ul><li>ウェブページ本文は、読みを生成するためブラウザー内で日本語形態素解析を行います。この処理でページ本文が開発者サーバーへ送信されることはありません。</li><li>カタカナ外来語は、拡張機能に同梱された固定の語源サブセットと手作業で整備した一般的な補正に対してローカルで照合されます。リモート辞書の照会や翻訳 API の呼び出しは行いません。</li><li>API Key、BaseURL、モデル、翻訳先言語、表示言語は Chrome 拡張機能ストレージにローカル保存されます。</li><li>翻訳履歴には選択した原文、翻訳文、ページ URL、ページタイトル、時刻、モデル、翻訳先言語、Token 使用量を含む場合があります。Token 詳細にはページ URL、ページタイトル、時刻、使用量が含まれます。これらの記録はローカルに保存されます。</li></ul></section>
+
+          <section><h2>3. ユーザーが選んだ提供者へ送信するデータ</h2><p>ユーザーが翻訳を実行した場合に限り、選択テキスト、翻訳先言語、必要な指示が設定済みの API BaseURL へ送信されます。API Key は HTTPS リクエストの認証情報として提供者に送信されます。「接続をテスト」を押すと固定のテスト文「こんにちは」を送信します。ページ URL、ページタイトル、ローカル履歴は翻訳リクエストに付加しません。</p><p>リモート提供者は自身の規約とプライバシーポリシーに基づき受信データを処理します。信頼できるサービスだけを設定し、保存、学習、越境移転の扱いを確認してください。ローカル以外のエンドポイントは HTTPS を使用し、HTTP を使用できるのは localhost と 127.0.0.1 のみです。</p></section>
+
+          <section><h2>4. 開発者はデータを収集・販売しません</h2><p>本拡張機能には、開発者が運用するデータ受信サーバー、分析 SDK、広告 SDK はありません。開発者は、API Key、ページ本文、選択テキスト、閲覧履歴、翻訳履歴、Token 記録を受け取らず、販売またはデータブローカーへ提供しません。</p></section>
+
+          <section><h2>5. 保存期間と削除</h2><ul><li>設定と記録はローカルブラウザーにのみ保存されるため、固定のクラウド保存期間はありません。</li><li>翻訳履歴は最大500件、合計約4 MiBまでです。Token 記録は最大1,000件、合計約512 KiBまでです。上限を超えた場合は古い記録から削除されます。</li><li>ダッシュボードでは、個別の履歴削除、全履歴の消去、Token 記録の消去、API Key の削除ができます。</li><li>拡張機能を削除すると、通常は Chrome が保存したローカルデータも削除されます。確実に削除するには、削除前にダッシュボードで記録と Key を消去してください。</li></ul></section>
+
+          <section><h2>6. 権限の利用方法</h2><ul><li><strong>activeTab:</strong> ユーザーが拡張機能を操作した場合に限り、現在のタブへアクセスします。</li><li><strong>scripting:</strong> 現在のページにローカルの読み、外来語原語注釈、選択範囲翻訳の画面を挿入します。</li><li><strong>storage:</strong> 設定、履歴、Token 記録をローカルに保存します。</li><li><strong>任意のホスト権限:</strong> API 設定の保存またはテスト時に限り、ユーザー指定の API オリジンへのネットワークアクセスを要求します。すべてのウェブサイトへ恒久的にアクセスする権限は取得しません。</li></ul></section>
+
+          <section><h2>7. セキュリティ上の境界</h2><p>API Key がダッシュボードやバックグラウンド応答に完全な形で表示されることはなく、拡張機能ストレージへのアクセスは信頼できる拡張機能コンテキストに制限されます。これらは偶発的な露出を減らしますが、ローカル拡張機能ストレージはハードウェア金庫ではありません。ブラウザープロファイルと端末アカウントを保護し、漏えいの疑いがある場合は直ちに提供者側で Key を失効またはローテーションしてください。</p></section>
+
+          <section><h2>8. 子ども、変更、お問い合わせ</h2><p>本拡張機能は子ども向けに特別設計されたサービスではなく、ユーザーアカウントを積極的に作成しません。機能またはデータ処理の実務が大きく変更された場合は、本ポリシーの日付と説明を更新します。プライバシーに関する質問は公開プロジェクトの GitHub Issues から送信できます。</p><p><a href="https://github.com/mohchieckler-coder/japanese-kanji-reading-assistant/issues">GitHub Issues を開く</a></p></section>
+        </article>
+      </div>
+    </main>
+
+    <footer class="site-footer"><div class="container footer-grid"><div class="footer-brand"><img src="../assets/icon.svg" width="38" height="38" alt=""><div><strong>Japanese Kanji Reading Assistant</strong><small>ローカル優先の日本語ウェブ読解ツール</small></div></div><p>© 2026 Japanese Kanji Reading Assistant · プライバシーポリシー</p><a href="index.html">サイトへ戻る <span aria-hidden="true">→</span></a></div></footer>
+
+    <script src="../script.js"></script>
+  </body>
+</html>
