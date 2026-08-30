@@ -41,7 +41,8 @@ document.addEventListener("click", (event) => {
   }
 });
 
-const desktopNavigation = window.matchMedia("(min-width: 901px)");
+const compactNavMaxWidth = document.documentElement.lang === "zh-CN" ? 900 : 1160;
+const desktopNavigation = window.matchMedia(`(min-width: ${compactNavMaxWidth + 1}px)`);
 desktopNavigation.addEventListener("change", (event) => {
   if (event.matches) {
     setMenuOpen(false);

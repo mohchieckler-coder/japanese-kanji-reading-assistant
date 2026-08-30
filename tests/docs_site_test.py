@@ -112,6 +112,9 @@ DISALLOWED_EXTENSION_UI_LANGUAGE_LABELS = ("vietnamese", "tiếng việt", "越�
 
 VIEWPORTS = {
     "desktop": {"width": 1440, "height": 900},
+    "localized-desktop-boundary": {"width": 1161, "height": 900},
+    "localized-compact-boundary": {"width": 1160, "height": 900},
+    "localized-review": {"width": 910, "height": 698},
     "desktop-boundary": {"width": 901, "height": 900},
     "compact-boundary": {"width": 900, "height": 900},
     "ipad": {"width": 820, "height": 1180},
@@ -120,9 +123,18 @@ VIEWPORTS = {
 }
 NO_SCRIPT_VIEWPORTS = {
     name: VIEWPORTS[name]
-    for name in ("mobile", "ipad", "compact-boundary", "desktop-boundary", "desktop")
+    for name in (
+        "mobile",
+        "ipad",
+        "compact-boundary",
+        "desktop-boundary",
+        "localized-compact-boundary",
+        "localized-desktop-boundary",
+        "desktop",
+    )
 }
-MOBILE_NAV_MAX_WIDTH = 900
+CHINESE_NAV_MAX_WIDTH = 900
+LOCALIZED_NAV_MAX_WIDTH = 1160
 REQUIRED_HOME_IDS = {"top", "product", "features", "privacy", "install", "faq"}
 
 
@@ -133,6 +145,10 @@ def page_file(locale, page_type):
 
 def canonical_url(locale, page_type):
     return LOCALES[locale][f"public_{page_type}"]
+
+
+def compact_nav_max_width(locale):
+    return CHINESE_NAV_MAX_WIDTH if locale == "zh-CN" else LOCALIZED_NAV_MAX_WIDTH
 
 
 def assert_archive_integrity():
@@ -452,10 +468,53 @@ def assert_touch_target(locator, name):
     assert bounds and bounds["width"] >= 44 and bounds["height"] >= 44, f"{name}: touch target must be at least 44 by 44 px"
 
 
+def assert_desktop_navigation_single_line(page, locale, viewport_name):
+    for index, link in enumerate(page.locator("[data-nav] > a:not(.button)").all()):
+        metrics = link.evaluate(
+            """element => ({
+              height: element.getBoundingClientRect().height,
+              lineHeight: Number.parseFloat(getComputedStyle(element).lineHeight)
+            })"""
+        )
+        assert metrics["height"] <= metrics["lineHeight"] * 1.25, (
+            f"{locale}-{viewport_name}: desktop nav link {index} wraps across lines: {metrics}"
+        )
+
+
+def assert_loanword_demo_layout(page, locale, viewport_name):
+    demo = page.locator(".loanword-demo")
+    assert demo.count() == 1, f"{locale}-{viewport_name}: require one structured loanword demo"
+    samples = demo.locator(".loanword-sample")
+    assert samples.count() == 4, f"{locale}-{viewport_name}: require four loanword samples"
+    assert demo.locator(".loanword-country").all_text_contents() == ["仏", "独", "西"]
+
+    for index in range(samples.count()):
+        sample = samples.nth(index)
+        origin = sample.locator(".loanword-origin")
+        base = sample.locator(".loanword-base")
+        assert origin.count() == 1 and base.count() == 1
+        origin_bounds = origin.bounding_box()
+        base_bounds = base.bounding_box()
+        sample_bounds = sample.bounding_box()
+        assert origin_bounds and base_bounds and sample_bounds
+        assert origin_bounds["y"] + origin_bounds["height"] <= base_bounds["y"] + 1, (
+            f"{locale}-{viewport_name}: loanword origin overlaps its katakana base at sample {index}"
+        )
+        assert origin_bounds["x"] >= sample_bounds["x"] - 1
+        assert origin_bounds["x"] + origin_bounds["width"] <= sample_bounds["x"] + sample_bounds["width"] + 1
+        assert base_bounds["x"] >= sample_bounds["x"] - 1
+        assert base_bounds["x"] + base_bounds["width"] <= sample_bounds["x"] + sample_bounds["width"] + 1
+
+    assert samples.nth(0).get_attribute("data-origin-language") == "en"
+    assert samples.nth(0).locator(".loanword-country").count() == 0
+    assert all(samples.nth(index).locator(".loanword-country").count() == 1 for index in range(1, 4))
+    assert_no_horizontal_overflow(page, f"{locale}-{viewport_name}-loanword-demo")
+
+
 def assert_homepage_interactions(page, locale, viewport_name, viewport):
     assert_no_horizontal_overflow(page, f"{locale}-{viewport_name}-before-interaction")
 
-    if viewport["width"] <= MOBILE_NAV_MAX_WIDTH:
+    if viewport["width"] <= compact_nav_max_width(locale):
         menu = page.locator("[data-menu-toggle]")
         assert menu.is_visible(), f"{locale}-{viewport_name}: mobile menu button is hidden"
         assert_touch_target(menu, f"{locale}-{viewport_name}-menu")
@@ -473,7 +532,11 @@ def assert_homepage_interactions(page, locale, viewport_name, viewport):
     else:
         assert page.locator("[data-menu-toggle]").is_hidden()
         assert page.locator("[data-nav]").is_visible()
+        assert_desktop_navigation_single_line(page, locale, viewport_name)
         open_locale_selector(page, f"{locale}-{viewport_name}")
+
+    if viewport_name in ("localized-review", "mobile"):
+        assert_loanword_demo_layout(page, locale, viewport_name)
 
 
 def assert_compact_to_desktop_resize_cleanup(page, locale, viewport):
@@ -484,10 +547,11 @@ def assert_compact_to_desktop_resize_cleanup(page, locale, viewport):
     assert navigation.evaluate("element => element.classList.contains('is-open')")
     assert page.locator("body").evaluate("element => element.classList.contains('menu-open')")
 
-    page.set_viewport_size({"width": MOBILE_NAV_MAX_WIDTH + 1, "height": viewport["height"]})
+    desktop_width = compact_nav_max_width(locale) + 1
+    page.set_viewport_size({"width": desktop_width, "height": viewport["height"]})
     page.wait_for_function(
         "width => window.innerWidth === width && window.matchMedia(`(min-width: ${width}px)`).matches",
-        arg=MOBILE_NAV_MAX_WIDTH + 1,
+        arg=desktop_width,
     )
 
     assert menu.is_hidden(), f"{locale}-ipad-resize: desktop toggle must be hidden"
@@ -514,7 +578,7 @@ def assert_compact_to_desktop_resize_cleanup(page, locale, viewport):
 
 def assert_privacy_interactions(page, locale, viewport_name, viewport):
     assert_no_horizontal_overflow(page, f"{locale}-privacy-{viewport_name}-before-interaction")
-    if viewport["width"] <= MOBILE_NAV_MAX_WIDTH and page.locator("[data-menu-toggle]").count():
+    if viewport["width"] <= compact_nav_max_width(locale) and page.locator("[data-menu-toggle]").count():
         menu = page.locator("[data-menu-toggle]")
         assert_touch_target(menu, f"{locale}-privacy-{viewport_name}-menu")
         menu.click()
@@ -524,6 +588,9 @@ def assert_privacy_interactions(page, locale, viewport_name, viewport):
         assert menu.get_attribute("aria-expanded") == "false"
         assert menu.evaluate("(element) => document.activeElement === element")
     else:
+        if page.locator("[data-menu-toggle]").count():
+            assert page.locator("[data-menu-toggle]").is_hidden()
+            assert_desktop_navigation_single_line(page, locale, f"privacy-{viewport_name}")
         open_locale_selector(page, f"{locale}-privacy-{viewport_name}")
 
 
